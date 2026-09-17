@@ -1,0 +1,56 @@
+{
+  "name": "阿康爸的平安科技日常",
+  "short": "阿康 GOODSKANG",
+  "tagline": "iPhone、Apple、特斯拉、3C 開箱與台股 AI 工具——二寶爸阿康每天更新",
+  "description": "阿康(GOODSKANG)的科技生活站:每天更新 YouTube 開箱影片、iPhone 18 Pro / Apple / 特斯拉等科技快訊,以及免費的台股 AI 作戰室(五燈檢查表、交易計畫卡、回測)。",
+  "url": "https://goodskang.netlify.app",
+  "author": "阿康 (Kang)",
+  "email": "goodskang@gmail.com",
+  "youtubeChannelId": "UCuQ7s6G50qzqgDbQB6qKDDw",
+  "youtube": "https://www.youtube.com/@goodskang",
+  "instagram": "https://www.instagram.com/goodskang/",
+  "facebook": "https://www.facebook.com/goodskang",
+  "tool": "https://goodskangtaiwanstock.netlify.app/",
+  "toolFunctions": "https://goodskangtaiwanstock.netlify.app/.netlify/functions",
+  "ga": "",
+  "categories": [
+    "Apple",
+    "iPhone",
+    "特斯拉",
+    "3C 配件",
+    "AI 與科技",
+    "台股 AI 工具",
+    "生活"
+  ],
+  "about": "阿康,二寶爸台中人;人稱大里金城武和重度蘋果狗。喜歡拍 Apple 產品與配件、特斯拉電動車、各種 Android 手機與 3C 產品,以及和老婆一起的夫妻育兒生活。影片都用最生活化、最貼近一般人的方式分享。每週固定 3~5 支影片,YouTube 訂閱 10 萬+、累積觀看 4,000 萬+。",
+  "milestones": [
+    [
+      "2019-09",
+      "YouTube 1,000 訂閱"
+    ],
+    [
+      "2020-04",
+      "10,000 訂閱"
+    ],
+    [
+      "2021-06",
+      "累積 1,000 萬觀看"
+    ],
+    [
+      "2023-09",
+      "100,000 訂閱"
+    ],
+    [
+      "2024-09",
+      "累積 4,000 萬觀看"
+    ],
+    [
+      "2025-02",
+      "頻道更名「阿康爸的平安科技日常」——以爸爸的角度為孩子出發"
+    ],
+    [
+      "2026",
+      "推出免費「阿康的台股 AI 作戰室」"
+    ]
+  ]
+}

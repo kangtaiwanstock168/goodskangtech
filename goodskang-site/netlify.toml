@@ -1,0 +1,16 @@
+[build]
+  command = "node build.js"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# 每天台北時間 06:10 與 18:10 自動重建(抓最新影片、IG/FB 貼文與熱門股);需在 Netlify 設定 BUILD_HOOK 環境變數
+[functions."daily"]
+  schedule = "10 10,22 * * *"
+
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

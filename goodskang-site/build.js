@@ -11,9 +11,10 @@ const TZ = d => new Date(new Date(d).getTime() + 8 * 3600e3);   // 台北時間�
 const ymd = d => TZ(d).toISOString().slice(0, 10);
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const attr = esc;
-const fetchText = async (url, ms = 12000) => {
+const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
+const fetchText = async (url, ms = 12000, headers = {}) => {
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
-  try{ const r = await fetch(url, {signal: ctl.signal, headers: {'user-agent': 'goodskang-site-build/1.0'}}); if(!r.ok) throw new Error('HTTP ' + r.status); return await r.text(); }
+  try{ const r = await fetch(url, {signal: ctl.signal, headers: Object.assign({'user-agent': UA, 'accept-language': 'en-US,en;q=0.9'}, headers)}); if(!r.ok) throw new Error('HTTP ' + r.status); return await r.text(); }
   finally{ clearTimeout(t); }
 };
 const readCache = f => { try{ return JSON.parse(fs.readFileSync(path.join(C, 'cache', f), 'utf8')); }catch(e){ return null; } };
@@ -71,23 +72,76 @@ function loadPosts(){
   return posts.sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
 }
 
-// ── 抓 YouTube RSS(頻道最新 15 支);合併快取,舊影片不會消失 ──
+// ── 影片來源(三層備援):① 頻道 RSS ② 直接讀頻道 /videos 與 /shorts 頁面(YouTube 2026-09 起 RSS 常 404)③ 快取
+// 只要拿到影片 ID,沒有精確日期的就到觀看頁抓 publishDate 與觀看數(每次最多 12 支);快取會寫回 GitHub,日期與觀看數跨建站保留
+const parseViews = t => { const m = String(t || '').replace(/,/g, '').match(/([\d.]+)\s*([KMB萬億])?/i); if(!m) return 0; const n = parseFloat(m[1]); const u = (m[2] || '').toUpperCase(); return Math.round(n * (u === 'K' ? 1e3 : u === 'M' ? 1e6 : u === 'B' ? 1e9 : u === '萬' ? 1e4 : u === '億' ? 1e8 : 1)); };
+const relDays = t => { const m = String(t || '').match(/(\d+)\s*(second|minute|hour|day|week|month|year|秒|分鐘|小時|天|週|個月|年)/); if(!m) return null; const n = +m[1], u = m[2]; return /second|minute|hour|秒|分|小時/.test(u) ? 0 : /day|天/.test(u) ? n : /week|週/.test(u) ? n * 7 : /month|個月/.test(u) ? n * 30 : n * 365; };
+const walk = (o, fn) => { if(!o || typeof o !== 'object') return; if(Array.isArray(o)){ o.forEach(x => walk(x, fn)); return; } fn(o); for(const k in o) walk(o[k], fn); };
+async function scrapeChannel(kind){
+  const html = await fetchText(`https://www.youtube.com/${site.youtubeHandle || '@goodskang'}/${kind}?hl=en`, 20000, {cookie: 'CONSENT=YES+cb; SOCS=CAISEwgDEgk2ODE4NTQwOTgaAmVuIAEaBgiA_LyuBg'});
+  const m = html.match(/var ytInitialData = (\{[\s\S]*?\});\s*<\/script>/); if(!m) throw new Error('no ytInitialData');
+  const data = JSON.parse(m[1]); const out = [], seen = new Set();
+  walk(data, o => {
+    if(o.videoRenderer && o.videoRenderer.videoId){ const v = o.videoRenderer; if(seen.has(v.videoId)) return; seen.add(v.videoId);
+      out.push({id: v.videoId, title: (v.title?.runs || []).map(r => r.text).join(''), views: parseViews(v.viewCountText?.simpleText), rel: relDays(v.publishedTimeText?.simpleText), short: kind === 'shorts'}); }
+    if(o.lockupViewModel && o.lockupViewModel.contentId && /^[\w-]{11}$/.test(o.lockupViewModel.contentId)){ const l = o.lockupViewModel; if(seen.has(l.contentId)) return; seen.add(l.contentId);
+      const md = l.metadata?.lockupMetadataViewModel; const parts = (md?.metadata?.contentMetadataViewModel?.metadataRows || []).flatMap(r => (r.metadataParts || []).map(p => p.text?.content || ''));
+      out.push({id: l.contentId, title: md?.title?.content || '', views: parseViews(parts.find(p => /view|觀看/.test(p))), rel: relDays(parts.find(p => /ago|前/.test(p))), short: kind === 'shorts'}); }
+    if(o.shortsLockupViewModel){ const sl = o.shortsLockupViewModel; const id = sl.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId || sl.entityId?.replace(/^.*?([\w-]{11})$/, '$1'); if(!id || !/^[\w-]{11}$/.test(id) || seen.has(id)) return; seen.add(id);
+      out.push({id, title: sl.overlayMetadata?.primaryText?.content || sl.accessibilityText || '', views: parseViews(sl.overlayMetadata?.secondaryText?.content), rel: null, short: true}); }
+  });
+  return out;
+}
+async function watchMeta(id){   // 觀看頁:精確上傳日與觀看數
+  const html = await fetchText(`https://www.youtube.com/watch?v=${id}&hl=en`, 15000, {cookie: 'CONSENT=YES+cb'});
+  const d = (html.match(/"publishDate":"(\d{4}-\d{2}-\d{2})/) || [])[1], vc = (html.match(/"viewCount":"(\d+)"/) || [])[1], t = (html.match(/<meta name="title" content="([^"]*)"/) || [])[1];
+  const desc = (html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/) || [])[1];
+  return {published: d ? d + 'T12:00:00+08:00' : '', views: Number(vc || 0), title: t ? t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'") : '', desc: desc ? JSON.parse('"' + desc + '"').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 300) : ''};
+}
 async function loadVideos(){
   const cache = readCache('videos.json') || [];
-  let fresh = [];
+  const map = new Map(); for(const v of cache) map.set(v.id, Object.assign({}, v));
+  let fresh = [], src = '';
   try{
     const xml = await fetchText(`https://www.youtube.com/feeds/videos.xml?channel_id=${site.youtubeChannelId}`);
-    const entries = xml.split('<entry>').slice(1);
-    for(const e of entries){
+    for(const e of xml.split('<entry>').slice(1)){
       const g = re => { const m = e.match(re); return m ? m[1] : ''; };
       const id = g(/<yt:videoId>([^<]+)</); if(!id) continue;
       fresh.push({id, title: g(/<title>([^<]*)<\/title>/).replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>'), published: g(/<published>([^<]+)</), views: Number(g(/<media:statistics views="(\d+)"/) || 0), desc: g(/<media:description>([\s\S]*?)<\/media:description>/).replace(/&amp;/g, '&').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 300)});
     }
-  }catch(e){ console.warn('[videos] RSS 抓取失敗,用快取:', e.message); }
-  const map = new Map(); for(const v of cache) map.set(v.id, v); for(const v of fresh) map.set(v.id, Object.assign({}, map.get(v.id) || {}, v));
-  const all = [...map.values()].sort((a, b) => String(b.published).localeCompare(String(a.published)));
-  if(fresh.length) writeCache('videos.json', all.slice(0, 200));
+    if(fresh.length) src = 'rss';
+  }catch(e){ console.warn('[videos] RSS 失敗:', e.message); }
+  if(!fresh.length){
+    for(const kind of ['videos', 'shorts']){ try{ const a = await scrapeChannel(kind); fresh.push(...a); }catch(e){ console.warn(`[videos] 頻道 ${kind} 頁失敗:`, e.message); } }
+    if(fresh.length) src = 'page';
+  }
+  // 合併:頁面抓到的沒有精確日期 → 先用快取的;快取也沒有 → 去觀看頁抓(每次最多 12 支)
+  let need = [];
+  for(const v of fresh){
+    const old = map.get(v.id) || {};
+    const rec = Object.assign({}, old, {id: v.id, title: v.title || old.title || '', views: v.views || old.views || 0, desc: v.desc || old.desc || '', short: v.short != null ? v.short : old.short});
+    if(v.published) rec.published = v.published;
+    else if(!old.published || old.approx){ if(v.rel != null){ rec.published = new Date(Date.now() - v.rel * 864e5).toISOString(); rec.approx = true; } need.push(rec); }
+    map.set(v.id, rec);
+  }
+  for(const rec of need.slice(0, 12)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && !rec.title) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } if(!rec.published){ rec.published = new Date().toISOString(); rec.approx = true; } }
+  const all = [...map.values()].filter(v => v.id && v.title).sort((a, b) => String(b.published).localeCompare(String(a.published)));
+  console.log(`[videos] 來源 ${src || 'cache'}:新 ${fresh.length} 支,合計 ${all.length} 支`);
+  if(fresh.length){ const kept = all.slice(0, 300); writeCache('videos.json', kept); await pushCache('content/cache/videos.json', JSON.stringify(kept)); }
   return all;
+}
+// 快取寫回 GitHub(有 GITHUB_TOKEN 才做;commit 訊息帶 [skip netlify] 不會觸發重建)
+async function pushCache(p, body){
+  const TOKEN = process.env.GITHUB_TOKEN, REPO = process.env.GITHUB_REPO, BR = process.env.GITHUB_BRANCH || 'main', BASE = (process.env.GITHUB_BASE || 'goodskang-site').replace(/^\/|\/$/g, '');
+  if(!TOKEN || !REPO) return;
+  const full = (BASE ? BASE + '/' : '') + p;
+  try{
+    const h = {authorization: `Bearer ${TOKEN}`, accept: 'application/vnd.github+json', 'user-agent': 'goodskang-site', 'content-type': 'application/json'};
+    const cur = await fetch(`https://api.github.com/repos/${REPO}/contents/${full}?ref=${BR}`, {headers: h}).then(r => r.ok ? r.json() : null);
+    if(cur && Buffer.from(cur.content || '', 'base64').toString('utf8') === body) return;
+    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${full}`, {method: 'PUT', headers: h, body: JSON.stringify({message: `cache: ${p} [skip netlify]`, branch: BR, content: Buffer.from(body, 'utf8').toString('base64'), sha: cur ? cur.sha : undefined})});
+    console.log('[cache] 寫回 GitHub', p, r.status);
+  }catch(e){ console.warn('[cache] 寫回失敗:', e.message); }
 }
 
 // ── 抓 AI 工具的雷達(強勢股 scan + 話題 news) ──
@@ -272,14 +326,18 @@ async function main(){
   if(fs.existsSync(path.join(ROOT, 'static'))) fs.cpSync(path.join(ROOT, 'static'), DIST, {recursive: true});
   if(fs.existsSync(path.join(ROOT, 'admin'))) fs.cpSync(path.join(ROOT, 'admin'), path.join(DIST, 'admin'), {recursive: true});
   fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d1117"/><rect x="24" y="14" width="16" height="30" rx="4" fill="#f85149"/><rect x="31" y="6" width="2" height="8" fill="#f85149"/><rect x="31" y="44" width="2" height="10" fill="#f85149"/><circle cx="28" cy="26" r="2" fill="#0d1117"/><circle cx="36" cy="26" r="2" fill="#0d1117"/><path d="M27 34q5 4 10 0" stroke="#0d1117" stroke-width="2" fill="none"/></svg>`);
-  const latest = videos[0], vid4 = videos.slice(1, 5);
+  // 首頁:大圖=最新一支;右欄「本週影片」=7 天內的影片,觀看數高→低、同觀看數新→舊;不足 4 支就用最新的補
+  const latest = videos[0];
+  const wk = Date.now() - 7 * 864e5;
+  const week = videos.filter(v => v.id !== (latest && latest.id) && new Date(v.published).getTime() >= wk).sort((a, b) => (b.views || 0) - (a.views || 0) || String(b.published).localeCompare(String(a.published)));
+  const vid4 = week.concat(videos.filter(v => v.id !== (latest && latest.id) && !week.includes(v))).slice(0, 4);
   const toolFeat = ['🚦 五燈順勢檢查表', '🛡 防守位與部位計算', '📋 交易計畫卡(5/10/20 日歷史統計)', '📈 話題雷達・強勢股雷達', '🐢 六種存股策略回測', '💰 本益比體檢'];
   const ctaHtml = `<div class="cta"><div><h2>🧮 阿康的台股 AI 作戰室——免費・免註冊</h2><p>打一檔代號:五燈檢查表、標註 K 線、防守與部位、交易計畫卡馬上出來;想存股就做六種策略回測。不報明牌、不喊進出,把數據攤開你自己決定。</p><a class="btn" href="${site.tool}" target="_blank" rel="noopener">開啟工具 →</a> <a class="btn o" href="/hot.html">看今日熱門股</a></div><div class="feat">${toolFeat.map(f => `<div>${f}</div>`).join('')}</div></div>`;
   // 首頁
   const home = `
 <section class="hero">
   <div class="card main">${latest ? `${ytEmbed(latest.id)}<div class="cap"><span class="pill">最新影片・${ymd(latest.published)}</span><h2 style="margin:6px 0 4px;font-size:1.15rem;line-height:1.45;"><a href="https://www.youtube.com/watch?v=${latest.id}" target="_blank" rel="noopener" style="color:var(--text)">${esc(latest.title)}</a></h2>${latest.desc ? `<p style="margin:0;color:var(--muted);font-size:.9rem;">${esc(latest.desc.slice(0, 110))}…</p>` : ''}</div>` : '<div class="cap">影片載入中</div>'}</div>
-  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片</h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${ymd(v.published)}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
+  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">7 天內・依觀看數</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${ymd(v.published)}${v.views ? '・' + Number(v.views).toLocaleString('zh-TW') + ' 次' : ''}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
 </section>
 <div class="sec"><h2>📰 科技快訊</h2><span style="color:var(--muted);font-size:.85rem;">每天更新的 iPhone・Apple・特斯拉・AI 產業整理</span><a href="/posts.html">更多 →</a></div>
 <div class="list card">${posts.slice(0, 8).map(pRow).join('') || '<p style="color:var(--muted);">第一篇快訊準備中。</p>'}</div>

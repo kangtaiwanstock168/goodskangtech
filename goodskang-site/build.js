@@ -104,7 +104,8 @@ async function loadHot(){
 // 每次建站抓最近 50 則,圖片下載到 dist/img/social/(IG 的 CDN 圖檔網址會過期,所以要抓下來自己放)
 // 同一篇 IG/FB 交叉發文只留一篇(比對前 60 字),FB 連結掛在同一篇底下
 async function loadSocial(){
-  const token = process.env.META_TOKEN; if(!token) return [];
+  const token = process.env.META_TOKEN, igToken = process.env.IG_TOKEN;
+  if(!token && !igToken) return [];
   const G = 'https://graph.facebook.com/v21.0';
   const imgDir = path.join(DIST, 'img', 'social'); fs.mkdirSync(imgDir, {recursive: true});
   const grab = async (url, id) => {   // 下載圖到本站;失敗回空字串
@@ -118,14 +119,22 @@ async function loadSocial(){
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
   const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: String(text).replace(/#\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: md(String(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
   const out = [];
+  // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
-    if(process.env.IG_USER_ID){
+    if(igToken){
+      const j = JSON.parse(await fetchText(`https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${igToken}`, 20000));
+      for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {})); }
+    }
+  }catch(e){ console.warn('[social] IG(Instagram Login) 抓取失敗:', e.message); }
+  // 路線 B:透過粉專的 Graph API(META_TOKEN + IG_USER_ID / FB_PAGE_ID)
+  try{
+    if(token && process.env.IG_USER_ID && !out.length){
       const j = JSON.parse(await fetchText(`${G}/${process.env.IG_USER_ID}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${token}`, 20000));
       for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {})); }
     }
   }catch(e){ console.warn('[social] IG 抓取失敗:', e.message); }
   try{
-    if(process.env.FB_PAGE_ID){
+    if(token && process.env.FB_PAGE_ID){
       const j = JSON.parse(await fetchText(`${G}/${process.env.FB_PAGE_ID}/posts?fields=id,message,created_time,permalink_url,full_picture&limit=50&access_token=${token}`, 20000));
       for(const m of (j.data || [])){ if(!m.message) continue;
         const key = String(m.message).replace(/\s+/g, '').slice(0, 60);
@@ -238,7 +247,7 @@ ${site.ga ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${si
 </footer></body></html>`;
 }
 const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${ymd(v.published)}${v.views ? `・${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''}</div></a>`;
-const pRow = p => `<div class="row"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(88,166,255,.1);display:flex;align-items:center;justify-content:center;font-size:2rem;">📰</div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span><h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
+const pRow = p => `<div class="row"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(88,166,255,.1);display:flex;align-items:center;justify-content:center;font-size:2rem;">📰</div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? '📷 IG' : '📘 FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
 const nmOf = id => NAMES[id] || id;
 function hotBlock(hot){
   const list = ((hot.scan && hot.scan.list) || []).slice(0, 8), top = ((hot.news && hot.news.top) || []).slice(0, 8);

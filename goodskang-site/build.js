@@ -8,7 +8,7 @@ const site = JSON.parse(fs.readFileSync(path.join(C, 'site.json'), 'utf8'));
 const NAMES = (() => { try{ return JSON.parse(fs.readFileSync(path.join(C, 'names.json'), 'utf8')); }catch(e){ return {}; } })();
 const BUILT = new Date();
 const TZ = d => new Date(new Date(d).getTime() + 8 * 3600e3);   // 台北時間顯示
-const ymd = d => TZ(d).toISOString().slice(0, 10);
+const ymd = d => { const t = TZ(d); return (isNaN(t.getTime()) || t.getTime() < 946684800000) ? '' : t.toISOString().slice(0, 10); };   // 日期壞掉/未知(1970)就留白,不能讓整站建失敗   // 日期壞掉不能讓整站建失敗
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const attr = esc;
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
@@ -124,7 +124,11 @@ async function loadVideos(){
     else if(!old.published || old.approx){ if(v.rel != null){ rec.published = new Date(Date.now() - v.rel * 864e5).toISOString(); rec.approx = true; } need.push(rec); }
     map.set(v.id, rec);
   }
-  for(const rec of need.slice(0, 12)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && !rec.title) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } if(!rec.published){ rec.published = new Date().toISOString(); rec.approx = true; } }
+  // 沒日期的先查(Shorts 頁面不給日期),再查只有「幾天前」的;每次最多 20 支,剩下的下次建站再補(快取有寫回才會累積)
+  need.sort((a, b) => (a.published ? 1 : 0) - (b.published ? 1 : 0));
+  for(const rec of need.slice(0, 20)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && !rec.title) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } }
+  // 還是不知道日期的:先沉到最底(1970),絕不能冒充最新影片;下次建站會再查
+  for(const rec of map.values()){ if(!rec.published || isNaN(new Date(rec.published).getTime())){ rec.published = '1970-01-01T00:00:00.000Z'; rec.approx = true; } }
   const all = [...map.values()].filter(v => v.id && v.title).sort((a, b) => String(b.published).localeCompare(String(a.published)));
   console.log(`[videos] 來源 ${src || 'cache'}:新 ${fresh.length} 支,合計 ${all.length} 支`);
   if(fresh.length){ const kept = all.slice(0, 300); writeCache('videos.json', kept); await pushCache('content/cache/videos.json', JSON.stringify(kept)); }
@@ -300,7 +304,7 @@ ${site.ga ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${si
 <div class="disc">⚠️ 股市相關內容皆為歷史統計與公開資料整理,非投資建議,損益自負。</div>
 </footer></body></html>`;
 }
-const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${ymd(v.published)}${v.views ? `・${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''}</div></a>`;
+const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${[ymd(v.published), v.views ? `${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''].filter(Boolean).join('・')}</div></a>`;
 const pRow = p => `<div class="row"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(88,166,255,.1);display:flex;align-items:center;justify-content:center;font-size:2rem;">📰</div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? '📷 IG' : '📘 FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
 const nmOf = id => NAMES[id] || id;
 function hotBlock(hot){
@@ -337,7 +341,7 @@ async function main(){
   const home = `
 <section class="hero">
   <div class="card main">${latest ? `${ytEmbed(latest.id)}<div class="cap"><span class="pill">最新影片・${ymd(latest.published)}</span><h2 style="margin:6px 0 4px;font-size:1.15rem;line-height:1.45;"><a href="https://www.youtube.com/watch?v=${latest.id}" target="_blank" rel="noopener" style="color:var(--text)">${esc(latest.title)}</a></h2>${latest.desc ? `<p style="margin:0;color:var(--muted);font-size:.9rem;">${esc(latest.desc.slice(0, 110))}…</p>` : ''}</div>` : '<div class="cap">影片載入中</div>'}</div>
-  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">7 天內・依觀看數</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${ymd(v.published)}${v.views ? '・' + Number(v.views).toLocaleString('zh-TW') + ' 次' : ''}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
+  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">7 天內・依觀看數</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
 </section>
 <div class="sec"><h2>📰 科技快訊</h2><span style="color:var(--muted);font-size:.85rem;">每天更新的 iPhone・Apple・特斯拉・AI 產業整理</span><a href="/posts.html">更多 →</a></div>
 <div class="list card">${posts.slice(0, 8).map(pRow).join('') || '<p style="color:var(--muted);">第一篇快訊準備中。</p>'}</div>
@@ -349,7 +353,7 @@ async function main(){
 <div class="card"><p style="margin:0;">${esc(site.about)}</p></div>`;
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|iPhone・Apple・特斯拉開箱 & 台股 AI 工具`, desc: site.description, url: '/', body: home, cur: '/', image: latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''}));
   // 影片頁
-  const vLd = videos.slice(0, 30).map(v => ({'@context': 'https://schema.org', '@type': 'VideoObject', name: v.title, description: v.desc || v.title, thumbnailUrl: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, uploadDate: v.published, embedUrl: `https://www.youtube-nocookie.com/embed/${v.id}`, url: `https://www.youtube.com/watch?v=${v.id}`, author: {'@type': 'Person', name: site.author}}));
+  const vLd = videos.slice(0, 30).map(v => ({'@context': 'https://schema.org', '@type': 'VideoObject', name: v.title, description: v.desc || v.title, thumbnailUrl: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, ...(v.published && !v.published.startsWith('1970') ? {uploadDate: v.published} : {}), embedUrl: `https://www.youtube-nocookie.com/embed/${v.id}`, url: `https://www.youtube.com/watch?v=${v.id}`, author: {'@type': 'Person', name: site.author}}));
   fs.writeFileSync(path.join(DIST, 'videos.html'), page({title: `影片總覽|${site.name}`, desc: `阿康 YouTube 頻道最新影片:${videos.slice(0, 3).map(v => v.title).join('、')}`, url: '/videos.html', cur: '/videos.html', jsonld: vLd, body: `<div class="sec"><h2>📺 全部影片</h2><a href="${site.youtube}" target="_blank" rel="noopener">YouTube 頻道 →</a></div><div class="grid">${videos.map(vCard).join('')}</div>`}));
   // 快訊列表
   const cats = [...new Set(posts.map(p => p.category))];

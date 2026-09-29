@@ -78,31 +78,59 @@ const parseViews = t => { const m = String(t || '').replace(/,/g, '').match(/([\
 const relDays = t => { const m = String(t || '').match(/(\d+)\s*(second|minute|hour|day|week|month|year|秒|分鐘|小時|天|週|個月|年)/); if(!m) return null; const n = +m[1], u = m[2]; return /second|minute|hour|秒|分|小時/.test(u) ? 0 : /day|天/.test(u) ? n : /week|週/.test(u) ? n * 7 : /month|個月/.test(u) ? n * 30 : n * 365; };
 const walk = (o, fn) => { if(!o || typeof o !== 'object') return; if(Array.isArray(o)){ o.forEach(x => walk(x, fn)); return; } fn(o); for(const k in o) walk(o[k], fn); };
 async function scrapeChannel(kind){
-  const html = await fetchText(`https://www.youtube.com/${site.youtubeHandle || '@goodskang'}/${kind}?hl=en`, 20000, {cookie: 'CONSENT=YES+cb; SOCS=CAISEwgDEgk2ODE4NTQwOTgaAmVuIAEaBgiA_LyuBg'});
+  // 一定要用 zh-TW:用 en 會拿到 YouTube 自動翻譯(甚至檔名)當標題,「iPhone 18」還會被翻成「iPhone 16」
+  const html = await fetchText(`https://www.youtube.com/${site.youtubeHandle || '@goodskang'}/${kind}?hl=zh-TW&gl=TW&persist_hl=1&persist_gl=1`, 20000, {cookie: 'CONSENT=YES+cb; PREF=hl=zh-TW&gl=TW', 'accept-language': 'zh-TW,zh;q=0.9'});
   const m = html.match(/var ytInitialData = (\{[\s\S]*?\});\s*<\/script>/); if(!m) throw new Error('no ytInitialData');
   const data = JSON.parse(m[1]); const out = [], seen = new Set();
   walk(data, o => {
     if(o.videoRenderer && o.videoRenderer.videoId){ const v = o.videoRenderer; if(seen.has(v.videoId)) return; seen.add(v.videoId);
       out.push({id: v.videoId, title: (v.title?.runs || []).map(r => r.text).join(''), views: parseViews(v.viewCountText?.simpleText), rel: relDays(v.publishedTimeText?.simpleText), short: kind === 'shorts'}); }
     if(o.lockupViewModel && o.lockupViewModel.contentId && /^[\w-]{11}$/.test(o.lockupViewModel.contentId)){ const l = o.lockupViewModel; if(seen.has(l.contentId)) return; seen.add(l.contentId);
-      const md = l.metadata?.lockupMetadataViewModel; const parts = (md?.metadata?.contentMetadataViewModel?.metadataRows || []).flatMap(r => (r.metadataParts || []).map(p => p.text?.content || ''));
-      out.push({id: l.contentId, title: md?.title?.content || '', views: parseViews(parts.find(p => /view|觀看/.test(p))), rel: relDays(parts.find(p => /ago|前/.test(p))), short: kind === 'shorts'}); }
+      const md = l.metadata?.lockupMetadataViewModel;
+      // 版面常改:不猜欄位位置,把這張卡片裡所有文字撈出來,找「觀看」與「前」
+      const strs = []; (function dig(x){ if(!x) return; if(typeof x === 'string'){ if(x.length < 60) strs.push(x); return; } if(typeof x === 'object') for(const k in x) dig(x[k]); })(md?.metadata);
+      out.push({id: l.contentId, title: md?.title?.content || '', views: parseViews(strs.find(p => /view|觀看|次/.test(p))), rel: relDays(strs.find(p => /ago|前/.test(p))), short: kind === 'shorts'}); }
     if(o.shortsLockupViewModel){ const sl = o.shortsLockupViewModel; const id = sl.onTap?.innertubeCommand?.reelWatchEndpoint?.videoId || sl.entityId?.replace(/^.*?([\w-]{11})$/, '$1'); if(!id || !/^[\w-]{11}$/.test(id) || seen.has(id)) return; seen.add(id);
       out.push({id, title: sl.overlayMetadata?.primaryText?.content || sl.accessibilityText || '', views: parseViews(sl.overlayMetadata?.secondaryText?.content), rel: null, short: true}); }
   });
   return out;
 }
 async function watchMeta(id){   // 觀看頁:精確上傳日與觀看數
-  const html = await fetchText(`https://www.youtube.com/watch?v=${id}&hl=en`, 15000, {cookie: 'CONSENT=YES+cb'});
-  const d = (html.match(/"publishDate":"(\d{4}-\d{2}-\d{2})/) || [])[1], vc = (html.match(/"viewCount":"(\d+)"/) || [])[1], t = (html.match(/<meta name="title" content="([^"]*)"/) || [])[1];
+  const html = await fetchText(`https://www.youtube.com/watch?v=${id}&hl=zh-TW&gl=TW`, 15000, {cookie: 'CONSENT=YES+cb; PREF=hl=zh-TW&gl=TW', 'accept-language': 'zh-TW,zh;q=0.9'});
+  const d = (html.match(/"publishDate":"(\d{4}-\d{2}-\d{2})/) || html.match(/"uploadDate":"(\d{4}-\d{2}-\d{2})/) || html.match(/itemprop="(?:datePublished|uploadDate)" content="(\d{4}-\d{2}-\d{2})/) || [])[1], vc = (html.match(/"viewCount":"(\d+)"/) || [])[1], t = (html.match(/<meta name="title" content="([^"]*)"/) || [])[1];
+  if(!d && !watchMeta.warned){ watchMeta.warned = true; console.warn('[videos] 觀看頁沒有日期(可能被 YouTube 擋),頁面標題:', (html.match(/<title>([^<]*)</) || [])[1] || html.slice(0, 80).replace(/\s+/g, ' ')); }
   const desc = (html.match(/"shortDescription":"((?:[^"\\]|\\.)*)"/) || [])[1];
   return {published: d ? d + 'T12:00:00+08:00' : '', views: Number(vc || 0), title: t ? t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'") : '', desc: desc ? JSON.parse('"' + desc + '"').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 300) : ''};
 }
+// ⭐ 最穩的路線:YouTube Data API(免費、每天額度 10,000 單位,一次建站只用 ~6 單位)。設 Netlify 環境變數 YT_API_KEY 即啟用:精確上傳時間、繁中標題、觀看數、長度,Shorts 也有日期
+async function apiVideos(){
+  const KEY = process.env.YT_API_KEY; if(!KEY) return [];
+  const uploads = 'UU' + String(site.youtubeChannelId).slice(2);   // 頻道 ID 的 UC → UU 就是「所有上傳」播放清單
+  const ids = []; let pageToken = '';
+  for(let pg = 0; pg < 3; pg++){   // 最多 150 支
+    const j = JSON.parse(await fetchText(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${uploads}&key=${KEY}${pageToken ? '&pageToken=' + pageToken : ''}`, 15000));
+    for(const it of (j.items || [])) if(it.contentDetails?.videoId) ids.push(it.contentDetails.videoId);
+    pageToken = j.nextPageToken || ''; if(!pageToken) break;
+  }
+  const out = [];
+  for(let i = 0; i < ids.length; i += 50){
+    const j = JSON.parse(await fetchText(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&hl=zh-TW&id=${ids.slice(i, i + 50).join(',')}&key=${KEY}`, 15000));
+    for(const v of (j.items || [])){
+      const sn = v.snippet || {}, dur = String(v.contentDetails?.duration || '');
+      const m = dur.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/) || []; const sec = (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+      if(sn.liveBroadcastContent === 'upcoming') continue;
+      out.push({id: v.id, title: sn.localized?.title || sn.title || '', published: sn.publishedAt, views: Number(v.statistics?.viewCount || 0), desc: (sn.localized?.description || sn.description || '').slice(0, 300), short: sec > 0 && sec <= 180});   // 3 分鐘內視為 Shorts
+    }
+  }
+  return out;
+}
+const hasCJK = t => /[\u4e00-\u9fff]/.test(String(t || ''));
 async function loadVideos(){
   const cache = readCache('videos.json') || [];
   const map = new Map(); for(const v of cache) map.set(v.id, Object.assign({}, v));
   let fresh = [], src = '';
-  try{
+  try{ fresh = await apiVideos(); if(fresh.length) src = 'api'; }catch(e){ console.warn('[videos] Data API 失敗:', e.message); }
+  if(!fresh.length) try{
     const xml = await fetchText(`https://www.youtube.com/feeds/videos.xml?channel_id=${site.youtubeChannelId}`);
     for(const e of xml.split('<entry>').slice(1)){
       const g = re => { const m = e.match(re); return m ? m[1] : ''; };
@@ -119,18 +147,22 @@ async function loadVideos(){
   let need = [];
   for(const v of fresh){
     const old = map.get(v.id) || {};
-    const rec = Object.assign({}, old, {id: v.id, title: v.title || old.title || '', views: v.views || old.views || 0, desc: v.desc || old.desc || '', short: v.short != null ? v.short : old.short});
-    if(v.published) rec.published = v.published;
+    if(old.published && String(old.published).startsWith('1970')){ old.published = ''; old.approx = true; }
+    // 標題:有中文的優先(舊快取是中文、新抓到的是英文翻譯 → 留中文)
+    const title = (v.title && (hasCJK(v.title) || !hasCJK(old.title))) ? v.title : (old.title || v.title || '');
+    const rec = Object.assign({}, old, {id: v.id, title, views: v.views || old.views || 0, desc: v.desc || old.desc || '', short: v.short != null ? v.short : old.short});
+    if(v.published){ rec.published = v.published; rec.approx = false; }
     else if(!old.published || old.approx){ if(v.rel != null){ rec.published = new Date(Date.now() - v.rel * 864e5).toISOString(); rec.approx = true; } need.push(rec); }
     map.set(v.id, rec);
   }
   // 沒日期的先查(Shorts 頁面不給日期),再查只有「幾天前」的;每次最多 20 支,剩下的下次建站再補(快取有寫回才會累積)
   need.sort((a, b) => (a.published ? 1 : 0) - (b.published ? 1 : 0));
-  for(const rec of need.slice(0, 20)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && !rec.title) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } }
+  for(const rec of need.slice(0, 20)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && (!rec.title || (hasCJK(w.title) && !hasCJK(rec.title)))) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } }
   // 還是不知道日期的:先沉到最底(1970),絕不能冒充最新影片;下次建站會再查
   for(const rec of map.values()){ if(!rec.published || isNaN(new Date(rec.published).getTime())){ rec.published = '1970-01-01T00:00:00.000Z'; rec.approx = true; } }
   const all = [...map.values()].filter(v => v.id && v.title).sort((a, b) => String(b.published).localeCompare(String(a.published)));
-  console.log(`[videos] 來源 ${src || 'cache'}:新 ${fresh.length} 支,合計 ${all.length} 支`);
+  const undated = all.filter(v => String(v.published).startsWith('1970')).length;
+  console.log(`[videos] 來源 ${src || 'cache'}:抓到 ${fresh.length} 支,合計 ${all.length} 支${undated ? `,${undated} 支還沒有日期(排最後;設 YT_API_KEY 可一次補齊)` : ''}`);
   if(fresh.length){ const kept = all.slice(0, 300); writeCache('videos.json', kept); await pushCache('content/cache/videos.json', JSON.stringify(kept)); }
   return all;
 }
@@ -335,13 +367,14 @@ async function main(){
   const wk = Date.now() - 7 * 864e5;
   const week = videos.filter(v => v.id !== (latest && latest.id) && new Date(v.published).getTime() >= wk).sort((a, b) => (b.views || 0) - (a.views || 0) || String(b.published).localeCompare(String(a.published)));
   const vid4 = week.concat(videos.filter(v => v.id !== (latest && latest.id) && !week.includes(v))).slice(0, 4);
+  const weekLabel = week.length ? '7 天內・依觀看數' : '近期・依日期';
   const toolFeat = ['🚦 五燈順勢檢查表', '🛡 防守位與部位計算', '📋 交易計畫卡(5/10/20 日歷史統計)', '📈 話題雷達・強勢股雷達', '🐢 六種存股策略回測', '💰 本益比體檢'];
   const ctaHtml = `<div class="cta"><div><h2>🧮 阿康的台股 AI 作戰室——免費・免註冊</h2><p>打一檔代號:五燈檢查表、標註 K 線、防守與部位、交易計畫卡馬上出來;想存股就做六種策略回測。不報明牌、不喊進出,把數據攤開你自己決定。</p><a class="btn" href="${site.tool}" target="_blank" rel="noopener">開啟工具 →</a> <a class="btn o" href="/hot.html">看今日熱門股</a></div><div class="feat">${toolFeat.map(f => `<div>${f}</div>`).join('')}</div></div>`;
   // 首頁
   const home = `
 <section class="hero">
   <div class="card main">${latest ? `${ytEmbed(latest.id)}<div class="cap"><span class="pill">最新影片・${ymd(latest.published)}</span><h2 style="margin:6px 0 4px;font-size:1.15rem;line-height:1.45;"><a href="https://www.youtube.com/watch?v=${latest.id}" target="_blank" rel="noopener" style="color:var(--text)">${esc(latest.title)}</a></h2>${latest.desc ? `<p style="margin:0;color:var(--muted);font-size:.9rem;">${esc(latest.desc.slice(0, 110))}…</p>` : ''}</div>` : '<div class="cap">影片載入中</div>'}</div>
-  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">7 天內・依觀看數</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
+  <div class="card side"><h3 style="margin:0 0 6px;">📺 本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">${weekLabel}</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
 </section>
 <div class="sec"><h2>📰 科技快訊</h2><span style="color:var(--muted);font-size:.85rem;">每天更新的 iPhone・Apple・特斯拉・AI 產業整理</span><a href="/posts.html">更多 →</a></div>
 <div class="list card">${posts.slice(0, 8).map(pRow).join('') || '<p style="color:var(--muted);">第一篇快訊準備中。</p>'}</div>

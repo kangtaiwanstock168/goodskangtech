@@ -158,6 +158,18 @@ async function loadVideos(){
   // 沒日期的先查(Shorts 頁面不給日期),再查只有「幾天前」的;每次最多 20 支,剩下的下次建站再補(快取有寫回才會累積)
   need.sort((a, b) => (a.published ? 1 : 0) - (b.published ? 1 : 0));
   for(const rec of need.slice(0, 20)){ try{ const w = await watchMeta(rec.id); if(w.published){ rec.published = w.published; rec.approx = false; } if(w.views) rec.views = w.views; if(w.title && (!rec.title || (hasCJK(w.title) && !hasCJK(rec.title)))) rec.title = w.title; if(w.desc && !rec.desc) rec.desc = w.desc; }catch(e){ console.warn('[videos] 觀看頁失敗:', rec.id, e.message); } }
+  // 🔒 改成私人/刪除的影片要下架:快取裡有、這次頻道/API 沒列出來的,拿 oEmbed 問一次(私人 401/403、刪除 404、公開 200);每次最多查 20 支,只查會出現在站上的前 80 支
+  if(fresh.length >= 10){
+    const freshIds = new Set(fresh.map(v => v.id));
+    const sorted = [...map.values()].filter(v => v.published && !String(v.published).startsWith('1970')).sort((a, b) => String(b.published).localeCompare(String(a.published))).slice(0, 80);
+    const suspects = sorted.filter(v => !freshIds.has(v.id)).slice(0, 20);
+    for(const v of suspects){
+      try{ const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000);
+        const r = await fetch(`https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D${v.id}&format=json`, {signal: ctl.signal, headers: {'user-agent': UA}}); clearTimeout(t);
+        if([401, 403, 404].includes(r.status)){ map.delete(v.id); console.log(`[videos] 下架 ${v.id}(${r.status}:私人或已刪除)${v.title ? ' ' + v.title.slice(0, 30) : ''}`); }
+      }catch(e){}
+    }
+  }
   // 還是不知道日期的:先沉到最底(1970),絕不能冒充最新影片;下次建站會再查
   for(const rec of map.values()){ if(!rec.published || isNaN(new Date(rec.published).getTime())){ rec.published = '1970-01-01T00:00:00.000Z'; rec.approx = true; } }
   const all = [...map.values()].filter(v => v.id && v.title).sort((a, b) => String(b.published).localeCompare(String(a.published)));
@@ -184,9 +196,13 @@ async function pushCache(p, body){
 async function loadHot(){
   const cache = readCache('hot.json') || {scan: null, news: null};
   const out = {fetchedAt: BUILT.toISOString(), scan: cache.scan, news: cache.news};
-  try{ const j = JSON.parse(await fetchText(site.toolFunctions + '/scan')); if(j && (j.list || Array.isArray(j))){ out.scan = Array.isArray(j) ? {list: j} : j; } }catch(e){ console.warn('[hot] scan 失敗,用快取:', e.message); }
-  try{ const j = JSON.parse(await fetchText(site.toolFunctions + '/news', 20000)); if(j && (j.top || []).length >= 3) out.news = j; }catch(e){ console.warn('[hot] news 失敗,用快取:', e.message); }
+  // 作戰室的 scan 函式要掃全市場,冷啟動常超過 12 秒——給 45 秒、失敗再試一次;成功就把快取寫回 GitHub,下次建站才不會又退回舊日期
+  let okScan = false, okNews = false;
+  for(let t = 0; t < 2 && !okScan; t++){ try{ const j = JSON.parse(await fetchText(site.toolFunctions + '/scan', 45000)); if(j && (j.list || Array.isArray(j))){ out.scan = Array.isArray(j) ? {list: j} : j; okScan = true; } }catch(e){ console.warn(`[hot] scan 失敗(第 ${t + 1} 次):`, e.message); } }
+  for(let t = 0; t < 2 && !okNews; t++){ try{ const j = JSON.parse(await fetchText(site.toolFunctions + '/news', 30000)); if(j && (j.top || []).length >= 3){ out.news = j; okNews = true; } }catch(e){ console.warn(`[hot] news 失敗(第 ${t + 1} 次):`, e.message); } }
+  console.log(`[hot] 強勢股 ${okScan ? '新' : '快取'}(${out.scan?.d || '?'})、話題 ${okNews ? '新' : '快取'}`);
   writeCache('hot.json', out);
+  if(okScan || okNews) await pushCache('content/cache/hot.json', JSON.stringify(out));
   return out;
 }
 

@@ -14,3 +14,10 @@
   for = "/admin/*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
+
+# 舊網址 goodskangtech.netlify.app 一律 301 轉到正式網域 goodskang.tw
+[[redirects]]
+from = "https://goodskangtech.netlify.app/*"
+to = "https://goodskang.tw/:splat"
+status = 301
+force = true

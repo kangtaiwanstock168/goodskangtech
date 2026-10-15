@@ -206,6 +206,34 @@ async function loadHot(){
   return out;
 }
 
+
+const inlineText = t => esc(t)
+  .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+  .replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g, (m, pre, u) => `${pre}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+// IG / FB 貼文專用排版:第一行＝標題(不重複)、emoji 開頭短句→小標、「對你來說」→重點框、「要注意的是」→引言、「資料來源」→小字、hashtag 行移除
+function socialMd(src, title){
+  const EMO = /^[\p{Extended_Pictographic}☀-➿][️‍\p{Extended_Pictographic}]*\s*/u;
+  const lines = String(src).replace(/\r/g, '').split('\n').map(l => l.replace(/\s+$/, ''));
+  const out = []; let para = [];
+  const flushP = () => { if(para.length){ out.push(`<p>${para.map(inlineText).join('<br>')}</p>`); para = []; } };
+  let first = true;
+  for(let line of lines){
+    const t = line.trim();
+    if(!t){ flushP(); continue; }
+    if(/^(#\S+\s*)+$/.test(t)) continue;                                   // 純 hashtag 行
+    line = t.replace(/\s*#[^\s#]+/g, '').trim(); if(!line) continue;        // 行內 hashtag
+    if(first){ first = false; if(title && line.replace(/[！!？?。]/g, '') .startsWith(title.replace(/[！!？?。…]/g, '').slice(0, 20))) continue; } // 第一行＝標題
+    const emo = line.match(EMO);
+    if(emo && line.length - emo[0].length <= 30){ flushP(); out.push(`<h2>${inlineText(line)}</h2>`); continue; }
+    if(/^對你來說[:：]/.test(line)){ flushP(); out.push(`<p class="tip"><b>對你來說</b>${inlineText(line.replace(/^對你來說[:：]\s*/, ''))}</p>`); continue; }
+    if(/^(要注意的是|注意[:：]|提醒[:：])/.test(line)){ flushP(); out.push(`<blockquote>${inlineText(line)}</blockquote>`); continue; }
+    if(/^(資料來源|參考資料|來源)[:：]/.test(line)){ flushP(); out.push(`<p class="src">${inlineText(line)}</p>`); continue; }
+    para.push(line);
+  }
+  flushP();
+  return out.join('\n');
+}
+
 // ── 自動抓 IG / FB 貼文(Meta Graph API;需環境變數 META_TOKEN + IG_USER_ID / FB_PAGE_ID)──
 // 每次建站抓最近 50 則,圖片下載到 dist/img/social/(IG 的 CDN 圖檔網址會過期,所以要抓下來自己放)
 // 同一篇 IG/FB 交叉發文只留一篇(比對前 60 字),FB 連結掛在同一篇底下
@@ -223,7 +251,7 @@ async function loadSocial(){
   };
   const tagsOf = t => [...String(t).matchAll(/#([^\s#]+)/g)].map(m => m[1]).slice(0, 8);
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
-  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: String(text).replace(/#\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: md(String(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
+  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: String(text).replace(/#\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
   const out = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
@@ -312,6 +340,12 @@ article .meta{color:var(--muted);font-size:.9rem;margin-bottom:14px}
 article .body{font-size:1.05rem}article .body h2{font-size:1.25rem;margin-top:26px;border-left:4px solid var(--accent);padding-left:10px}
 article .body img{border-radius:12px;margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
 .cover{width:100%;max-height:440px;object-fit:cover;border-radius:14px}
+.cover.social{display:block;width:auto;max-width:420px;max-height:525px;margin:0 auto;object-fit:contain;background:#0d1117}
+article .body p{line-height:1.85;margin:10px 0}
+article .body h2{font-size:1.15rem;margin:28px 0 8px}
+article .body .tip{border-left:3px solid var(--gold);background:rgba(210,153,34,.08);padding:8px 12px;border-radius:0 10px 10px 0}
+article .body .tip b{color:var(--gold);margin-right:6px}
+article .body .src{color:var(--muted);font-size:.85rem;margin-top:22px}
 .social{display:flex;gap:10px;flex-wrap:wrap}
 .social a{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-weight:700}
 footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;line-height:1.8}
@@ -416,7 +450,7 @@ async function main(){
     const embeds = (yid && !p.html.includes(`embed/${yid}`) ? ytEmbed(yid) : '')
       + (p.ig ? `<blockquote class="instagram-media" data-instgrm-permalink="${attr(p.ig)}" data-instgrm-version="14" style="margin:12px 0;"><a href="${attr(p.ig)}" target="_blank" rel="noopener">在 Instagram 看這則貼文</a></blockquote><script async src="https://www.instagram.com/embed.js"></script>` : '')
       + (p.fb ? `<p><a class="btn o" href="${attr(p.fb)}" target="_blank" rel="noopener">📘 在 Facebook 看這則貼文</a></p>` : '');
-    const body = `<article><p style="margin:14px 0 0;"><a href="/posts.html">← 科技快訊</a> <span class="cat">${esc(p.category)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? '📷 Instagram' : '📘 Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${p.cover && !yid ? `<img class="cover" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''}${yid ? ytEmbed(yid) : ''}<div class="body">${p.html.replace(yid ? ytEmbed(yid) : '__none__', '')}</div>${p.ig || p.fb ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
+    const body = `<article><p style="margin:14px 0 0;"><a href="/posts.html">← 科技快訊</a> <span class="cat">${esc(p.category)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? '📷 Instagram' : '📘 Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''}${yid ? ytEmbed(yid) : ''}<div class="body">${p.html.replace(yid ? ytEmbed(yid) : '__none__', '')}</div>${p.ig || p.fb ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
 <div style="margin-top:26px;">${ctaHtml}</div>
 ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list card">${rel.map(pRow).join('')}</div>` : ''}
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">${posts[i + 1] ? `<a class="btn o" href="${posts[i + 1].url}">← 上一篇:${esc(posts[i + 1].title.slice(0, 18))}…</a>` : ''}${posts[i - 1] ? `<a class="btn o" href="${posts[i - 1].url}">下一篇:${esc(posts[i - 1].title.slice(0, 18))}… →</a>` : ''}</div></article>`;

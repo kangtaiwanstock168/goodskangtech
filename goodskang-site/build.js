@@ -317,12 +317,12 @@ header.top{position:sticky;top:0;z-index:50;background:rgba(16,20,29,.96);border
 .v .m{padding:0 12px 10px;color:var(--muted);font-size:.8rem}
 .list .row{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:start}
 .list .row img{width:150px;height:96px;object-fit:cover;border-radius:10px}
-.list .row.social{grid-template-columns:112px 1fr}.list .row.social img{width:112px;height:140px;object-fit:cover;object-position:center top;border-radius:10px;background:var(--bg)}
+.list .row.igrow{grid-template-columns:112px 1fr}.list .row.igrow img{width:112px;height:140px;object-fit:cover;object-position:center top;border-radius:10px;background:var(--bg)}
 .list .row h3{margin:0 0 4px;font-size:1.05rem;line-height:1.45}
 .list .row p{margin:0;color:var(--muted);font-size:.9rem}
 .tag{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--border);font-size:.75rem;color:var(--muted);margin-right:6px}
 .cat{color:var(--gold);font-weight:700;font-size:.8rem}
-@media(max-width:560px){.list .row{grid-template-columns:110px 1fr}.list .row img{width:110px;height:72px}.list .row.social{grid-template-columns:96px 1fr}.list .row.social img{width:96px;height:120px}}
+@media(max-width:560px){.list .row{grid-template-columns:110px 1fr}.list .row img{width:110px;height:72px}.list .row.igrow{grid-template-columns:96px 1fr}.list .row.igrow img{width:96px;height:120px}}
 .yt{position:relative;aspect-ratio:16/9;background:#000}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .cta{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:center;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:22px}
 @media(max-width:820px){.cta{grid-template-columns:1fr}}
@@ -390,7 +390,7 @@ ${site.ga ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${si
 </footer></body></html>`;
 }
 const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${[ymd(v.published), v.views ? `${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''].filter(Boolean).join('・')}</div></a>`;
-const pRow = p => `<div class="row${p.auto ? ' social' : ''}"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(91,133,245,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;"></div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? 'IG' : 'FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
+const pRow = p => `<div class="row${p.auto ? ' igrow' : ''}"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(91,133,245,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;"></div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? 'IG' : 'FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
 const nmOf = id => NAMES[id] || id;
 function hotBlock(hot){
   const list = ((hot.scan && hot.scan.list) || []).slice(0, 8), top = ((hot.news && hot.news.top) || []).slice(0, 8);

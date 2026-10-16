@@ -258,14 +258,14 @@ async function loadSocial(){
   try{
     if(igToken){
       const j = JSON.parse(await fetchText(`https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${igToken}`, 20000));
-      for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {})); }
+      for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {video: m.media_type === 'VIDEO'})); }
     }
   }catch(e){ console.warn('[social] IG(Instagram Login) 抓取失敗:', e.message); }
   // 路線 B:透過粉專的 Graph API(META_TOKEN + IG_USER_ID / FB_PAGE_ID)
   try{
     if(token && process.env.IG_USER_ID && !out.length){
       const j = JSON.parse(await fetchText(`${G}/${process.env.IG_USER_ID}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${token}`, 20000));
-      for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {})); }
+      for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {video: m.media_type === 'VIDEO'})); }
     }
   }catch(e){ console.warn('[social] IG 抓取失敗:', e.message); }
   try{
@@ -343,7 +343,7 @@ article .meta{color:var(--muted);font-size:.9rem;margin-bottom:14px}
 article .body{font-size:1.05rem}article .body h2{font-size:1.25rem;margin-top:26px;border-left:4px solid var(--accent);padding-left:10px}
 article .body img{border-radius:12px;margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
 .cover{width:100%;max-height:440px;object-fit:cover;border-radius:12px}
-.cover.social{display:block;width:100%;max-width:min(420px,100%);max-height:525px;margin:0 auto;object-fit:contain;background:var(--bg)}
+.cover.social{display:block;width:100%;max-width:min(420px,100%);max-height:525px;margin:0 auto;object-fit:contain;background:var(--bg)}.igtop{display:flex;justify-content:center;margin:12px 0}.igtop .instagram-media{margin:0 auto!important;max-width:420px!important;min-width:0!important;width:100%!important}
 article .body p{line-height:1.85;margin:10px 0}
 article .body h2{font-size:1.15rem;margin:28px 0 8px}
 article .body .tip{border-left:3px solid var(--gold);background:rgba(255,212,59,.07);padding:8px 12px;border-radius:0}
@@ -450,10 +450,10 @@ async function main(){
     const ld = [{'@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover] : undefined, datePublished: p.date, dateModified: p.date, author: {'@type': 'Person', name: site.author, url: site.url}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: p.category, inLanguage: 'zh-Hant-TW', wordCount: p.words},
       {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: '科技快訊', item: site.url + '/posts.html'}, {'@type': 'ListItem', position: 3, name: p.title, item: site.url + p.url}]}];
     const yid = ytId(p.youtube);
-    const embeds = (yid && !p.html.includes(`embed/${yid}`) ? ytEmbed(yid) : '')
-      + (p.ig ? `<blockquote class="instagram-media" data-instgrm-permalink="${attr(p.ig)}" data-instgrm-version="14" style="margin:12px 0;"><a href="${attr(p.ig)}" target="_blank" rel="noopener">在 Instagram 看這則貼文</a></blockquote><script async src="https://www.instagram.com/embed.js"></script>` : '')
+    const igEmbed = p.ig ? `<blockquote class="instagram-media" data-instgrm-permalink="${attr(p.ig)}" data-instgrm-version="14" style="margin:12px 0;"><a href="${attr(p.ig)}" target="_blank" rel="noopener">在 Instagram 看這則貼文</a></blockquote><script async src="https://www.instagram.com/embed.js"></script>` : '';
+    const embeds = (yid && !p.html.includes(`embed/${yid}`) ? ytEmbed(yid) : '') + igEmbed
       + (p.fb ? `<p><a class="btn o" href="${attr(p.fb)}" target="_blank" rel="noopener">在 Facebook 看這則貼文</a></p>` : '');
-    const body = `<article><p style="margin:14px 0 0;"><a href="/posts.html">← 科技快訊</a> <span class="cat">${esc(p.category)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''}${yid ? ytEmbed(yid) : ''}<div class="body">${p.html.replace(yid ? ytEmbed(yid) : '__none__', '')}</div>${p.ig || p.fb ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
+    const body = `<article><p style="margin:14px 0 0;"><a href="/posts.html">← 科技快訊</a> <span class="cat">${esc(p.category)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${p.video && p.ig ? `<div class="igtop">${igEmbed}</div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : '')}${yid ? ytEmbed(yid) : ''}<div class="body">${p.html.replace(yid ? ytEmbed(yid) : '__none__', '')}</div>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
 <div style="margin-top:26px;">${ctaHtml}</div>
 ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list card">${rel.map(pRow).join('')}</div>` : ''}
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">${posts[i + 1] ? `<a class="btn o" href="${posts[i + 1].url}">← 上一篇:${esc(posts[i + 1].title.slice(0, 18))}…</a>` : ''}${posts[i - 1] ? `<a class="btn o" href="${posts[i - 1].url}">下一篇:${esc(posts[i - 1].title.slice(0, 18))}… →</a>` : ''}</div></article>`;

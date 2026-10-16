@@ -250,8 +250,9 @@ async function loadSocial(){
       fs.writeFileSync(path.join(imgDir, `${id}.${ext}`), buf); return `/img/social/${id}.${ext}`; }catch(e){ return ''; }
   };
   const tagsOf = t => [...String(t).matchAll(/#([^\s#]+)/g)].map(m => m[1]).slice(0, 8);
+  const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return ls.join(' ').replace(/\s+/g, ' ').trim().slice(0, 120); };
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
-  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: String(text).replace(/#\S+/g, '').replace(/\s+/g, ' ').trim().slice(0, 120), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
+  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
   const out = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
@@ -314,13 +315,14 @@ header.top{position:sticky;top:0;z-index:50;background:rgba(16,20,29,.96);border
 .v:hover{transform:translateY(-2px)}.v img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .v .t{padding:10px 12px;font-weight:700;font-size:.95rem;line-height:1.5;color:var(--text)}
 .v .m{padding:0 12px 10px;color:var(--muted);font-size:.8rem}
-.list .row{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.list .row{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:start}
 .list .row img{width:150px;height:96px;object-fit:cover;border-radius:10px}
+.list .row.social{grid-template-columns:112px 1fr}.list .row.social img{width:112px;height:140px;object-fit:cover;object-position:center top;border-radius:10px;background:var(--bg)}
 .list .row h3{margin:0 0 4px;font-size:1.05rem;line-height:1.45}
 .list .row p{margin:0;color:var(--muted);font-size:.9rem}
 .tag{display:inline-block;padding:1px 9px;border-radius:999px;border:1px solid var(--border);font-size:.75rem;color:var(--muted);margin-right:6px}
 .cat{color:var(--gold);font-weight:700;font-size:.8rem}
-@media(max-width:560px){.list .row{grid-template-columns:110px 1fr}.list .row img{width:110px;height:72px}}
+@media(max-width:560px){.list .row{grid-template-columns:110px 1fr}.list .row img{width:110px;height:72px}.list .row.social{grid-template-columns:96px 1fr}.list .row.social img{width:96px;height:120px}}
 .yt{position:relative;aspect-ratio:16/9;background:#000}.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .cta{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:center;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:12px;padding:22px}
 @media(max-width:820px){.cta{grid-template-columns:1fr}}
@@ -388,7 +390,7 @@ ${site.ga ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${si
 </footer></body></html>`;
 }
 const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${[ymd(v.published), v.views ? `${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''].filter(Boolean).join('・')}</div></a>`;
-const pRow = p => `<div class="row"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(91,133,245,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;"></div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? 'IG' : 'FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
+const pRow = p => `<div class="row${p.auto ? ' social' : ''}"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(91,133,245,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;"></div>`}</a><div><span class="cat">${esc(p.category)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? 'IG' : 'FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
 const nmOf = id => NAMES[id] || id;
 function hotBlock(hot){
   const list = ((hot.scan && hot.scan.list) || []).slice(0, 8), top = ((hot.news && hot.news.top) || []).slice(0, 8);

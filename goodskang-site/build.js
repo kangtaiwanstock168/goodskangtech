@@ -253,21 +253,23 @@ async function loadSocial(){
   const videoDir = path.join(DIST, 'media', 'social');
   fs.mkdirSync(videoDir, {recursive: true});
   let videoBytes = 0;
-  const videoBudget = 256 * 1024 * 1024, perVideoLimit = 64 * 1024 * 1024;
+  const videoBudget = 512 * 1024 * 1024, perVideoLimit = 128 * 1024 * 1024;
   const grabVideo = async (url, id) => {
     if(!url || videoBytes >= videoBudget) return '';
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 45000);
     try {
       const u = new URL(url);
-      if(u.protocol !== 'https:' || !/(^|\.)(cdninstagram\.com|fbcdn\.net)$/.test(u.hostname)) return '';
+      if(u.protocol !== 'https:' || !/(^|\.)(cdninstagram\.com|fbcdn\.net)$/.test(u.hostname)){ console.warn('[social] video host rejected:', id, u.hostname); return ''; }
       const r = await fetch(u, {signal: ctl.signal});
-      if(!r.ok || !r.body || !/^video\/mp4(?:;|$)/i.test(r.headers.get('content-type') || '')) return '';
+      const type = r.headers.get('content-type') || '';
+      if(!r.ok || !r.body || !/^(video\/mp4|application\/octet-stream)(?:;|$)/i.test(type)){ console.warn('[social] video response rejected:', id, r.status, type); return ''; }
       const limit = Math.min(perVideoLimit, videoBudget - videoBytes);
-      if(Number(r.headers.get('content-length')) > limit){ ctl.abort(); return ''; }
+      if(Number(r.headers.get('content-length')) > limit){ console.warn('[social] video size limit:', id, r.headers.get('content-length')); ctl.abort(); return ''; }
       const chunks = []; let size = 0;
       for await(const chunk of r.body){ size += chunk.length; if(size > limit){ ctl.abort(); return ''; } chunks.push(chunk); }
-      if(size < 1000) return '';
-      fs.writeFileSync(path.join(videoDir, id + '.mp4'), Buffer.concat(chunks));
+      const data = Buffer.concat(chunks);
+      if(size < 1000 || data.toString('ascii', 4, 8) !== 'ftyp'){ console.warn('[social] video invalid MP4:', id); return ''; }
+      fs.writeFileSync(path.join(videoDir, id + '.mp4'), data);
       videoBytes += size;
       return '/media/social/' + id + '.mp4';
     } catch(e){ console.warn('[social] video unavailable:', id); return ''; }

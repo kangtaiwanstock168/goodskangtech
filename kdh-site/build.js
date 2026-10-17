@@ -145,7 +145,7 @@ section{padding:56px 0}section.alt{background:var(--bg)}
 .vcard span{display:block;padding:10px 12px;font-size:.92rem;font-weight:500;line-height:1.4}
 .yt{position:relative;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.ytgrid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.ytgrid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
 .ytgrid h4{margin:8px 0 0;font-size:.95rem;font-weight:500}
 .prod{display:grid;gap:28px;grid-template-columns:1.1fr 1.6fr;align-items:start;padding:28px 0;border-top:1px solid var(--line)}
 .prod:first-of-type{border-top:0}
@@ -182,7 +182,7 @@ footer h4{color:#fff;margin:0 0 10px;font-size:1rem}footer p{margin:0 0 6px}
 .bar a.tel{background:var(--red);color:#fff}
 .note{background:#FFF7E6;border:1px solid #F3D9A4;border-radius:10px;padding:10px 14px;font-size:.9rem;color:#6B4E00}
 .lang{font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
-@media(max-width:1400px){.logo small{display:none}}@media(max-width:1100px) and (min-width:981px){.logo span{display:none}}
+@media(max-width:1400px) and (min-width:981px){.logo span{display:none}}
 @media(max-width:980px){.prod{grid-template-columns:1fr}.contact{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.logo{font-size:.95rem}
  nav{display:none;position:absolute;left:0;right:0;top:68px;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:8px 12px 14px}
  nav.open{display:flex}nav a{padding:12px}nav a.tel{text-align:center}.menu{display:inline-block}.bar{display:flex}.hero{min-height:380px}section{padding:40px 0}}

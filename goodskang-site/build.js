@@ -514,5 +514,23 @@ ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list car
   fs.writeFileSync(path.join(DIST, 'llms-full.txt'), llms + '\n\n---\n\n' + posts.map(p => `# ${p.title}\n日期:${p.date}|分類:${p.category}|標籤:${p.tags.join(', ')}|網址:${site.url}${p.url}\n\n${p.text}\n`).join('\n---\n\n'));
   fs.writeFileSync(path.join(DIST, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/index.html\n  Cache-Control: public, max-age=0, must-revalidate\n/hot.html\n  Cache-Control: public, max-age=0, must-revalidate\n/llms.txt\n  Content-Type: text/plain; charset=utf-8\n/llms-full.txt\n  Content-Type: text/plain; charset=utf-8\n`);
   console.log('build ok →', DIST);
+  await indexNow(urls);
+}
+// IndexNow:每次建站把「本次有變動」的網址推給 Bing(ChatGPT 搜尋、Copilot 都用 Bing 索引)與其他支援的引擎,不用再手動去 Bing 後台提交。
+// 金鑰檔放 static/<32 位 hex>.txt(內容就是金鑰本身),建站會一起複製到站上根目錄;每個網址同一個 lastmod 只送一次(記在 content/cache/indexnow.json)
+async function indexNow(urls){
+  let key = process.env.INDEXNOW_KEY || '';
+  try{ if(!key) key = fs.readdirSync(path.join(ROOT, 'static')).map(f => (f.match(/^([a-f0-9]{32})\.txt$/) || [])[1]).find(Boolean) || ''; }catch(e){}
+  if(!key){ console.log('[indexnow] 沒有金鑰檔,略過'); return; }
+  const prev = readCache('indexnow.json') || {};
+  const fresh = urls.map(([u, d]) => [site.url + u, ymd(d)]).filter(([u, d]) => prev[u] !== d);
+  if(!fresh.length){ console.log('[indexnow] 沒有新網址'); return; }
+  try{
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
+    const r = await fetch('https://api.indexnow.org/indexnow', {method: 'POST', signal: ctl.signal, headers: {'content-type': 'application/json; charset=utf-8'}, body: JSON.stringify({host: site.url.replace(/^https?:\/\//, ''), key, keyLocation: `${site.url}/${key}.txt`, urlList: fresh.map(([u]) => u).slice(0, 10000)})});
+    clearTimeout(t);
+    console.log(`[indexnow] 送出 ${fresh.length} 個網址,回應 ${r.status}`);
+    if(r.status === 200 || r.status === 202){ for(const [u, d] of fresh) prev[u] = d; writeCache('indexnow.json', prev); await pushCache('content/cache/indexnow.json', JSON.stringify(prev)); }
+  }catch(e){ console.warn('[indexnow] 失敗:', e.message); }
 }
 main().catch(e => { console.error(e); process.exit(1); });

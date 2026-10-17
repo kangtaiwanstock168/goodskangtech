@@ -298,7 +298,7 @@ async function main(){
 <section class="alt" style="padding-top:0"><div class="wrap">${orderFlow}</div></section>
 <section class="alt"><div class="wrap"><div class="cta"><div><h2>不確定你的產品能不能包?</h2><p>打個電話、或傳產品照片給我們，常做的產品當場就能回答。中古二手包裝機也歡迎詢問。</p></div><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} 打電話 ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">填詢問單</a></div></div></div></section>
 <section><div class="wrap"><div class="contact"><div><div class="sh"><h2>聯絡我們</h2></div>${contactList(false)}</div><div>${mapEmbed}</div></div></div></section>`;
-  fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機|台中大里`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
+  fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `台中包裝機械廠商｜臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機｜${site.name}`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
 
   // 產品
   const prodBody = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul class="chips">${p.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${apps.filter(a => a.line === p.id && a.slug !== 'horizontal-flow-wrapper').length ? `<p style="margin:14px 0 0;font-size:.95rem"><b>專頁：</b>${apps.filter(a => a.line === p.id && a.slug !== 'horizontal-flow-wrapper').map(a => `<a href="/machines/${a.slug}.html">${esc(a.name)}</a>`).join('、')}</p>` : ''}<p style="margin-top:16px"><a class="btn o2" href="/contact.html#form">詢問這類包裝</a></p></div><div class="ytgrid">${clipsOf(p)}${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}
@@ -370,12 +370,12 @@ async function main(){
   // 保養服務頁
   const serviceBody = `<div class="wrap"><section><div class="contact"><div><p style="font-size:1.08rem">包裝機不是買了就結束。封刀會鈍、皮帶會磨、加熱片會老化，產品換規格也要調機。金達華賣出去的每一台機器都由我們自己保養，LINE 和電話 24 小時找得到人，不敢說隨傳隨到，但保證有求必應。</p>
 <h2 style="font-size:1.3rem;margin:26px 0 10px">年度保養合約</h2><p>與其壞了才叫、停線等人，不如固定保養。年約內容依機型與使用量調整，常見包含：</p><ul><li>每年兩次到廠保養（清潔、潤滑、封刀與加熱片檢查、傳動與感測器校正）</li><li>常用耗材與零件優先供應，急件優先排程</li><li>電話與 LINE 優先回覆，必要時視訊看現場</li><li>產品換規格的調機諮詢</li></ul>
-<h2 style="font-size:1.3rem;margin:26px 0 10px">零件與耗材</h2><p>封刀、加熱片、皮帶、推爪、感測器等常用零件，自家機型都有備料；他牌臥式包裝機的零件與維修也可以談，請先告訴我們機型與問題。</p>
+<h2 style="font-size:1.3rem;margin:26px 0 10px">零件與耗材</h2><p>切刀（封刀）、加熱片、皮帶、推爪、感測器等常用零件，自家機型都有備料；他牌臥式包裝機的零件與維修也可以談，請先告訴我們機型與問題。</p>
 <h2 style="font-size:1.3rem;margin:26px 0 10px">舊機換新、改規格</h2><p>機器老了或產品換了，不一定要整台換新。可以評估改規格、換關鍵部件，或舊機折抵換新機；整理過的中古機請看<a href="/machines/used-machines.html">中古二手包裝機</a>。</p>
 <div class="btns" style="margin-top:20px"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o2" href="/contact.html#form">詢問年約或零件</a></div></div>
 <div><div class="card"><h3>買機器前就該問的四個售後問題</h3><ul><li>保養誰做？多久一次？</li><li>常用零件有沒有現貨？壞了幾天能到？</li><li>產品換尺寸，調機要不要錢、要多久？</li><li>人不在時，電話誰接？</li></ul><p style="margin-top:10px">這四題金達華的答案都在這一頁，也歡迎拿去問別家。</p></div>
 <div class="card" style="margin-top:16px"><h3>買包裝機可以抵稅嗎？</h3><p>公司購置符合條件的智慧機械，依產業創新條例第 10 條之 1 可申請投資抵減。哪些機型可能符合、怎麼申請，整理在<a href="/subsidy.html">這一頁</a>。</p></div></div></div></section></div>`;
-  fs.writeFileSync(path.join(DIST, 'service.html'), page({title: `包裝機保養、零件與年度保養合約｜${site.short} 台中`, desc: '金達華臥式包裝機售後服務：年度保養合約（每年兩次到廠保養、零件優先）、封刀加熱片等零件耗材、舊機換新與改規格，電話與 LINE 24 小時找得到人。', url: '/service.html', body: serviceBody, cur: '/service.html', headImg: imgx(images.about_banner[2], 1800), headTitle: '保養、零件與年度保養合約', headLede: '機器賣出去才是服務的開始。台中大里，30 年臥式包裝機製造與保養。'}));
+  fs.writeFileSync(path.join(DIST, 'service.html'), page({title: `包裝機維修、切刀與零件、年度保養｜台中${site.short}`, desc: '臥式包裝機維修與保養：切刀（封刀）、加熱片、皮帶等零件耗材，年度保養合約每年兩次到廠，舊機換新與改規格。台中大里金達華，電話與 LINE 24 小時找得到人。', url: '/service.html', body: serviceBody, cur: '/service.html', headImg: imgx(images.about_banner[2], 1800), headTitle: '包裝機維修、零件與年度保養', headLede: '機器賣出去才是服務的開始。台中大里，30 年臥式包裝機製造與保養。'}));
 
   // 投資抵減說明頁
   const subsidyBody = `<div class="wrap"><section><div class="contact"><div><p style="font-size:1.08rem">很多老闆猶豫買包裝機，是因為一次要拿出幾十萬。其實公司購置符合條件的智慧機械，可以依<b>產業創新條例第 10 條之 1</b>申請投資抵減，直接抵營利事業所得稅。這一頁把條件整理成白話，細節請以經濟部與財政部公告、以及您的會計師意見為準。</p>
@@ -396,7 +396,7 @@ async function main(){
 <div class="btns" style="margin-top:20px"><a class="btn" href="mailto:${attr(site.email)}">${ico('mail')} ${esc(site.email)}</a><a class="btn o2" href="/contact.html#form">填線上詢問單</a></div>
 <p class="note" style="margin-top:14px">海外客戶請優先用 Email 或線上詢問單，附上產品照片；台灣時間週一至週五 08:00–17:30 也可直撥 ${esc(site.tel_intl)}。</p></div>
 <div><div class="card"><h3>海外客戶常見問題</h3><ul><li><b>可以提供其他客戶讓我參考嗎？</b>客戶資料依保密約定不提供；我們改用完整運轉影片、試包錄影，也歡迎來台中驗機。</li><li><b>電壓不同怎麼辦？</b>依當地電壓規格製造，下單時告訴我們。</li><li><b>保固怎麼算？</b>依合約，一般自交機起算，零件問題空運補寄。</li><li><b>付款方式？</b>電匯（T/T），訂金與尾款比例於報價時說明。</li><li><b>英文溝通？</b>可以，英文資料請見 <a href="/en/">English</a>。</li></ul></div></div></div></section></div>`;
-  fs.writeFileSync(path.join(DIST, 'overseas.html'), page({title: `海外客戶｜香港、馬來西亞、泰國都有金達華的包裝機｜${site.short}`, desc: '香港、馬來西亞、泰國的食品與紙品廠都用金達華的臺灣製臥式包裝機。繁體中文溝通，試包錄影、海運木箱、視訊安裝、保固零件空運；客戶細節依保密約定不公開，價格依產品與配置個別報價。', url: '/overseas.html', body: overseasBody, cur: '/contact.html', headImg: imgx(images.hero[1], 1800), headTitle: '海外客戶', headLede: '台灣製造、中文溝通。香港、馬來西亞、泰國都有我們的機台在運轉。'}));
+  fs.writeFileSync(path.join(DIST, 'overseas.html'), page({title: `香港包裝機｜台灣製臥式包裝機械，香港、馬來西亞、泰國客戶｜${site.short}`, desc: '香港、馬來西亞、泰國的食品與紙品廠都用金達華的臺灣製臥式包裝機。繁體中文溝通，試包錄影、海運木箱、視訊安裝、保固零件空運；客戶細節依保密約定不公開，價格依產品與配置個別報價。', url: '/overseas.html', body: overseasBody, cur: '/contact.html', headImg: imgx(images.hero[1], 1800), headTitle: '香港與海外客戶', headLede: '台灣製造、中文溝通。香港、馬來西亞、泰國都有我們的機台在運轉。'}));
 
   // 其他檔案
   fs.writeFileSync(path.join(DIST, '404.html'), page({title: `找不到頁面|${site.short}`, desc: '頁面不存在', url: '/404.html', body: `<div class="wrap"><section style="text-align:center"><h1>找不到這一頁</h1><p><a class="btn" href="/">回首頁</a></p></section></div>`, cur: ''}));

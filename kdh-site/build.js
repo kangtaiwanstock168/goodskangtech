@@ -92,6 +92,9 @@ const ICONS = {
   chat: '<svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/></svg>',
   check: '<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>'
 };
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+// 產品卡片頂端的影片縮圖(第一支影片),點了到影片頁
+const thumb = p => p.videos && p.videos[0] ? `<a class="cthumb" href="/videos.html#${attr(p.videos[0])}" aria-label="${attr(p.name)} 包裝影片"><img src="${ytThumb(p.videos[0])}" alt="${attr(p.name)} 包裝影片" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></a>` : '';
 const ico = n => `<i class="ico" aria-hidden="true">${ICONS[n] || ''}</i>`;
 
 const CSS = `
@@ -130,6 +133,10 @@ section{padding:56px 0}section.alt{background:var(--bg)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;transition:box-shadow .15s}
 .card:hover{box-shadow:0 8px 24px rgba(11,42,74,.08)}
 .card .ico{width:38px;height:38px;color:var(--red);margin-bottom:10px}
+.cthumb{position:relative;display:block;margin:-22px -22px 16px;aspect-ratio:16/9;background:#0A1F36;overflow:hidden;border-radius:14px 14px 0 0}
+.cthumb img{width:100%;height:100%;object-fit:cover;transition:transform .25s}.cthumb:hover img{transform:scale(1.04)}
+.cthumb .play{position:absolute;left:50%;top:50%;width:58px;height:42px;margin:-21px 0 0 -29px;border-radius:12px;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.cthumb .play svg{width:26px;height:26px;fill:#fff}
 .card h3{margin:0 0 8px;font-size:1.15rem;color:var(--navy)}
 .card p{margin:0 0 10px;color:var(--muted);font-size:.95rem}
 .card ul{margin:0;padding-left:18px;color:var(--ink);font-size:.93rem}
@@ -183,7 +190,7 @@ footer h4{color:#fff;margin:0 0 10px;font-size:1rem}footer p{margin:0 0 6px}
 .note{background:#FFF7E6;border:1px solid #F3D9A4;border-radius:10px;padding:10px 14px;font-size:.9rem;color:#6B4E00}
 .lang{font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
 @media(max-width:1400px) and (min-width:981px){.logo span{display:none}}
-@media(max-width:980px){.prod{grid-template-columns:1fr}.contact{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.logo{font-size:.95rem}
+@media(max-width:980px){.logo small{display:none}.prod{grid-template-columns:1fr}.contact{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.logo{font-size:.95rem}
  nav{display:none;position:absolute;left:0;right:0;top:68px;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:8px 12px 14px}
  nav.open{display:flex}nav a{padding:12px}nav a.tel{text-align:center}.menu{display:inline-block}.bar{display:flex}.hero{min-height:380px}section{padding:40px 0}}
 `;
@@ -236,7 +243,7 @@ async function main(){
 
   // 首頁
   const home = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')"><div class="wrap"><h1>${esc(site.tagline)}<br>包子、鳳梨酥、牛軋糖、卡片、面紙都包得漂亮</h1><p>金達華實業有限公司,台中大里。臥式自動包裝機專業製造超過 30 年,從規劃、設計、製造到保養一條龍。${esc(site.slogan)}。</p><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">線上詢問,告訴我們你要包什麼</a></div></div></div>
-<section><div class="wrap"><div class="sh"><h2>你的產品,我們都包過</h2><p>五大產品線,點進去看實際包裝影片</p></div><div class="grid">${products.map(p => `<div class="card">${ico(p.icon)}<h3>${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul>${p.items.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/products.html#${p.id}">看機型與影片 →</a></div>`).join('')}</div></div></section>
+<section><div class="wrap"><div class="sh"><h2>你的產品,我們都包過</h2><p>五大產品線,點進去看實際包裝影片</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul>${p.items.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/products.html#${p.id}">看機型與影片 →</a></div>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="sh"><h2>為什麼選擇金達華</h2></div><div class="pts">
 <div class="pt"><b>以客為「根」</b><p>客戶是我們的根本。只要客戶有需求,在專業判斷內我們一定盡力達成。</p></div>
 <div class="pt"><b>品質與價格的平衡</b><p>比品質我們可能比不過歐美日機器,比價格我們鐵定比不過中國印度;我們在夾縫中求生存,給客戶合理的價格與品質的平衡。</p></div>
@@ -277,7 +284,7 @@ async function main(){
   // 英文精簡版
   fs.mkdirSync(path.join(DIST, 'en'), {recursive: true});
   const enHome = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')"><div class="wrap"><h1>Horizontal flow wrapping machines<br>built in Taichung, Taiwan for 30+ years</h1><p>${esc(site.description_en)}</p><div class="btns"><a class="btn" href="mailto:${attr(site.email)}">${ico('mail')} ${esc(site.email)}</a><a class="btn o" href="/en/contact.html#form">Send an inquiry</a></div></div></div>
-<section><div class="wrap"><div class="sh"><h2>What we pack</h2><p>Five product lines, each with real packing videos</p></div><div class="grid">${products.map(p => `<div class="card">${ico(p.icon)}<h3>${esc(p.en)}</h3><p>${esc(p.lead_en)}</p><ul>${p.items_en.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/en/products.html#${p.id}">Machines & videos →</a></div>`).join('')}</div></div></section>
+<section><div class="wrap"><div class="sh"><h2>What we pack</h2><p>Five product lines, each with real packing videos</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.en)}</h3><p>${esc(p.lead_en)}</p><ul>${p.items_en.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/en/products.html#${p.id}">Machines & videos →</a></div>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="sh"><h2>Why KDH</h2></div><div class="pts"><div class="pt"><b>Customer first</b><p>If you need it and it is technically sound, we build it.</p></div><div class="pt"><b>Quality at a fair price</b><p>Not the cheapest, not the most expensive: a balance of reliability and cost that Taiwanese makers are known for.</p></div><div class="pt"><b>After-sales that answers</b><p>Maintenance schedules, spare parts and a phone that is picked up. ${esc(site.slogan_en)}</p></div></div></div></section>
 <section><div class="wrap"><div class="sh"><h2>Packing videos</h2><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube channel →</a></div><div class="vgrid">${byDate.slice(0, 6).map(([id, v]) => `<a class="vcard" href="https://www.youtube.com/watch?v=${attr(id)}" target="_blank" rel="noopener"><img src="${ytThumb(id)}" alt="${attr(v.title)}" loading="lazy"><span>${esc(v.title)}</span></a>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="contact"><div><div class="sh"><h2>Contact</h2></div>${contactList(true)}</div><div>${mapEmbed}</div></div></div></section>`;

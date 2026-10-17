@@ -206,6 +206,16 @@ footer h4{color:#fff;margin:0 0 10px;font-size:1rem}footer p{margin:0 0 6px}
 .bar a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 6px;border-radius:10px;font-weight:700;font-size:.92rem;background:var(--bg);color:var(--navy)}
 .bar a.tel{background:var(--red);color:#fff}
 .note{background:#FFF7E6;border:1px solid #F3D9A4;border-radius:10px;padding:10px 14px;font-size:.9rem;color:#6B4E00}
+.paths{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+.path{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px}
+.path .tag{display:inline-block;font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:6px}
+.path h3{margin:0 0 8px;font-size:1.2rem;color:var(--navy)}.path p{margin:0;color:var(--ink)}.path .more{display:inline-block;margin-top:12px;font-weight:700;color:var(--red)}
+.thenl{margin:26px 0 12px;font-weight:700;color:var(--navy)}
+.steps{display:grid;gap:14px;grid-template-columns:repeat(4,1fr);list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{background:#fff;border-radius:12px;padding:18px;border-top:4px solid var(--navy);counter-increment:s}
+.steps li::before{content:counter(s);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.9rem;margin-bottom:8px}
+.steps b{display:block;color:var(--navy);margin-bottom:4px}.steps span{color:var(--muted);font-size:.93rem}
+@media(max-width:980px){.paths{grid-template-columns:1fr}.path{padding:20px}.steps{grid-template-columns:1fr;gap:10px}.steps li{display:grid;grid-template-columns:28px 1fr;column-gap:12px;align-items:center;padding:14px 16px}.steps li::before{grid-row:span 2;margin:0}.steps b{margin:0}}
 .lang{font-size:.85rem;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
 @media(max-width:1400px) and (min-width:981px){.logo span{display:none}}
 @media(max-width:980px){.logo small{display:none}.prod{grid-template-columns:1fr}.contact{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.logo{font-size:.95rem}
@@ -271,6 +281,12 @@ async function main(){
   const heroVideo = fs.existsSync(path.join(ROOT, 'static', 'video', 'jelly-tray.mp4')) ? `<div class="herom" style="background-image:url('/video/hero-poster.jpg')"></div><button class="heroplay" type="button" aria-label="播放實際包裝影片" onclick="var h=this.closest('.hero');var v=document.createElement('video');v.src='/video/jelly-tray.mp4';v.controls=true;v.playsInline=true;v.setAttribute('playsinline','');v.className='herov';h.classList.add('playing');h.insertBefore(v,h.firstChild);v.play();">${PLAY}<span>看機器實際包裝</span></button>` : '';
   const reel = [...products.flatMap(p => (p.clips || []).map((c, i) => [`/videos.html#clip-${p.id}-${i}`, c.poster, c.title])), ...byDate.slice(0, 7).map(([id, v]) => [`/videos.html#${id}`, ytThumb(id), v.title])].slice(0, 8);
   const reelHtml = `<section class="reelsec"><div class="wrap"><div class="sh"><h2>實際包裝影片</h2><a href="/videos.html">全部 ${Object.keys(videos).length + products.reduce((n, p) => n + (p.clips || []).length, 0)} 支 →</a></div><div class="reel">${reel.map(([h, img, t]) => `<a class="rcard" href="${attr(h)}"><img src="${attr(img)}" alt="${attr(t)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span><b>${esc(t)}</b></a>`).join('')}</div></div></section>`;
+  // 訂購流程：常做的產品直接看交機影片；特殊產品才寄樣品評估。之後都是報價 → 製作 → 用客人產品試包 → 交機
+  const orderFlow = `<div class="sh"><h2>怎麼跟金達華買包裝機</h2><p>先告訴我們你要包什麼，接下來分兩種情況</p></div>
+<div class="paths"><div class="path"><span class="tag">情況一</span><h3>我們常做的產品</h3><p>衛生紙袖珍包、牛軋糖、鳳梨酥、包子、卡片這類，電話裡就能告訴你能不能包，並給你看之前交機的實拍影片。</p><a class="more" href="/machines/">看我們包過哪些產品 →</a></div>
+<div class="path"><span class="tag">情況二</span><h3>比較特殊的產品</h3><p>形狀、尺寸或軟硬比較特別，或要連托盤、倒吊式包裝。請寄幾個樣品和現在用的包材到台中，我們看過實物，評估怎麼包、適合哪一型。</p><a class="more" href="/contact.html#form">先來信說明產品 →</a></div></div>
+<p class="thenl">接下來的步驟都一樣</p>
+<ol class="steps"><li><b>建議機型與報價</b><span>依你的產品、產量和配置個別報價</span></li><li><b>下單製作</b><span>確認規格後開始製作機台</span></li><li><b>用你的產品試包</b><span>機器做好，先用你的產品實際包給你看</span></li><li><b>交機與教學</b><span>安裝試機，教會操作與日常保養</span></li></ol>`;
   const home = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')">${heroVideo}<div class="wrap"><p class="kicker">台中大里 · 臥式包裝機製造 30 年</p><h1>包子、鳳梨酥、牛軋糖、卡片、面紙<br>都包得漂亮</h1><p class="lede">金達華實業有限公司,台中大里。臥式自動包裝機專業製造超過 30 年,從規劃、設計、製造到保養一條龍。${esc(site.slogan)}。</p><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">線上詢問</a></div></div></div><span id="reel"></span>${reelHtml}
 <section><div class="wrap"><div class="sh"><h2>你的產品,我們都包過</h2><p>五大產品線,點進去看實際包裝影片</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul>${p.items.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/products.html#${p.id}">看機型與影片 →</a></div>`).join('')}</div></div></section>
 <section style="padding-top:0"><div class="wrap"><div class="sh"><h2>依產品找包裝機</h2><a href="/machines/">全部應用 →</a></div><ul class="chips" style="margin:0">${apps.map(a => `<li><a href="/machines/${a.slug}.html">${esc(a.name)}</a></li>`).join('')}</ul></div></section>
@@ -279,7 +295,8 @@ async function main(){
 <div class="pt"><b>以客為「根」</b><p>客戶是我們的根本。只要客戶有需求,在專業判斷內我們一定盡力達成。</p></div>
 <div class="pt"><b>品質與價格的平衡</b><p>比品質我們可能比不過歐美日機器,比價格我們鐵定比不過中國印度;我們在夾縫中求生存,給客戶合理的價格與品質的平衡。</p></div>
 <div class="pt"><b>服務及時</b><p>包裝機要定期保養、要追蹤使用狀況。我們的 LINE 和電話都不怕客戶 24 小時聯繫,不敢說隨傳隨到,但保證有求必應。</p></div></div></div></section>
-<section class="alt"><div class="wrap"><div class="cta"><div><h2>不確定你的產品能不能包?</h2><p>拍張照、或把樣品寄來,我們直接用機器試給你看。中古二手包裝機也歡迎詢問。</p></div><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} 打電話 ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">填詢問單</a></div></div></div></section>
+<section class="alt" style="padding-top:0"><div class="wrap">${orderFlow}</div></section>
+<section class="alt"><div class="wrap"><div class="cta"><div><h2>不確定你的產品能不能包?</h2><p>打個電話、或傳產品照片給我們，常做的產品當場就能回答。中古二手包裝機也歡迎詢問。</p></div><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} 打電話 ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">填詢問單</a></div></div></div></section>
 <section><div class="wrap"><div class="contact"><div><div class="sh"><h2>聯絡我們</h2></div>${contactList(false)}</div><div>${mapEmbed}</div></div></div></section>`;
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機|台中大里`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
 
@@ -307,7 +324,7 @@ async function main(){
   fs.writeFileSync(path.join(DIST, 'news.html'), page({title: `最新消息|${site.short}`, desc: '金達華實業最新消息與展覽資訊。', url: '/news.html', body: newsBody, cur: '/news.html', headImg: imgx(images.hero[1], 1800)}));
 
   // 聯絡
-  const contactBody = `<div class="wrap"><section><div class="contact"><div><div class="sh"><h2>線上詢問</h2></div>${contactForm(false)}<p class="note" style="margin-top:14px">香港、馬來西亞、泰國等海外客戶請看<a href="/overseas.html">海外客戶說明</a>；公司購機想申請投資抵減請看<a href="/subsidy.html">抵稅說明</a>。</p></div><div><div class="sh"><h2>聯絡資訊</h2></div>${contactList(false)}<div style="margin-top:20px">${mapEmbed}</div></div></div></section></div>`;
+  const contactBody = `<div class="wrap"><section style="padding-bottom:0">${orderFlow}</section><section><div class="contact"><div><div class="sh"><h2>線上詢問</h2></div>${contactForm(false)}<p class="note" style="margin-top:14px">香港、馬來西亞、泰國等海外客戶請看<a href="/overseas.html">海外客戶說明</a>；公司購機想申請投資抵減請看<a href="/subsidy.html">抵稅說明</a>。</p></div><div><div class="sh"><h2>聯絡資訊</h2></div>${contactList(false)}<div style="margin-top:20px">${mapEmbed}</div></div></div></section></div>`;
   fs.writeFileSync(path.join(DIST, 'contact.html'), page({title: `聯絡我們|${site.short}`, desc: `電話 ${site.tel}、手機 ${site.mobile}、Email ${site.email};${site.address}。`, url: '/contact.html', body: contactBody, cur: '/contact.html', headImg: imgx(images.hero[2], 1800)}));
   fs.writeFileSync(path.join(DIST, 'thanks.html'), page({title: `已收到您的詢問|${site.short}`, desc: '感謝您的詢問,我們會在一個工作天內回覆。', url: '/thanks.html', body: `<div class="wrap"><section style="text-align:center"><h1>已收到您的詢問</h1><p>我們會在一個工作天內以電話或 Email 回覆。急件請直接撥 <a href="tel:${attr(site.tel_intl)}">${esc(site.tel)}</a>。</p><p><a class="btn" href="/">回首頁</a></p></section></div>`, cur: ''}));
 
@@ -337,7 +354,7 @@ async function main(){
     const body = `<div class="wrap"><section style="padding-top:36px"><div class="contact"><div><p style="color:var(--muted);margin:0 0 8px"><a href="/">首頁</a> › <a href="/machines/">包裝應用</a> › ${esc(a.name)}</p><p style="font-size:1.08rem">${esc(a.intro)}</p><ul class="chips">${[...new Set([a.name.replace(/包裝機.*$/, ''), ...a.alt])].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
 <h2 style="font-size:1.3rem;margin:26px 0 10px">包裝重點</h2><ul>${a.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
 <div class="btns" style="margin-top:20px"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o2" href="/contact.html#form">填線上詢問單</a></div>
-<p class="note" style="margin-top:14px">不確定能不能包？把產品尺寸、每分鐘希望幾包告訴我們，或直接寄樣品來，我們用機器試給你看。</p></div>
+<p class="note" style="margin-top:14px">不確定能不能包？把產品尺寸、每分鐘希望幾包告訴我們。常做的產品會直接給你看之前交機的影片；比較特殊的，再請你寄樣品來評估。<a href="/contact.html">看訂購流程</a></p></div>
 <div><div class="ytgrid" style="grid-template-columns:1fr">${clips.map((c, i) => `<div>${clipEmbed(c)}<h4>${esc(c.title)}</h4></div>`).join('')}${a.videos.map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}${(!clips.length && !a.videos.length) ? `<div class="card"><h3>目前庫存請來電詢問</h3><p>中古機庫存隨時變動，來電 <a href="tel:${attr(site.tel_intl)}">${esc(site.tel)}</a> 或 <a href="tel:${attr(site.mobile_intl)}">${esc(site.mobile)}</a> 最快。</p></div>` : ''}</div></div></section>
 <section class="alt" style="margin:0 -20px;padding:40px 20px"><div class="sh"><h2>常見問題</h2></div><div class="news">${a.faq.map(([q, ans]) => `<article><h3>${esc(q)}</h3><p>${esc(ans)}</p></article>`).join('')}</div></section>
 <section><div class="sh"><h2>相關包裝應用</h2><a href="/machines/">全部應用 →</a></div><div class="grid">${related.map(appCard).join('')}</div></section></div>`;
@@ -373,7 +390,7 @@ async function main(){
   // 海外與香港客戶頁
   const overseasBody = `<div class="wrap"><section><div class="contact"><div><p style="font-size:1.08rem">金達華的機器不只在台灣運轉。香港的糕餅業者、馬來西亞的紙品廠、泰國的食品廠，都是上網搜尋找到我們、來台中看過機器後下單，用到現在。繁體中文溝通沒有隔閡，規格、交期、保固都能講清楚。</p>
 <p class="note">我們與客戶簽有保密約定，網站上不公開客戶名稱、產品細節與機台配置；想知道您的產品我們做過類似的沒有，直接來信問，能說的我們私下告訴您。</p>
-<h2 style="font-size:1.3rem;margin:26px 0 10px">海外訂購流程</h2><ol><li><b>告訴我們產品</b>：寄產品照片與尺寸、希望的產量、現有包材，或直接寄樣品到台中。</li><li><b>試包與建議配置</b>：我們用機器實際試包、錄影給您看，再依您的產品與預算提出最合適的配置與報價。</li><li><b>製造與驗機</b>：交機前錄製完整運轉影片，也歡迎來台中廠驗機。</li><li><b>出貨</b>：木箱固定、海運或空運，出口文件齊備。</li><li><b>安裝與教學</b>：視訊指導安裝與操作；需要到場安裝可另議。</li><li><b>保固與零件</b>：保固期內零件空運補寄，之後零件與耗材持續供應。</li></ol>
+<h2 style="font-size:1.3rem;margin:26px 0 10px">海外訂購流程</h2><ol><li><b>告訴我們產品</b>：寄產品照片與尺寸、希望的產量、現有包材。我們常做的產品，會直接給您看之前交機的實拍影片；比較特殊的產品，再請您寄樣品到台中評估。</li><li><b>建議配置與報價</b>：依您的產品與預算提出合適的配置與報價。</li><li><b>製造與試包</b>：機器做好後，用您的產品實際試包、錄影給您看，也歡迎來台中廠驗機。</li><li><b>出貨</b>：木箱固定、海運或空運，出口文件齊備。</li><li><b>安裝與教學</b>：視訊指導安裝與操作；需要到場安裝可另議。</li><li><b>保固與零件</b>：保固期內零件空運補寄，之後零件與耗材持續供應。</li></ol>
 <h2 style="font-size:1.3rem;margin:26px 0 10px">為什麼不公開價格</h2><p>同一型包裝機，餵料方式、封口規格、電壓、是否加印字或充氮，價格就不一樣；海運、保固年限也會影響。我們不報一個對誰都不準的公定價，而是先了解您的產品與預算，再把配置調到剛好夠用——預算有限的，可以分階段加配備，或先從<a href="/machines/used-machines.html">整理過的中古機</a>開始。</p>
 <h2 style="font-size:1.3rem;margin:26px 0 10px">這些地區常見的產品</h2><p>老婆餅、蛋撻、月餅、雞仔餅、鳳梨酥、牛軋糖、包子、冷凍點心、廚房紙巾、擦手紙、面紙、卡片，都在我們的經驗範圍；請看<a href="/machines/">包裝應用一覽</a>的實拍影片。</p>
 <div class="btns" style="margin-top:20px"><a class="btn" href="mailto:${attr(site.email)}">${ico('mail')} ${esc(site.email)}</a><a class="btn o2" href="/contact.html#form">填線上詢問單</a></div>

@@ -306,7 +306,7 @@ async function main(){
 <section class="alt" style="padding-top:0"><div class="wrap"><div class="sh"><h2>為什麼選擇金達華</h2></div><div class="pts">
 <div class="pt"><b>以客為「根」</b><p>客戶是我們的根本。只要客戶有需求,在專業判斷內我們一定盡力達成。</p></div>
 <div class="pt"><b>品質與價格的平衡</b><p>品質向國際大廠看齊、價格比進口機實在,給客戶合理的價格與品質的平衡。</p></div>
-<div class="pt"><b>服務及時</b><p>包裝機要定期保養、要追蹤使用狀況。我們的 電話都不怕客戶 24 小時聯繫,不敢說隨傳隨到,但保證有求必應。</p></div></div></div></section>
+<div class="pt"><b>服務及時</b><p>包裝機要定期保養、要追蹤使用狀況。我們的電話都不怕客戶 24 小時聯繫,不敢說隨傳隨到,但保證有求必應。</p></div></div></div></section>
 <section class="alt" style="padding-top:0"><div class="wrap">${orderFlow}</div></section>
 <section class="alt"><div class="wrap"><div class="cta"><div><h2>不確定你的產品能不能包?</h2><p>打個電話、或傳產品照片給我們，常做的產品當場就能回答。中古二手包裝機也歡迎詢問。</p></div><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} 打電話 ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">填詢問單</a></div></div></div></section>
 <section><div class="wrap"><div class="contact"><div><div class="sh"><h2>聯絡我們</h2></div>${contactList(false)}</div><div>${mapEmbed}</div></div></div></section>`;

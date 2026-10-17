@@ -6,6 +6,7 @@ const fs = require('fs'), path = require('path');
 const ROOT = __dirname, DIST = path.join(ROOT, 'dist'), C = path.join(ROOT, 'content');
 const J = f => JSON.parse(fs.readFileSync(path.join(C, f), 'utf8'));
 const site = J('site.json'), products = J('products.json'), images = J('images.json'), news = J('news.json');
+const apps = (() => { try{ return J('applications.json'); }catch(e){ return []; } })();   // 長尾應用頁(鳳梨酥包裝機、卡片包裝機…)
 const BUILT = new Date();
 const TZ = d => new Date(new Date(d).getTime() + 8 * 3600e3);
 const ymd = d => { const t = TZ(d); return isNaN(t.getTime()) ? '' : t.toISOString().slice(0, 10); };
@@ -155,6 +156,8 @@ section{padding:56px 0}section.alt{background:var(--bg)}
 .card p{margin:0 0 10px;color:var(--muted);font-size:.95rem}
 .card ul{margin:0;padding-left:18px;color:var(--ink);font-size:.93rem}
 .card .more{display:inline-block;margin-top:12px;font-weight:700;color:var(--red)}
+a.card{color:var(--ink)}a.card:hover{text-decoration:none}.card .cthumb{display:block}
+.chips li a{color:var(--navy2)}
 .pts{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
 .pt{background:#fff;border-radius:14px;padding:24px;border-top:4px solid var(--navy)}
 .pt b{display:block;font-size:1.1rem;color:var(--navy);margin-bottom:6px}
@@ -217,7 +220,7 @@ footer h4{color:#fff;margin:0 0 10px;font-size:1rem}footer p{margin:0 0 6px}
 
 const NAV = [['/', '首頁'], ['/products.html', '產品與機型'], ['/videos.html', '包裝影片'], ['/gallery.html', '機台照片'], ['/about.html', '關於金達華'], ['/news.html', '最新消息'], ['/contact.html', '聯絡我們']];
 const NAV_EN = [['/en/', 'Home'], ['/en/products.html', 'Products'], ['/en/contact.html', 'Contact']];
-function page({title, desc, url, body, cur, lang = 'zh-Hant', image, jsonld, headImg}){
+function page({title, desc, url, body, cur, lang = 'zh-Hant', image, jsonld, headImg, headLede}){
   const en = lang === 'en'; const nav = en ? NAV_EN : NAV;
   const alt = en ? `<a class="lang" href="/" hreflang="zh-Hant">中文</a>` : `<a class="lang" href="/en/" hreflang="en">English</a>`;
   const full = site.url + url;
@@ -226,17 +229,18 @@ function page({title, desc, url, body, cur, lang = 'zh-Hant', image, jsonld, hea
 <link rel="alternate" hreflang="zh-Hant" href="${site.url}${en ? url.replace(/^\/en\/?/, '/') : url}"><link rel="alternate" hreflang="en" href="${site.url}${en ? url : (url === '/' ? '/en/' : '/en' + url)}">
 <meta property="og:type" content="website"><meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(desc)}"><meta property="og:url" content="${full}"><meta property="og:image" content="${attr(image || site.url + img(images.hero[0]))}"><meta property="og:site_name" content="${attr(site.name)}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<style>${CSS}</style>${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}</head>
+<style>${CSS}</style>${jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]).map(j => `<script type="application/ld+json">${JSON.stringify(j)}</script>`).join('') : ''}${site.ga4 ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${attr(site.ga4)}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${attr(site.ga4)}',{transport_type:'beacon'});</script>` : ''}</head>
 <body><header><div class="wrap top"><a class="logo" href="${en ? '/en/' : '/'}"><img src="${attr(img(images.logo))}" alt="${attr(site.name)}" width="120" height="40"><span>${en ? esc(site.brand) : esc(site.name)}<small>${en ? esc(site.en) : esc(site.brand) + ' · ' + esc(site.en)}</small></span></a>
 <button class="menu" aria-label="選單" onclick="document.querySelector('nav').classList.toggle('open')">☰</button>
 <nav>${nav.map(([h, t]) => `<a href="${h}"${h === cur ? ' class="cur"' : ''}>${esc(t)}</a>`).join('')}${alt}<a class="tel" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a></nav></div></header>
-${headImg ? `<div class="pagehead" style="background-image:url('${attr(headImg)}')"><div class="wrap"><h1>${esc(title.split('|')[0].trim())}</h1><p>${esc(desc)}</p></div></div>` : ''}
+${headImg ? `<div class="pagehead" style="background-image:url('${attr(headImg)}')"><div class="wrap"><h1>${esc(title.split(/[|｜]/)[0].trim())}</h1><p>${esc(headLede || desc)}</p></div></div>` : ''}
 <main>${body}</main>
 <footer><div class="wrap"><div class="fgrid"><div><h4>${esc(site.name)}</h4><p>${esc(site.en)}</p><p>${en ? esc(site.description_en) : esc(site.description)}</p></div>
 <div><h4>${en ? 'Contact' : '聯絡方式'}</h4><p>${en ? 'Tel' : '電話'}:<a href="tel:${attr(site.tel_intl)}">${esc(site.tel)}</a></p><p>${en ? 'Mobile' : '手機'}:<a href="tel:${attr(site.mobile_intl)}">${esc(site.mobile)}</a></p><p>${en ? 'Fax' : '傳真'}:${esc(site.fax)}</p><p>Email:<a href="mailto:${attr(site.email)}">${esc(site.email)}</a></p><p>${en ? esc(site.address_en) : esc(site.address)}</p></div>
-<div><h4>${en ? 'Links' : '連結'}</h4><p><a href="${attr(site.facebook)}" target="_blank" rel="noopener">Facebook</a></p><p><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube ${en ? 'channel' : '頻道'}</a></p><p><a href="${en ? '/' : '/en/'}">${en ? '中文版' : 'English'}</a></p></div></div>
+<div><h4>${en ? 'Links' : '連結'}</h4><p><a href="${attr(site.facebook)}" target="_blank" rel="noopener">Facebook</a></p><p><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube ${en ? 'channel' : '頻道'}</a></p>${en ? '' : '<p><a href="/machines/">包裝應用一覽</a></p>'}<p><a href="${en ? '/' : '/en/'}">${en ? '中文版' : 'English'}</a></p></div></div>
 <div class="copy"><span>© ${BUILT.getFullYear()} ${esc(site.name)} ${esc(site.en)}</span><span>${esc(site.slogan_en)}</span></div></div></footer>
 <div class="bar"><a class="tel" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${en ? 'Call' : '打電話'}</a><a href="mailto:${attr(site.email)}">${ico('mail')} Email</a><a href="${en ? '/en/contact.html' : '/contact.html'}#form">${ico('chat')} ${en ? 'Inquiry' : '線上詢問'}</a></div>
+${site.ga4 ? `<script>document.addEventListener('click',function(e){var a=e.target.closest('a');if(!a||!window.gtag)return;var h=a.getAttribute('href')||'';if(h.indexOf('tel:')===0)gtag('event','call_click',{link_url:h,page:location.pathname});else if(h.indexOf('mailto:')===0)gtag('event','email_click',{link_url:h,page:location.pathname});else if(/^https?:\/\/(www\.)?(youtube\.com|youtu\.be|facebook\.com)/.test(h))gtag('event','outbound_click',{link_url:h});});document.addEventListener('submit',function(e){if(e.target&&e.target.getAttribute('name')==='contact'&&window.gtag)gtag('event','inquiry_submit',{page:location.pathname});});document.addEventListener('play',function(e){if(e.target&&e.target.tagName==='VIDEO'&&window.gtag)gtag('event','video_play',{video_url:e.target.currentSrc||e.target.src,page:location.pathname});},true);</script>` : ''}
 </body></html>`;
 }
 
@@ -269,6 +273,7 @@ async function main(){
   const reelHtml = `<section class="reelsec"><div class="wrap"><div class="sh"><h2>實際包裝影片</h2><a href="/videos.html">全部 ${Object.keys(videos).length + products.reduce((n, p) => n + (p.clips || []).length, 0)} 支 →</a></div><div class="reel">${reel.map(([h, img, t]) => `<a class="rcard" href="${attr(h)}"><img src="${attr(img)}" alt="${attr(t)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span><b>${esc(t)}</b></a>`).join('')}</div></div></section>`;
   const home = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')">${heroVideo}<div class="wrap"><p class="kicker">台中大里 · 臥式包裝機製造 30 年</p><h1>包子、鳳梨酥、牛軋糖、卡片、面紙<br>都包得漂亮</h1><p class="lede">金達華實業有限公司,台中大里。臥式自動包裝機專業製造超過 30 年,從規劃、設計、製造到保養一條龍。${esc(site.slogan)}。</p><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">線上詢問</a></div></div></div><span id="reel"></span>${reelHtml}
 <section><div class="wrap"><div class="sh"><h2>你的產品,我們都包過</h2><p>五大產品線,點進去看實際包裝影片</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul>${p.items.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/products.html#${p.id}">看機型與影片 →</a></div>`).join('')}</div></div></section>
+<section style="padding-top:0"><div class="wrap"><div class="sh"><h2>依產品找包裝機</h2><a href="/machines/">全部應用 →</a></div><ul class="chips" style="margin:0">${apps.map(a => `<li><a href="/machines/${a.slug}.html">${esc(a.name)}</a></li>`).join('')}</ul></div></section>
 <section class="alt"><div class="wrap"><div class="sh"><h2>為什麼選擇金達華</h2></div><div class="pts">
 <div class="pt"><b>以客為「根」</b><p>客戶是我們的根本。只要客戶有需求,在專業判斷內我們一定盡力達成。</p></div>
 <div class="pt"><b>品質與價格的平衡</b><p>比品質我們可能比不過歐美日機器,比價格我們鐵定比不過中國印度;我們在夾縫中求生存,給客戶合理的價格與品質的平衡。</p></div>
@@ -278,7 +283,7 @@ async function main(){
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機|台中大里`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
 
   // 產品
-  const prodBody = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul class="chips">${p.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul><p style="margin-top:16px"><a class="btn o2" href="/contact.html#form">詢問這類包裝</a></p></div><div class="ytgrid">${clipsOf(p)}${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}
+  const prodBody = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul class="chips">${p.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>${apps.filter(a => a.line === p.id && a.slug !== 'horizontal-flow-wrapper').length ? `<p style="margin:14px 0 0;font-size:.95rem"><b>專頁：</b>${apps.filter(a => a.line === p.id && a.slug !== 'horizontal-flow-wrapper').map(a => `<a href="/machines/${a.slug}.html">${esc(a.name)}</a>`).join('、')}</p>` : ''}<p style="margin-top:16px"><a class="btn o2" href="/contact.html#form">詢問這類包裝</a></p></div><div class="ytgrid">${clipsOf(p)}${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}
 <div class="cta" style="margin:40px 0"><div><h2>沒看到你的產品?</h2><p>特殊尺寸、特殊包材、倒吊式、連托盤一起包,都可以客製。</p></div><a class="btn" href="/contact.html#form">告訴我們你要包什麼</a></div></div>`;
   fs.writeFileSync(path.join(DIST, 'products.html'), page({title: `產品與機型|${site.short}`, desc: '食品、糖果、卡片、面紙紙品、民生用品與特殊需求五大產品線的臥式包裝機,每一類都有實際包裝影片。', url: '/products.html', body: prodBody, cur: '/products.html', headImg: imgx(images.about_banner[0], 1800)}));
 
@@ -319,13 +324,38 @@ async function main(){
   fs.writeFileSync(path.join(DIST, 'en', 'contact.html'), page({title: `Contact|KDH PACK`, desc: `Tel ${site.tel_intl}, email ${site.email}. ${site.address_en}`, url: '/en/contact.html', body: enContact, cur: '/en/contact.html', lang: 'en', headImg: imgx(images.hero[2], 1800)}));
   fs.writeFileSync(path.join(DIST, 'en', 'thanks.html'), page({title: `Thanks|KDH PACK`, desc: 'We received your inquiry.', url: '/en/thanks.html', body: `<div class="wrap"><section style="text-align:center"><h1>Thank you</h1><p>We received your inquiry and will reply within one business day.</p><p><a class="btn" href="/en/">Back to home</a></p></section></div>`, cur: '', lang: 'en'}));
 
+  // 長尾應用頁:/machines/<slug>.html,一種應用一頁(搜尋「鳳梨酥包裝機」這類精準詞用)
+  fs.mkdirSync(path.join(DIST, 'machines'), {recursive: true});
+  const lineOf = id => products.find(p => p.id === id);
+  const appUrl = a => `/machines/${a.slug}.html`;
+  const appCard = a => `<a class="card applink" href="${appUrl(a)}">${(a.clips && lineOf(a.line) && (lineOf(a.line).clips || [])[0]) ? `<span class="cthumb"><img src="${attr(lineOf(a.line).clips[0].poster)}" alt="${attr(a.name)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></span>` : (a.videos[0] ? `<span class="cthumb"><img src="${ytThumb(a.videos[0])}" alt="${attr(a.name)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></span>` : '')}<h3>${esc(a.name)}</h3><p>${esc(a.alt.join('、'))}</p><span class="more">看影片與常見問題 →</span></a>`;
+  for(const a of apps){
+    const line = lineOf(a.line) || {};
+    const clips = a.clips ? (line.clips || []) : [];
+    const related = apps.filter(b => b.slug !== a.slug && (b.line === a.line || b.slug === 'horizontal-flow-wrapper')).slice(0, 6);
+    const body = `<div class="wrap"><section style="padding-top:36px"><div class="contact"><div><p style="color:var(--muted);margin:0 0 8px"><a href="/">首頁</a> › <a href="/machines/">包裝應用</a> › ${esc(a.name)}</p><p style="font-size:1.08rem">${esc(a.intro)}</p><ul class="chips">${[...new Set([a.name.replace(/包裝機.*$/, ''), ...a.alt])].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+<h2 style="font-size:1.3rem;margin:26px 0 10px">包裝重點</h2><ul>${a.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+<div class="btns" style="margin-top:20px"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o2" href="/contact.html#form">填線上詢問單</a></div>
+<p class="note" style="margin-top:14px">不確定能不能包？把產品尺寸、每分鐘希望幾包告訴我們，或直接寄樣品來，我們用機器試給你看。</p></div>
+<div><div class="ytgrid" style="grid-template-columns:1fr">${clips.map((c, i) => `<div>${clipEmbed(c)}<h4>${esc(c.title)}</h4></div>`).join('')}${a.videos.map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}${(!clips.length && !a.videos.length) ? `<div class="card"><h3>目前庫存請來電詢問</h3><p>中古機庫存隨時變動，來電 <a href="tel:${attr(site.tel_intl)}">${esc(site.tel)}</a> 或 <a href="tel:${attr(site.mobile_intl)}">${esc(site.mobile)}</a> 最快。</p></div>` : ''}</div></div></section>
+<section class="alt" style="margin:0 -20px;padding:40px 20px"><div class="sh"><h2>常見問題</h2></div><div class="news">${a.faq.map(([q, ans]) => `<article><h3>${esc(q)}</h3><p>${esc(ans)}</p></article>`).join('')}</div></section>
+<section><div class="sh"><h2>相關包裝應用</h2><a href="/machines/">全部應用 →</a></div><div class="grid">${related.map(appCard).join('')}</div></section></div>`;
+    const faqLd = {'@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: a.faq.map(([q, ans]) => ({'@type': 'Question', name: q, acceptedAnswer: {'@type': 'Answer', text: ans}}))};
+    const crumbLd = {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: '包裝應用', item: site.url + '/machines/'}, {'@type': 'ListItem', position: 3, name: a.name, item: site.url + appUrl(a)}]};
+    const prodLd = {'@context': 'https://schema.org', '@type': 'Product', name: a.name, brand: {'@type': 'Brand', name: site.brand}, manufacturer: {'@type': 'Organization', name: site.name}, description: a.intro, url: site.url + appUrl(a), image: a.videos[0] ? ytThumb(a.videos[0]) : (clips[0] ? site.url + clips[0].poster : site.url + img(images.hero[0]))};
+    const headImg = a.videos[0] ? ytThumb(a.videos[0]) : (clips[0] ? imgx(clips[0].poster, 1200) : imgx(images.about_banner[0], 1800));
+    fs.writeFileSync(path.join(DIST, 'machines', a.slug + '.html'), page({title: `${a.name}｜${a.alt.slice(0, 3).join('、')}｜${site.short} 台中`, desc: a.intro.slice(0, 110).replace(/[，。]$/, '') + '。', url: appUrl(a), body, cur: '/products.html', headImg, headLede: `適合：${a.alt.join('、')}｜台中大里，臥式包裝機製造 30 年`, image: a.videos[0] ? ytThumb(a.videos[0]) : undefined, jsonld: [faqLd, crumbLd, prodLd]}));
+  }
+  const appsIndex = `<div class="wrap"><section><p style="max-width:720px">一種產品一頁：點進去看實際包裝影片、包裝重點和常見問題。沒看到你的產品？特殊尺寸、特殊包材、連托盤、倒吊式都可以客製，直接<a href="/contact.html#form">填詢問單</a>或來電 <a href="tel:${attr(site.tel_intl)}">${esc(site.tel)}</a>。</p>${products.map(p => `<h2 style="font-size:1.3rem;margin:28px 0 12px;padding-left:12px;border-left:4px solid var(--red)">${esc(p.name)}</h2><div class="grid">${apps.filter(a => a.line === p.id && a.slug !== 'horizontal-flow-wrapper').map(appCard).join('')}</div>`).join('')}<h2 style="font-size:1.3rem;margin:28px 0 12px;padding-left:12px;border-left:4px solid var(--red)">認識臥式包裝機</h2><div class="grid">${apps.filter(a => a.slug === 'horizontal-flow-wrapper').map(appCard).join('')}</div></section></div>`;
+  fs.writeFileSync(path.join(DIST, 'machines', 'index.html'), page({title: `包裝應用一覽｜鳳梨酥、包子、牛軋糖、卡片、面紙、口罩包裝機｜${site.short}`, desc: '金達華臥式包裝機的所有應用：鳳梨酥、包子、蛋黃酥連托盤、果凍、麵包、冰棒、餅乾、牛軋糖、黑糖、卡片、擦手紙、抽取式衛生紙、捲筒衛生紙、口罩、免洗餐具、倒吊式與中古機，每一種都有實際影片與常見問題。', url: '/machines/', body: appsIndex, cur: '/products.html', headImg: imgx(images.video_banner[1], 1800)}));
+
   // 其他檔案
   fs.writeFileSync(path.join(DIST, '404.html'), page({title: `找不到頁面|${site.short}`, desc: '頁面不存在', url: '/404.html', body: `<div class="wrap"><section style="text-align:center"><h1>找不到這一頁</h1><p><a class="btn" href="/">回首頁</a></p></section></div>`, cur: ''}));
   fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#0B2A4A"/><text x="32" y="42" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="26" fill="#fff">KDH</text><rect x="12" y="48" width="40" height="5" rx="2.5" fill="#C8102E"/></svg>`);
-  const urls = ['/', '/products.html', '/videos.html', '/gallery.html', '/about.html', '/news.html', '/contact.html', '/en/', '/en/products.html', '/en/contact.html'];
+  const urls = ['/', '/products.html', '/videos.html', '/gallery.html', '/about.html', '/news.html', '/contact.html', '/machines/', ...apps.map(a => `/machines/${a.slug}.html`), '/en/', '/en/products.html', '/en/contact.html'];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u => `<url><loc>${site.url}${u}</loc><lastmod>${ymd(BUILT)}</lastmod></url>`).join('')}</urlset>`);
   fs.writeFileSync(path.join(DIST, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${site.url}/sitemap.xml\n`);
-  fs.writeFileSync(path.join(DIST, 'llms.txt'), `# ${site.name}(${site.en}, KDH PACK)\n\n> ${site.description}\n\n電話 ${site.tel}|手機 ${site.mobile}|Email ${site.email}|地址 ${site.address}|Facebook ${site.facebook}|YouTube ${site.youtube}\n\n## 產品線\n${products.map(p => `- ${p.name}(${p.en}):${p.items.join('、')}`).join('\n')}\n\n## 頁面\n${urls.map(u => `- ${site.url}${u}`).join('\n')}\n`);
+  fs.writeFileSync(path.join(DIST, 'llms.txt'), `# ${site.name}(${site.en}, KDH PACK)\n\n> ${site.description}\n\n電話 ${site.tel}|手機 ${site.mobile}|Email ${site.email}|地址 ${site.address}|Facebook ${site.facebook}|YouTube ${site.youtube}\n\n## 產品線\n${products.map(p => `- ${p.name}(${p.en}):${p.items.join('、')}`).join('\n')}\n\n## 包裝應用(一種產品一頁)\n${apps.map(a => `- ${a.name}:${site.url}/machines/${a.slug}.html`).join('\n')}\n\n## 頁面\n${urls.map(u => `- ${site.url}${u}`).join('\n')}\n`);
   fs.writeFileSync(path.join(DIST, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/llms.txt\n  Content-Type: text/plain; charset=utf-8\n`);
   console.log('build ok →', DIST);
 }

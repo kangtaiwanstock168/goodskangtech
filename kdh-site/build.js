@@ -77,6 +77,10 @@ async function loadVideos(){
 }
 const ytThumb = id => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const ytEmbed = (id, title) => `<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/${attr(id)}?rel=0" title="${attr(title || '')}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+// 自家拍的短片(放 static/video/,非 YouTube):直式 9:16,用 <video> 播
+const clipEmbed = c => `<div class="clip"><video controls playsinline preload="metadata" poster="${attr(c.poster)}" src="${attr(c.src)}" title="${attr(c.title)}"></video></div>`;
+const clipsOf = p => (p.clips || []).map((c, i) => `<div id="clip-${attr(p.id)}-${i}">${clipEmbed(c)}<h4>${esc(c.title)}</h4></div>`).join('');
+const copyDir = (from, to) => { if(!fs.existsSync(from)) return; fs.mkdirSync(to, {recursive: true}); for(const f of fs.readdirSync(from)){ const a = path.join(from, f), b = path.join(to, f); fs.statSync(a).isDirectory() ? copyDir(a, b) : fs.copyFileSync(a, b); } };
 const vCard = (id, v, lazy = true) => `<a class="vcard" href="/videos.html#${attr(id)}"><img src="${ytThumb(id)}" alt="${attr(v.title || '')}" loading="lazy" width="480" height="360"><span>${esc(v.title || id)}</span></a>`;
 
 // —— 版型 ——
@@ -94,7 +98,7 @@ const ICONS = {
 };
 const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 // 產品卡片頂端的影片縮圖(第一支影片),點了到影片頁
-const thumb = p => p.videos && p.videos[0] ? `<a class="cthumb" href="/videos.html#${attr(p.videos[0])}" aria-label="${attr(p.name)} 包裝影片"><img src="${ytThumb(p.videos[0])}" alt="${attr(p.name)} 包裝影片" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></a>` : '';
+const thumb = p => p.clips && p.clips[0] ? `<a class="cthumb" href="/videos.html#clip-${attr(p.id)}-0" aria-label="${attr(p.name)} 包裝影片"><img src="${attr(p.clips[0].poster)}" alt="${attr(p.clips[0].title)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></a>` : p.videos && p.videos[0] ? `<a class="cthumb" href="/videos.html#${attr(p.videos[0])}" aria-label="${attr(p.name)} 包裝影片"><img src="${ytThumb(p.videos[0])}" alt="${attr(p.name)} 包裝影片" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span></a>` : '';
 const ico = n => `<i class="ico" aria-hidden="true">${ICONS[n] || ''}</i>`;
 
 const CSS = `
@@ -152,6 +156,7 @@ section{padding:56px 0}section.alt{background:var(--bg)}
 .vcard span{display:block;padding:10px 12px;font-size:.92rem;font-weight:500;line-height:1.4}
 .yt{position:relative;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
 .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.clip{aspect-ratio:9/16;max-width:320px;margin:0 auto;background:#000;border-radius:12px;overflow:hidden}.clip video{width:100%;height:100%;object-fit:cover;display:block}
 .ytgrid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
 .ytgrid h4{margin:8px 0 0;font-size:.95rem;font-weight:500}
 .prod{display:grid;gap:28px;grid-template-columns:1.1fr 1.6fr;align-items:start;padding:28px 0;border-top:1px solid var(--line)}
@@ -224,6 +229,7 @@ const orgLd = () => ({'@context': 'https://schema.org', '@type': 'LocalBusiness'
 
 async function main(){
   fs.rmSync(DIST, {recursive: true, force: true}); fs.mkdirSync(DIST, {recursive: true});
+  copyDir(path.join(ROOT, 'static'), DIST);
   await loadImages();
   const videos = await loadVideos();
   const V = id => videos[id] || {title: id};
@@ -254,12 +260,12 @@ async function main(){
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機|台中大里`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
 
   // 產品
-  const prodBody = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul class="chips">${p.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul><p style="margin-top:16px"><a class="btn o2" href="/contact.html#form">詢問這類包裝</a></p></div><div class="ytgrid">${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}
+  const prodBody = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul class="chips">${p.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul><p style="margin-top:16px"><a class="btn o2" href="/contact.html#form">詢問這類包裝</a></p></div><div class="ytgrid">${clipsOf(p)}${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}
 <div class="cta" style="margin:40px 0"><div><h2>沒看到你的產品?</h2><p>特殊尺寸、特殊包材、倒吊式、連托盤一起包,都可以客製。</p></div><a class="btn" href="/contact.html#form">告訴我們你要包什麼</a></div></div>`;
   fs.writeFileSync(path.join(DIST, 'products.html'), page({title: `產品與機型|${site.short}`, desc: '食品、糖果、卡片、面紙紙品、民生用品與特殊需求五大產品線的臥式包裝機,每一類都有實際包裝影片。', url: '/products.html', body: prodBody, cur: '/products.html', headImg: imgx(images.about_banner[0], 1800)}));
 
   // 影片
-  const vidBody = `<div class="wrap">${products.map(p => `<section style="padding:28px 0"><div class="sh"><h2>${esc(p.name)}</h2><a href="/products.html#${p.id}">看機型 →</a></div><div class="ytgrid">${p.videos.map(id => `<div id="${attr(id)}">${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></section>`).join('')}
+  const vidBody = `<div class="wrap">${products.map(p => `<section style="padding:28px 0"><div class="sh"><h2>${esc(p.name)}</h2><a href="/products.html#${p.id}">看機型 →</a></div><div class="ytgrid">${clipsOf(p)}${p.videos.map(id => `<div id="${attr(id)}">${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></section>`).join('')}
 <section style="padding:28px 0"><div class="sh"><h2>頻道最新影片</h2><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube 頻道 →</a></div><div class="vgrid">${byDate.slice(0, 9).map(([id, v]) => `<a class="vcard" href="https://www.youtube.com/watch?v=${attr(id)}" target="_blank" rel="noopener"><img src="${ytThumb(id)}" alt="${attr(v.title)}" loading="lazy"><span>${esc(v.title)}</span></a>`).join('')}</div></section></div>`;
   fs.writeFileSync(path.join(DIST, 'videos.html'), page({title: `包裝影片|${site.short}`, desc: '金達華臥式包裝機實際運轉影片:包子、鳳梨酥、牛軋糖、黑糖、卡片、擦手紙、衛生紙、口罩、免洗餐具。', url: '/videos.html', body: vidBody, cur: '/videos.html', headImg: imgx(images.video_banner[0], 1800)}));
 
@@ -289,7 +295,7 @@ async function main(){
 <section><div class="wrap"><div class="sh"><h2>Packing videos</h2><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube channel →</a></div><div class="vgrid">${byDate.slice(0, 6).map(([id, v]) => `<a class="vcard" href="https://www.youtube.com/watch?v=${attr(id)}" target="_blank" rel="noopener"><img src="${ytThumb(id)}" alt="${attr(v.title)}" loading="lazy"><span>${esc(v.title)}</span></a>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="contact"><div><div class="sh"><h2>Contact</h2></div>${contactList(true)}</div><div>${mapEmbed}</div></div></div></section>`;
   fs.writeFileSync(path.join(DIST, 'en', 'index.html'), page({title: `${site.en} (KDH PACK)|Horizontal Flow Wrapping Machines, Taiwan`, desc: site.description_en, url: '/en/', body: enHome, cur: '/en/', lang: 'en', jsonld: orgLd()}));
-  const enProd = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.en)}</h3><p>${esc(p.lead_en)}</p><ul class="chips">${p.items_en.map(i => `<li>${esc(i)}</li>`).join('')}</ul><p style="margin-top:16px"><a class="btn o2" href="/en/contact.html#form">Ask about this line</a></p></div><div class="ytgrid">${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}</div>`;
+  const enProd = `<div class="wrap">${products.map(p => `<div class="prod" id="${p.id}"><div><h3>${ico(p.icon)} ${esc(p.en)}</h3><p>${esc(p.lead_en)}</p><ul class="chips">${p.items_en.map(i => `<li>${esc(i)}</li>`).join('')}</ul><p style="margin-top:16px"><a class="btn o2" href="/en/contact.html#form">Ask about this line</a></p></div><div class="ytgrid">${clipsOf(p)}${p.videos.slice(0, 4).map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></div>`).join('')}</div>`;
   fs.writeFileSync(path.join(DIST, 'en', 'products.html'), page({title: `Products|KDH PACK`, desc: 'Horizontal flow wrappers for food, candy, cards, tissue and daily goods, with packing videos for each line.', url: '/en/products.html', body: enProd, cur: '/en/products.html', lang: 'en', headImg: imgx(images.about_banner[0], 1800)}));
   const enContact = `<div class="wrap"><section><div class="contact"><div><div class="sh"><h2>Inquiry</h2></div>${contactForm(true)}</div><div><div class="sh"><h2>Contact</h2></div>${contactList(true)}<div style="margin-top:20px">${mapEmbed}</div></div></div></section></div>`;
   fs.writeFileSync(path.join(DIST, 'en', 'contact.html'), page({title: `Contact|KDH PACK`, desc: `Tel ${site.tel_intl}, email ${site.email}. ${site.address_en}`, url: '/en/contact.html', body: enContact, cur: '/en/contact.html', lang: 'en', headImg: imgx(images.hero[2], 1800)}));

@@ -120,7 +120,17 @@ nav a.tel{background:var(--red);color:#fff;font-weight:700}nav a.tel:hover{backg
 .menu{display:none;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:1rem}
 .hero{position:relative;color:#fff;background:var(--navy) center/cover no-repeat;min-height:460px;display:flex;align-items:center}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,42,74,.92) 0%,rgba(11,42,74,.75) 55%,rgba(11,42,74,.35) 100%)}
-.hero .wrap{position:relative;padding:56px 20px}
+.hero .wrap{position:relative;z-index:2;padding:56px 20px}
+.herov,.herom,.heroplay{display:none}
+.hero.playing{background:#000;min-height:0;display:block}.hero.playing::before,.hero.playing .herom,.hero.playing .heroplay,.hero.playing .wrap{display:none}.hero.playing .herov{display:block;position:relative;width:auto;max-width:100%;aspect-ratio:9/16;max-height:82vh;margin:0 auto;object-fit:contain;background:#000}
+.kicker{display:inline-block;background:var(--red);color:#fff;font-weight:700;font-size:.85rem;letter-spacing:.06em;padding:4px 10px;border-radius:6px;margin:0 0 12px}
+.reelsec{padding:28px 0 8px}.reelsec .sh{margin-bottom:14px}
+.reel{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+.rcard{position:relative;display:block;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3;color:#fff}
+.rcard img{width:100%;height:100%;object-fit:cover;display:block;opacity:.92}
+.rcard b{position:absolute;left:0;right:0;bottom:0;padding:28px 12px 10px;font-size:.88rem;font-weight:600;line-height:1.35;background:linear-gradient(transparent,rgba(0,0,0,.78))}
+.rcard .play{position:absolute;left:50%;top:42%;width:50px;height:36px;margin:-18px 0 0 -25px;border-radius:10px;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}.rcard .play svg{width:22px;height:22px;fill:#fff}
+.rcard:hover{text-decoration:none}
 .hero h1{font-size:clamp(1.7rem,4.2vw,2.8rem);line-height:1.25;margin:0 0 14px;letter-spacing:.01em}
 .hero p{font-size:1.1rem;max-width:640px;margin:0 0 26px;color:#DCE6F2}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;font-weight:700;background:var(--red);color:#fff;border:2px solid var(--red)}
@@ -197,7 +207,12 @@ footer h4{color:#fff;margin:0 0 10px;font-size:1rem}footer p{margin:0 0 6px}
 @media(max-width:1400px) and (min-width:981px){.logo span{display:none}}
 @media(max-width:980px){.logo small{display:none}.prod{grid-template-columns:1fr}.contact{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.logo{font-size:.95rem}
  nav{display:none;position:absolute;left:0;right:0;top:68px;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:8px 12px 14px}
- nav.open{display:flex}nav a{padding:12px}nav a.tel{text-align:center}.menu{display:inline-block}.bar{display:flex}.hero{min-height:380px}section{padding:40px 0}}
+ nav.open{display:flex}nav a{padding:12px}nav a.tel{text-align:center}.menu{display:inline-block}.bar{display:flex}section{padding:40px 0}
+ .hero{min-height:440px;align-items:flex-end}.hero::before{z-index:1;background:linear-gradient(180deg,rgba(11,42,74,.15) 0%,rgba(11,42,74,.55) 45%,rgba(11,42,74,.92) 100%)}.hero .wrap{padding:40px 20px 28px}.hero h1{font-size:1.75rem}.hero .lede{display:none}
+ .herom{display:block;position:absolute;inset:0;background:center/cover no-repeat;z-index:0}
+ .heroplay{display:inline-flex;align-items:center;gap:8px;position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);z-index:3;background:var(--red);color:#fff;border:0;border-radius:999px;padding:12px 20px 12px 14px;font:inherit;font-weight:700;font-size:1rem;box-shadow:0 8px 24px rgba(0,0,0,.4)}.heroplay svg{width:24px;height:24px;fill:#fff}
+ .card ul{display:none}.card p{margin-bottom:4px}
+ .reelsec{padding:22px 0 6px}.reel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -20px;padding:0 20px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.reel::-webkit-scrollbar{display:none}.rcard{flex:0 0 68%;scroll-snap-align:start}}
 `;
 
 const NAV = [['/', '首頁'], ['/products.html', '產品與機型'], ['/videos.html', '包裝影片'], ['/gallery.html', '機台照片'], ['/about.html', '關於金達華'], ['/news.html', '最新消息'], ['/contact.html', '聯絡我們']];
@@ -248,13 +263,16 @@ async function main(){
   const mapEmbed = `<iframe class="map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${encodeURIComponent('台中市大里區工業路宏巨巷66號')}&output=embed" title="金達華實業地圖"></iframe>`;
 
   // 首頁
-  const home = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')"><div class="wrap"><h1>${esc(site.tagline)}<br>包子、鳳梨酥、牛軋糖、卡片、面紙都包得漂亮</h1><p>金達華實業有限公司,台中大里。臥式自動包裝機專業製造超過 30 年,從規劃、設計、製造到保養一條龍。${esc(site.slogan)}。</p><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">線上詢問,告訴我們你要包什麼</a></div></div></div>
+  // 手機版首屏:實拍海報圖＋播放鈕,點了才在原位播放完整影片(不自動播,省流量、也讓人自己按)
+  const heroVideo = fs.existsSync(path.join(ROOT, 'static', 'video', 'jelly-tray.mp4')) ? `<div class="herom" style="background-image:url('/video/hero-poster.jpg')"></div><button class="heroplay" type="button" aria-label="播放實際包裝影片" onclick="var h=this.closest('.hero');var v=document.createElement('video');v.src='/video/jelly-tray.mp4';v.controls=true;v.playsInline=true;v.setAttribute('playsinline','');v.className='herov';h.classList.add('playing');h.insertBefore(v,h.firstChild);v.play();">${PLAY}<span>看機器實際包裝</span></button>` : '';
+  const reel = [...products.flatMap(p => (p.clips || []).map((c, i) => [`/videos.html#clip-${p.id}-${i}`, c.poster, c.title])), ...byDate.slice(0, 7).map(([id, v]) => [`/videos.html#${id}`, ytThumb(id), v.title])].slice(0, 8);
+  const reelHtml = `<section class="reelsec"><div class="wrap"><div class="sh"><h2>實際包裝影片</h2><a href="/videos.html">全部 ${Object.keys(videos).length + products.reduce((n, p) => n + (p.clips || []).length, 0)} 支 →</a></div><div class="reel">${reel.map(([h, img, t]) => `<a class="rcard" href="${attr(h)}"><img src="${attr(img)}" alt="${attr(t)}" loading="lazy" width="480" height="360"><span class="play">${PLAY}</span><b>${esc(t)}</b></a>`).join('')}</div></div></section>`;
+  const home = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')">${heroVideo}<div class="wrap"><p class="kicker">台中大里 · 臥式包裝機製造 30 年</p><h1>包子、鳳梨酥、牛軋糖、卡片、面紙<br>都包得漂亮</h1><p class="lede">金達華實業有限公司,台中大里。臥式自動包裝機專業製造超過 30 年,從規劃、設計、製造到保養一條龍。${esc(site.slogan)}。</p><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">線上詢問</a></div></div></div><span id="reel"></span>${reelHtml}
 <section><div class="wrap"><div class="sh"><h2>你的產品,我們都包過</h2><p>五大產品線,點進去看實際包裝影片</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.name)}</h3><p>${esc(p.lead)}</p><ul>${p.items.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/products.html#${p.id}">看機型與影片 →</a></div>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="sh"><h2>為什麼選擇金達華</h2></div><div class="pts">
 <div class="pt"><b>以客為「根」</b><p>客戶是我們的根本。只要客戶有需求,在專業判斷內我們一定盡力達成。</p></div>
 <div class="pt"><b>品質與價格的平衡</b><p>比品質我們可能比不過歐美日機器,比價格我們鐵定比不過中國印度;我們在夾縫中求生存,給客戶合理的價格與品質的平衡。</p></div>
 <div class="pt"><b>服務及時</b><p>包裝機要定期保養、要追蹤使用狀況。我們的 LINE 和電話都不怕客戶 24 小時聯繫,不敢說隨傳隨到,但保證有求必應。</p></div></div></div></section>
-<section><div class="wrap"><div class="sh"><h2>包裝影片</h2><a href="/videos.html">全部影片 →</a></div><div class="vgrid">${byDate.slice(0, 6).map(([id, v]) => vCard(id, v)).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="cta"><div><h2>不確定你的產品能不能包?</h2><p>拍張照、或把樣品寄來,我們直接用機器試給你看。中古二手包裝機也歡迎詢問。</p></div><div class="btns"><a class="btn" href="tel:${attr(site.tel_intl)}">${ico('phone')} 打電話 ${esc(site.tel)}</a><a class="btn o" href="/contact.html#form">填詢問單</a></div></div></div></section>
 <section><div class="wrap"><div class="contact"><div><div class="sh"><h2>聯絡我們</h2></div>${contactList(false)}</div><div>${mapEmbed}</div></div></div></section>`;
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|臥式包裝機・食品包裝機・卡片包裝機・面紙包裝機|台中大里`, desc: site.description, url: '/', body: home, cur: '/', jsonld: orgLd()}));
@@ -289,7 +307,7 @@ async function main(){
 
   // 英文精簡版
   fs.mkdirSync(path.join(DIST, 'en'), {recursive: true});
-  const enHome = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')"><div class="wrap"><h1>Horizontal flow wrapping machines<br>built in Taichung, Taiwan for 30+ years</h1><p>${esc(site.description_en)}</p><div class="btns"><a class="btn" href="mailto:${attr(site.email)}">${ico('mail')} ${esc(site.email)}</a><a class="btn o" href="/en/contact.html#form">Send an inquiry</a></div></div></div>
+  const enHome = `<div class="hero" style="background-image:url('${attr(imgx(images.hero[0], 1800))}')">${heroVideo}<div class="wrap"><h1>Horizontal flow wrapping machines<br>built in Taichung, Taiwan for 30+ years</h1><p>${esc(site.description_en)}</p><div class="btns"><a class="btn" href="mailto:${attr(site.email)}">${ico('mail')} ${esc(site.email)}</a><a class="btn o" href="/en/contact.html#form">Send an inquiry</a></div></div></div>
 <section><div class="wrap"><div class="sh"><h2>What we pack</h2><p>Five product lines, each with real packing videos</p></div><div class="grid">${products.map(p => `<div class="card">${thumb(p)}${ico(p.icon)}<h3>${esc(p.en)}</h3><p>${esc(p.lead_en)}</p><ul>${p.items_en.slice(0, 4).map(i => `<li>${esc(i)}</li>`).join('')}</ul><a class="more" href="/en/products.html#${p.id}">Machines & videos →</a></div>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="sh"><h2>Why KDH</h2></div><div class="pts"><div class="pt"><b>Customer first</b><p>If you need it and it is technically sound, we build it.</p></div><div class="pt"><b>Quality at a fair price</b><p>Not the cheapest, not the most expensive: a balance of reliability and cost that Taiwanese makers are known for.</p></div><div class="pt"><b>After-sales that answers</b><p>Maintenance schedules, spare parts and a phone that is picked up. ${esc(site.slogan_en)}</p></div></div></div></section>
 <section><div class="wrap"><div class="sh"><h2>Packing videos</h2><a href="${attr(site.youtube)}" target="_blank" rel="noopener">YouTube channel →</a></div><div class="vgrid">${byDate.slice(0, 6).map(([id, v]) => `<a class="vcard" href="https://www.youtube.com/watch?v=${attr(id)}" target="_blank" rel="noopener"><img src="${ytThumb(id)}" alt="${attr(v.title)}" loading="lazy"><span>${esc(v.title)}</span></a>`).join('')}</div></div></section>

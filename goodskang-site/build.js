@@ -236,6 +236,47 @@ function socialMd(src, title){
   return out.join('\n');
 }
 
+// ── 文章版型強化:每個小標一張區塊卡、「你…」好處句、要注意框、問句卡、資料來源收合、目錄、分享列 ──
+function enhance(html, p){
+  html = html.replace(/<p>((?:資料來源|參考資料|來源|資料與圖片|資料)[:：][\s\S]*?)<\/p>/g, '<p class="src">$1</p>');
+  html = html.replace(/<p>(要注意的是[\s\S]*?)<\/p>/g, '<blockquote>$1</blockquote>');
+  const srcs = [], warns = [];
+  html = html.replace(/<p class="src">([\s\S]*?)<\/p>/g, (m, x) => { srcs.push(x); return ''; });
+  html = html.replace(/<blockquote>([\s\S]*?)<\/blockquote>/g, (m, x) => { if(/要注意|注意[:：]|提醒[:：]/.test(x)){ warns.push(x); return '<!--WARN-->'; } return m; });
+  // 文末問句:最後一個以問號結尾的段落
+  let ask = '';
+  const ps = [...html.matchAll(/<p>([^]*?)<\/p>/g)];
+  const last = ps[ps.length - 1];
+  if(last && /[？?]\s*$/.test(last[1].replace(/<[^>]+>/g, '').trim()) && last[1].replace(/<[^>]+>/g, '').length < 120){ ask = last[1]; html = html.slice(0, last.index) + html.slice(last.index + last[0].length); }
+  // IG 貼文:要注意之後、以「我」為主的段落＝阿康的看法,獨立成一張卡
+  let stance = '';
+  if(p && p.auto && !/阿康怎麼看|我怎麼看|我的看法/.test(html)){ const wi = html.lastIndexOf('<!--WARN-->'); if(wi >= 0){ const tail = html.slice(wi + 11); const mine = [...tail.matchAll(/<p>([^]*?)<\/p>/g)].filter(m => /我/.test(m[1])); if(mine.length){ stance = mine.map(m => `<p>${m[1]}</p>`).join(''); let t2 = tail; for(const m of mine) t2 = t2.replace(m[0], ''); html = html.slice(0, wi + 11) + t2; } } }
+  // 段落以「你」開頭＝好處句
+  html = html.replace(/<p>(你[^]*?)<\/p>/g, '<p class="you">$1</p>');
+  // 依 h2 切區塊
+  const parts = html.split(/(?=<h2>)/);
+  const intro = parts[0].startsWith('<h2>') ? '' : parts.shift();
+  const heads = [];
+  const blocks = parts.map((sec, i) => {
+    const h = (sec.match(/^<h2>([^]*?)<\/h2>/) || [, ''])[1];
+    const plain = h.replace(/<[^>]+>/g, '').trim();
+    const id = 's' + (i + 1); heads.push([id, plain]);
+    const kind = /阿康怎麼看|我怎麼看|我的看法|我的選擇|我的建議|我的結論/.test(plain) ? 'me' : /重點速覽|一次看懂|懶人包|重點整理/.test(plain) ? 'sum' : 'c' + (i % 4);
+    const body = sec.replace(/^<h2>[^]*?<\/h2>/, '').replace(/<!--WARN-->/g, () => warns.length ? `<div class="warn"><b>要注意</b>${warns.shift().replace(/^要注意的是[，,:：]?\s*/, '')}</div>` : '');
+    return `<section class="blk ${kind}" id="${id}"><h2>${h}</h2>${body}</section>`;
+  });
+  const introHtml = intro.replace(/<!--WARN-->/g, () => warns.length ? `<div class="warn"><b>要注意</b>${warns.shift().replace(/^要注意的是[，,:：]?\s*/, '')}</div>` : '');
+  const toc = heads.length >= 3 ? `<nav class="toc" aria-label="這篇重點"><b>這篇重點</b>${heads.map(([id, t]) => `<a href="#${id}">${esc(t.replace(/^[^\p{L}\p{N}]+/u, ''))}</a>`).join('')}</nav>` : '';
+  const rest = warns.map(w => `<div class="warn"><b>要注意</b>${w.replace(/^要注意的是[，,:：]?\s*/, '')}</div>`).join('');
+  const askHtml = ask ? `<div class="ask"><b>聊聊</b><p>${ask}</p>${p && p.ig ? `<a href="${attr(p.ig)}" target="_blank" rel="noopener">到 Instagram 留言 ↗</a>` : ''}</div>` : '';
+  const srcHtml = srcs.length ? `<details class="srcbox"><summary>資料來源與說明</summary>${srcs.map(x => `<p>${x}</p>`).join('')}</details>` : '';
+  const stanceHtml = stance ? `<section class="blk me"><h2>阿康怎麼看</h2>${stance}</section>` : '';
+  return `<div class="lead">${introHtml}</div>${toc}${blocks.join('')}${rest}${stanceHtml}${askHtml}${srcHtml}`;
+}
+const shareBar = (p, where) => { const u = site.url + p.url, t = p.title; const e = encodeURIComponent;
+  return `<div class="share ${where}" data-url="${attr(u)}" data-title="${attr(t)}"><span class="lbl">分享給朋友</span><a class="sh line" href="https://social-plugins.line.me/lineit/share?url=${e(u)}" target="_blank" rel="noopener">LINE</a><a class="sh fb" href="https://www.facebook.com/sharer/sharer.php?u=${e(u)}" target="_blank" rel="noopener">Facebook</a><a class="sh th" href="https://www.threads.net/intent/post?text=${e(t + ' ' + u)}" target="_blank" rel="noopener">Threads</a><button type="button" class="sh cp" onclick="shCopy(this)">複製連結</button><button type="button" class="sh more" onclick="shMore(this)">IG・更多</button></div>`; };
+const SHARE_JS = `<script>function shCopy(b){var u=b.parentNode.dataset.url;var ok=function(){var o=b.textContent;b.textContent='已複製 ✓';setTimeout(function(){b.textContent=o},1600)};if(navigator.clipboard){navigator.clipboard.writeText(u).then(ok,function(){prompt('複製這個連結',u)})}else{prompt('複製這個連結',u)}}function shMore(b){var d=b.parentNode.dataset;if(navigator.share){navigator.share({title:d.title,url:d.url}).catch(function(){})}else{shCopy(b.previousElementSibling);alert('已複製連結，可以貼到 IG 限動或私訊。')}}</script>`;
+
 // ── 自動抓 IG / FB 貼文(Meta Graph API;需環境變數 META_TOKEN + IG_USER_ID / FB_PAGE_ID)──
 // 每次建站抓最近 50 則,圖片下載到 dist/img/social/(IG 的 CDN 圖檔網址會過期,所以要抓下來自己放)
 // 同一篇 IG/FB 交叉發文只留一篇(比對前 60 字),FB 連結掛在同一篇底下
@@ -281,13 +322,18 @@ async function loadSocial(){
   const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return ls.join(' ').replace(/\s+/g, ' ').trim().slice(0, 120); };
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
   const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
-  const out = [];
+  const out = []; let j_ig = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
     if(igToken){
-      const j = JSON.parse(await fetchText(`https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${igToken}`, 20000));
+      const j = JSON.parse(await fetchText(`https://graph.instagram.com/v21.0/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=50&access_token=${igToken}`, 20000)); j_ig = j.data || [];
       for(const m of (j.data || [])){ if(!m.caption) continue; out.push(mk('ig', m.id, m.caption, m.timestamp, m.permalink, m.media_type === 'VIDEO' ? (m.thumbnail_url || m.media_url) : m.media_url, {video: m.media_type === 'VIDEO', videoRemote: m.media_type === 'VIDEO' ? m.media_url : ''})); }
     }
+    // 輪播貼文:另外抓每張圖(失敗不影響主流程)
+    if(igToken){ let n = 0; for(const m of (j_ig || [])){ if(m.media_type !== 'CAROUSEL_ALBUM' || n >= 25) continue; n++;
+      try{ const c = JSON.parse(await fetchText(`https://graph.instagram.com/v21.0/${m.id}/children?fields=id,media_type,media_url,thumbnail_url&access_token=${igToken}`, 15000));
+        const post = out.find(x => x.slug === 'ig-' + m.id); if(post) post.slidesRemote = (c.data || []).map(k => k.media_type === 'VIDEO' ? (k.thumbnail_url || '') : k.media_url).filter(Boolean).slice(0, 10);
+      }catch(e){ console.warn('[social] 輪播子圖抓取失敗:', m.id); } } }
   }catch(e){ console.warn('[social] IG(Instagram Login) 抓取失敗:', e.message); }
   // 路線 B:透過粉專的 Graph API(META_TOKEN + IG_USER_ID / FB_PAGE_ID)
   try{
@@ -308,6 +354,7 @@ async function loadSocial(){
   }catch(e){ console.warn('[social] FB 抓取失敗:', e.message); }
   for(const p of out){ if(p.coverRemote){ p.cover = await grab(p.coverRemote, p.slug); if(!p.cover && p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/maxresdefault.jpg`; } else if(p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/maxresdefault.jpg`; }
   for(const p of out){ if(p.video && p.videoRemote) p.videoSrc = await grabVideo(p.videoRemote, p.slug); }
+  for(const p of out){ if(p.slidesRemote && p.slidesRemote.length > 1){ const got = []; for(const [k, u] of p.slidesRemote.entries()){ const g = await grab(u, `${p.slug}-${k + 1}`); if(g) got.push(g); } if(got.length > 1) p.slides = got; } }
   console.log('[social] hosted video MB:', Math.round(videoBytes / 1024 / 1024));
   console.log(`[social] IG/FB 自動貼文 ${out.length} 篇`);
   return out;
@@ -383,6 +430,29 @@ article .body h2{font-size:1.15rem;margin:28px 0 8px}
 article .body .tip{border-left:3px solid var(--gold);background:rgba(255,212,59,.07);padding:8px 12px;border-radius:0}
 article .body .tip b{color:var(--gold);margin-right:6px}
 article .body .src{color:var(--muted);font-size:.85rem;margin-top:22px}
+article .body .lead p:first-child{font-size:1.12rem;color:var(--text)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 6px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px}.toc b{font-size:.85rem;color:var(--muted);margin-right:4px}.toc a{font-size:.88rem;padding:4px 10px;border-radius:999px;background:rgba(91,133,245,.12);color:var(--text)}.toc a:hover{text-decoration:none;background:rgba(91,133,245,.24)}
+article .body .blk{--c:var(--accent);background:var(--card);border:1px solid var(--border);border-top:3px solid var(--c);border-radius:12px;padding:6px 18px 10px;margin:16px 0;scroll-margin-top:90px}
+article .body .blk.c1{--c:var(--gold)}article .body .blk.c2{--c:var(--green)}article .body .blk.c3{--c:var(--amber)}
+article .body .blk h2{border-left:0;padding-left:0;margin:12px 0 6px;font-size:1.15rem;color:var(--c)}
+article .body .blk.sum{--c:var(--gold)}article .body .blk.sum h2::before{content:"";}
+article .body .blk.me{--c:var(--gold);background:rgba(255,212,59,.06);border:1px solid rgba(255,212,59,.35);border-top:3px solid var(--gold)}
+article .body .blk.me h2{color:var(--gold)}
+article .body p.you{background:rgba(76,195,138,.08);border-left:3px solid var(--green);padding:8px 12px;border-radius:0 8px 8px 0}
+article .body .warn{background:rgba(242,107,107,.08);border:1px solid rgba(242,107,107,.35);border-radius:12px;padding:12px 16px;margin:16px 0;line-height:1.8}
+article .body .warn b{display:block;color:var(--red);font-size:.9rem;margin-bottom:2px}
+article .body .ask{background:rgba(91,133,245,.08);border:1px solid rgba(91,133,245,.35);border-radius:12px;padding:12px 16px;margin:18px 0}
+article .body .ask b{color:var(--accent);font-size:.9rem}article .body .ask p{margin:4px 0;font-size:1.08rem;font-weight:700}article .body .ask a{font-size:.9rem}
+article .body .srcbox{margin:18px 0 6px;border:1px solid var(--border);border-radius:10px;padding:8px 14px;color:var(--muted);font-size:.85rem}article .body .srcbox summary{cursor:pointer;font-weight:700}article .body .srcbox p{line-height:1.7;margin:8px 0}
+article .body .blk .tbl{margin:8px 0 10px}
+.share{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}.share.bottom{margin:22px 0 4px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.share .lbl{font-size:.85rem;color:var(--muted);margin-right:2px}
+.share .sh{font:inherit;font-size:.85rem;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;line-height:1.4}
+.share .sh:hover{text-decoration:none;border-color:var(--muted)}.share .line{border-color:#06C755;color:#06C755}.share .fb{border-color:#4C7BF3;color:#7EA0F7}.share .more{background:rgba(255,212,59,.12);border-color:rgba(255,212,59,.5);color:var(--gold)}
+.gal{margin:12px auto;max-width:440px}.gal .track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:12px;scrollbar-width:none}.gal .track::-webkit-scrollbar{display:none}
+.gal .track img{flex:0 0 100%;width:100%;aspect-ratio:4/5;object-fit:cover;scroll-snap-align:center;margin:0;border-radius:0;background:var(--card)}
+.gal .galnav{display:flex;align-items:center;justify-content:space-between;margin-top:6px;color:var(--muted);font-size:.85rem}.gal .galnav button{font:inherit;font-size:1.2rem;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}
+@media(max-width:560px){article .body .blk{padding:4px 14px 8px}article h1{font-size:1.4rem}.share .lbl{width:100%}}
 .social{display:flex;gap:10px;flex-wrap:wrap}
 .social a{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;font-weight:700;color:var(--text)}
 footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;line-height:1.8}
@@ -509,7 +579,7 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
     const igEmbed = p.ig ? `<blockquote class="instagram-media" data-instgrm-permalink="${attr(p.ig)}" data-instgrm-version="14" style="margin:12px 0;"><a href="${attr(p.ig)}" target="_blank" rel="noopener">在 Instagram 看這則貼文</a></blockquote><script async src="https://www.instagram.com/embed.js"></script>` : '';
     const embeds = (yid && !p.html.includes(`embed/${yid}`) ? ytEmbed(yid) : '') + igEmbed
       + (p.fb ? `<p><a class="btn o" href="${attr(p.fb)}" target="_blank" rel="noopener">在 Facebook 看這則貼文</a></p>` : '');
-    const body = `<article><p style="margin:14px 0 0;"><a href="${secOf(p).url}">← ${secOf(p).name}</a> <span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${p.video && p.ig ? videoHero : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : '')}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${videoLinks}<div class="body">${p.html.replace(yid ? ytEmbed(yid) : '__none__', '')}${plugOf(p)}</div>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
+    const body = `<article><p style="margin:14px 0 0;"><a href="${secOf(p).url}">← ${secOf(p).name}</a> <span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 自動同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="meta">${p.date}・${esc(site.author)}・${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>${shareBar(p, 'top')}${p.video && p.ig ? videoHero : (p.slides ? `<div class="gal" aria-label="輪播圖片"><div class="track">${p.slides.map((g, k) => `<img src="${attr(g)}" alt="${attr(p.title)} 第 ${k + 1} 張" loading="${k ? 'lazy' : 'eager'}">`).join('')}</div><div class="galnav"><button type="button" onclick="galGo(this,-1)" aria-label="上一張">‹</button><span>滑動看 ${p.slides.length} 張</span><button type="button" onclick="galGo(this,1)" aria-label="下一張">›</button></div></div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''))}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${videoLinks}<div class="body">${enhance(p.html.replace(yid ? ytEmbed(yid) : '__none__', ''), p)}${plugOf(p)}</div>${shareBar(p, 'bottom')}${SHARE_JS}<script>function galGo(b,d){var t=b.closest('.gal').querySelector('.track');t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}</script>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
 ${secOf(p).url === '/posts.html' ? `<div style="margin-top:26px;">${ctaHtml}</div>` : ''}
 ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list card">${rel.map(pRow).join('')}</div>` : ''}
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">${posts[i + 1] ? `<a class="btn o" href="${posts[i + 1].url}">← 上一篇:${esc(posts[i + 1].title.slice(0, 18))}…</a>` : ''}${posts[i - 1] ? `<a class="btn o" href="${posts[i - 1].url}">下一篇:${esc(posts[i - 1].title.slice(0, 18))}… →</a>` : ''}</div></article>`;

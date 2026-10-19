@@ -417,7 +417,9 @@ async function main(){
   const PASTRY = ['pineapple-cake', 'nougat', 'cookie-cracker', 'tray-pastry', 'bread-sandwich', 'brown-sugar', 'steamed-bun'];
   const pastryApps = PASTRY.map(sl => apps.find(a => a.slug === sl)).filter(Boolean);
   const pastryVids = ['izInLjcUa9g', 'I4JVv_sTfW0', 'zDp2Y6ERWCU'];
-  const pastryBody = `<div class="wrap"><section style="padding-top:36px"><div class="sh"><h2>實際包裝影片</h2><p>鳳梨酥、牛軋糖、蛋黃酥連托盤</p></div><div class="ytgrid">${pastryVids.map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></section>
+  const pastryFilm = 'lTONV3EpGKE';
+  const pastryBody = `<div class="wrap"><section style="padding-top:36px"><div class="sh"><h2>32 秒看糕餅包裝</h2><p>鳳梨酥、牛軋糖、蛋黃酥連托盤，全部是過往實拍</p></div><div style="max-width:880px">${ytEmbed(pastryFilm, '鳳梨酥、牛軋糖、蛋黃酥包裝機實拍｜台中金達華')}</div></section>
+<section style="padding-top:0"><div class="sh"><h2>實際包裝影片</h2><p>鳳梨酥、牛軋糖、蛋黃酥連托盤</p></div><div class="ytgrid">${pastryVids.map(id => `<div>${ytEmbed(id, V(id).title)}<h4>${esc(V(id).title)}</h4></div>`).join('')}</div></section>
 <section style="padding-top:0"><div class="sh"><h2>我們包過的糕餅</h2><p>點進去看影片和常見問題</p></div><div class="grid">${pastryApps.map(appCard).join('')}</div></section>
 <section style="padding-top:0"><div class="sh"><h2>打電話前，先準備這五樣</h2></div><ol class="steps" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"><li><b>產品照片</b><span>正面、側面各一張</span></li><li><b>產品長、寬、高</b><span>量最大的那一款</span></li><li><b>想要的產量</b><span>每分鐘幾個，或一天要出多少</span></li><li><b>目前用的包材</b><span>或想要的袋型</span></li><li><b>怎麼上料</b><span>人工放上輸送帶，或要自動送料</span></li></ol></section>
 <section style="padding-top:0">${orderFlow}</section>

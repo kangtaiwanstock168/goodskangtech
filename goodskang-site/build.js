@@ -253,6 +253,8 @@ function enhance(html, p){
   if(p && p.auto && !/阿康怎麼看|我怎麼看|我的看法/.test(html)){ const wi = html.lastIndexOf('<!--WARN-->'); if(wi >= 0){ const tail = html.slice(wi + 11); const mine = [...tail.matchAll(/<p>([^]*?)<\/p>/g)].filter(m => /我/.test(m[1])); if(mine.length){ stance = mine.map(m => `<p>${m[1]}</p>`).join(''); let t2 = tail; for(const m of mine) t2 = t2.replace(m[0], ''); html = html.slice(0, wi + 11) + t2; } } }
   // 段落以「你」開頭＝好處句
   html = html.replace(/<p>(你[^]*?)<\/p>/g, '<p class="you">$1</p>');
+  // 沒有小標的 IG 長文:第一段當引言,其餘每段一張編號卡
+  if(p && p.auto && !/<h2>/.test(html)){ const paras = [...html.matchAll(/<p( class="you")?>([^]*?)<\/p>/g)]; if(paras.length >= 4){ let k = 0; html = html.replace(/<p( class="you")?>([^]*?)<\/p>/g, (m, c, x) => { k++; if(k === paras.length && /轉給|傳給|丟進|分享給|tag/.test(x)) return `<div class="ask"><b>分享</b><p>${x}</p></div>`; return k === 1 ? m : `<section class="blk c${(k - 2) % 4} pt"><span class="no">${k - 1}</span><p>${x}</p></section>`; }); } }
   // 依 h2 切區塊
   const parts = html.split(/(?=<h2>)/);
   const intro = parts[0].startsWith('<h2>') ? '' : parts.shift();
@@ -445,6 +447,7 @@ article .body .ask{background:rgba(91,133,245,.08);border:1px solid rgba(91,133,
 article .body .ask b{color:var(--accent);font-size:.9rem}article .body .ask p{margin:4px 0;font-size:1.08rem;font-weight:700}article .body .ask a{font-size:.9rem}
 article .body .srcbox{margin:18px 0 6px;border:1px solid var(--border);border-radius:10px;padding:8px 14px;color:var(--muted);font-size:.85rem}article .body .srcbox summary{cursor:pointer;font-weight:700}article .body .srcbox p{line-height:1.7;margin:8px 0}
 article .body .blk .tbl{margin:8px 0 10px}
+article .body .blk.pt{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-top:1px solid var(--border);border-left:3px solid var(--c)}article .body .blk.pt p{margin:0}article .body .blk.pt .no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--c);color:#10141D;font-weight:900;font-size:.85rem;display:flex;align-items:center;justify-content:center;margin-top:3px}
 .share{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}.share.bottom{margin:22px 0 4px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px}
 .share .lbl{font-size:.85rem;color:var(--muted);margin-right:2px}
 .share .sh{font:inherit;font-size:.85rem;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;line-height:1.4}

@@ -5,12 +5,12 @@ category: 阿康愛用清單
 tags: 特斯拉, ModelY, Tesla, 特斯拉配件, 阿康愛用清單
 youtube: https://www.youtube.com/watch?v=KdgL-nnyRZg
 summary: Model Y 開了三年，哪些配件真的有用、哪些買了後悔，影片一次講完；這頁整理章節、優惠碼和推薦連結。
+disclosure: 註：部分連結為優惠碼或推薦連結，使用後阿康可能拿到分潤或推薦獎勵；影片中的贊助品項，影片裡都有標明。
 ---
 剛交車最容易一次買一整車配件，結果有些根本用不到。我開 Model Y 三年，影片裡把每一樣是廠商贊助還是我自己花錢買的都講清楚了。
 
-> 揭露：下方優惠碼與推薦連結，你使用後我可能拿到分潤或推薦獎勵；影片裡的贊助品項，影片中都有標明。
 
-## 🧰 影片講了哪些配件
+## 影片講了哪些配件
 
 按影片時間跳著看，想解決哪個問題就看哪一段：
 - 1:28 前車廂防蟲網，真的擋得住小強嗎
@@ -24,20 +24,19 @@ summary: Model Y 開了三年，哪些配件真的有用、哪些買了後悔，
 
 你不用每樣都買，先挑最困擾你的那一個問題。
 
-## 🏷️ 阿康觀眾優惠碼
+## 阿康觀眾優惠碼
 
-- JOWUA 特斯拉配件與充電轉接頭：[官網](https://global.jowua-life.com/kang95)，折扣碼 kang95，全品項 95 折
-- EVWAVE 特斯拉配件：[優惠連結](https://evwave.tw/discount/kang95)
+[JOWUA](https://global.jowua-life.com/kang95) 的特斯拉配件和充電轉接頭，結帳輸入 kang95 全品項 95 折。[EVWAVE](https://evwave.tw/discount/kang95) 的特斯拉配件，從這個連結進去會帶入觀眾優惠。
 
 折扣內容以兩家官網結帳頁為準。
 
-## 🚗 還沒買車：推薦連結
+## 還沒買車：推薦連結
 
 如果你看完影片想訂特斯拉，可以用我的[推薦連結](https://ts.la/goodskangtesla683535)。我會拿到 Tesla 的推薦獎勵（例如免費充電里程、商品），你有機會拿到 Tesla 官方不定期的訂車推薦優惠；用了我的推薦碼訂車、正式交車後聯絡我，我再自掏腰包送一份小禮物。
 
 點進去後記得先把右上角地區改成台灣，再開始訂車。
 
-## 🔧 已經開好幾年了？
+## 已經開好幾年了？
 
 - [特斯拉 Model Y 老改新！升級 2026 新款 Yoke 方向盤、冷排清洗與避震實測](https://www.youtube.com/watch?v=qDgecaDnEJo)
 - [特斯拉 Model Y 夏天熱到燙手？電動遮陽簾、電吸門這三招改裝](https://www.youtube.com/watch?v=40pWRHM9aGE)

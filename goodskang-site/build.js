@@ -27,11 +27,13 @@ function md(src){
     .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g, (m, pre, u) => `${pre}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
-  const out = []; let list = null, para = [];
-  const flushP = () => { if(para.length){ out.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } };
+  const out = []; let list = null, para = [], tbl = null;
+  const flushT = () => { if(tbl){ const rows = tbl.filter(r => !/^\s*\|?\s*:?-{2,}/.test(r)).map(r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())); const [hd, ...bd] = rows; out.push(`<div class="tbl"><table><thead><tr>${hd.map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${bd.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`); tbl = null; } };
+  const flushP = () => { flushT(); if(para.length){ out.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } };
   const flushL = () => { if(list){ out.push(`<${list.t}>${list.items.map(i => `<li>${inline(i)}</li>`).join('')}</${list.t}>`); list = null; } };
   for(const raw of src.split('\n')){
     const line = raw.replace(/\s+$/, '');
+    if(/^\s*\|.*\|\s*$/.test(line)){ if(para.length){ out.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } flushL(); (tbl = tbl || []).push(line); continue; }
     const yt = line.match(/^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
     if(yt){ flushP(); flushL(); out.push(ytEmbed(yt[1])); continue; }
     const h = line.match(/^(#{1,3})\s+(.*)/);
@@ -65,7 +67,7 @@ function loadPosts(){
     const summary = fm.summary || text.slice(0, 120);
     let cover = fm.cover || '';
     const yid = ytId(fm.youtube);
-    if(!cover && yid) cover = `https://i.ytimg.com/vi/${yid}/hqdefault.jpg`;
+    if(!cover && yid) cover = `https://i.ytimg.com/vi/${yid}/maxresdefault.jpg`;
     if(!cover){ const im = body.match(/!\[[^\]]*\]\(([^)\s]+)\)/); if(im) cover = im[1]; }
     posts.push({slug, url: `/posts/${slug}.html`, title: fm.title || slug, date, category: fm.category || '科技', tags, cover, summary, youtube: fm.youtube || '', ig: fm.ig || '', fb: fm.fb || '', html: md(body), text, words: text.length});
   }
@@ -304,7 +306,7 @@ async function loadSocial(){
         out.push(mk('fb', m.id.replace(/[^\w-]/g, '_'), m.message, m.created_time, m.permalink_url, m.full_picture, {})); }
     }
   }catch(e){ console.warn('[social] FB 抓取失敗:', e.message); }
-  for(const p of out){ if(p.coverRemote){ p.cover = await grab(p.coverRemote, p.slug); if(!p.cover && p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/hqdefault.jpg`; } else if(p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/hqdefault.jpg`; }
+  for(const p of out){ if(p.coverRemote){ p.cover = await grab(p.coverRemote, p.slug); if(!p.cover && p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/maxresdefault.jpg`; } else if(p.youtube) p.cover = `https://i.ytimg.com/vi/${ytId(p.youtube)}/maxresdefault.jpg`; }
   for(const p of out){ if(p.video && p.videoRemote) p.videoSrc = await grabVideo(p.videoRemote, p.slug); }
   console.log('[social] hosted video MB:', Math.round(videoBytes / 1024 / 1024));
   console.log(`[social] IG/FB 自動貼文 ${out.length} 篇`);
@@ -370,6 +372,7 @@ article h1{font-size:1.7rem;line-height:1.35;margin:14px 0 6px}
 article .meta{color:var(--muted);font-size:.9rem;margin-bottom:14px}
 article .body{font-size:1.05rem}article .body h2{font-size:1.25rem;margin-top:26px;border-left:4px solid var(--accent);padding-left:10px}
 article .body img{border-radius:12px;margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
+.body .tbl{overflow-x:auto;margin:14px 0}.body table{width:100%;border-collapse:collapse;font-size:.95rem}.body th,.body td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top;line-height:1.6}.body th{background:rgba(91,133,245,.12);white-space:nowrap}.body td:first-child{white-space:nowrap;font-weight:600}
 .cover{width:100%;max-height:440px;object-fit:cover;border-radius:12px}
 .cover.social{display:block;width:100%;max-width:min(420px,100%);max-height:525px;margin:0 auto;object-fit:contain;background:var(--bg)}.native-video{margin:16px auto;max-width:420px}.native-video video{display:block;width:100%;max-height:75vh;aspect-ratio:9/16;object-fit:contain;background:#000;border-radius:12px}.native-video .play-note{color:var(--muted);font-size:.9rem;margin:8px 0}.native-video .video-error{color:var(--gold);font-size:.9rem}.video-links{margin:12px auto 20px;max-width:420px}.video-links .ig-url{font-size:.82rem;line-height:1.5;overflow-wrap:anywhere;margin:10px 0 0}.video-links .ig-help{font-size:.82rem;color:var(--muted);line-height:1.6;margin:8px 0}.native-video a:focus-visible,.video-links a:focus-visible{outline:2px solid var(--gold);outline-offset:4px}.igtop{display:flex;justify-content:center;margin:12px 0}.igtop .instagram-media{margin:0 auto!important;max-width:420px!important;min-width:0!important;width:100%!important}
 article .body p{line-height:1.85;margin:10px 0}
@@ -475,7 +478,7 @@ async function main(){
   // 每篇文章
   for(const [i, p] of posts.entries()){
     const rel = posts.filter(q => q.slug !== p.slug && (q.category === p.category || q.tags.some(t => p.tags.includes(t)))).slice(0, 4);
-    const ld = [{'@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover] : undefined, datePublished: p.date, dateModified: p.date, author: {'@type': 'Person', name: site.author, url: site.url}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: p.category, inLanguage: 'zh-Hant-TW', wordCount: p.words},
+    const ld = [{'@context': 'https://schema.org', '@type': p.category === '科技新聞' ? 'NewsArticle' : 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover] : undefined, datePublished: p.date + 'T08:00:00+08:00', dateModified: p.date + 'T08:00:00+08:00', author: {'@type': 'Person', name: site.author, url: site.url}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: p.category, inLanguage: 'zh-Hant-TW', wordCount: p.words},
       {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: '科技快訊', item: site.url + '/posts.html'}, {'@type': 'ListItem', position: 3, name: p.title, item: site.url + p.url}]}];
     const yid = ytId(p.youtube);
     const videoHero = p.video && p.ig ? (p.videoSrc

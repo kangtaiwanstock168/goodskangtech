@@ -1,5 +1,6 @@
 ---
 title: AirPods 5 值得買嗎？阿康：無線充電版多 700 一定要加，跟 AirPods Pro 3 先看你戴不戴得住耳塞
+seo_title: AirPods 5 vs AirPods Pro 3：無線充電版多 700 值得嗎
 date: 2026-10-19
 category: 科技新聞
 tags: AirPods 5, AirPods Pro 3, AirPods 4, 藍牙耳機, Apple

@@ -6,6 +6,7 @@ category: 科技新聞
 tags: AirPods 5, AirPods Pro 3, AirPods 4, 藍牙耳機, Apple
 youtube: https://www.youtube.com/watch?v=xnkZg1V4uYw
 summary: AirPods 5 台灣 NT$4,490 起，無線充電盒版 NT$5,190；AirPods Pro 3 是 NT$7,490。阿康實測：音質、降噪 AirPods 5 都輸 Pro 3，但戴得比較久。選哪副，關鍵在你戴不戴得住耳塞。
+stats: NT$4,490｜AirPods 5 起 ; +700 元｜無線充電盒版 NT$5,190 ; NT$7,490｜AirPods Pro 3 ; 5 vs 8 小時｜單次續航（開降噪）
 ---
 「如果你連 700 塊都要省的話，或許你就不要買 AirPods。」阿康在影片裡引用了這句網友留言，因為 **AirPods 5** 的無線充電盒版只比一般版貴 700 元。
 

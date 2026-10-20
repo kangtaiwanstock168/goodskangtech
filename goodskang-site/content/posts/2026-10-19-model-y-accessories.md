@@ -1,5 +1,6 @@
 ---
 title: Model Y 配件別亂買！開了三年，我會先看這幾樣，優惠碼也整理在這
+seo_title: Model Y 配件推薦：開三年實用清單＋車主優惠碼
 date: 2026-10-19
 category: 阿康愛用清單
 tags: 特斯拉, ModelY, Tesla, 特斯拉配件, 阿康愛用清單

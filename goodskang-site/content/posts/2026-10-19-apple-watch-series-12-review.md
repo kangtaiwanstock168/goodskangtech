@@ -6,6 +6,7 @@ category: 科技新聞
 tags: Apple Watch Series 12, Apple Watch, 心率變異, 準備指數, watchOS
 youtube: https://www.youtube.com/watch?v=FIRYI7i8bKI
 summary: Apple Watch Series 12 台灣 NT$13,900 起，背景心率每 5 秒讀一次。阿康戴深古銅色一週：功能全開用超過 24 小時還剩近 30% 電，帶老婆爬大坑，兩人心跳 138 和 165。整理誰該換、誰不用換。
+stats: 每 5 秒｜背景心率讀取一次 ; 近 30%｜全開用超過 24 小時後剩餘電量 ; 約 1 小時｜從低電量充滿 ; 138／165｜爬大坑心跳（阿康／老婆）
 ---
 「我們的身體比那些大哥大姐還要爛。」阿康戴著 **Apple Watch Series 12** 帶老婆去爬台中大坑，轉角休息時一看：他心跳 138，老婆 165。
 

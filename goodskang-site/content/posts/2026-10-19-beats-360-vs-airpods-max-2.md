@@ -6,6 +6,7 @@ category: 科技新聞
 tags: Beats 360, AirPods Max 2, 耳罩式耳機, 主動降噪, Apple
 youtube: https://www.youtube.com/watch?v=arR8h5ItWiE
 summary: 阿康實測 Beats 360：音質、降噪、通透都輸 AirPods Max 2，但輕約 90 公克、續航 32 小時、軟墊能自己換。老婆最後選了它，理由是「很漂亮」。這篇整理阿康原話、官方規格與誰該買。
+stats: NT$12,500｜Beats 360 台灣售價 ; 5,490 元｜比 AirPods Max 2 便宜 ; 32 小時｜續航（Max 2 為 20 小時） ; 約 90 公克｜比 Max 2 輕
 ---
 「它就是一副有聲音的耳機。」這是阿康對 Beats 360 音質的評語。問老婆音質怎麼樣，她回：「我覺得它很漂亮。」
 

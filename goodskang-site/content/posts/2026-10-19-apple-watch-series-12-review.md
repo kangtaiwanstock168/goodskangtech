@@ -1,5 +1,6 @@
 ---
 title: Apple Watch Series 12 值得換嗎？阿康戴一週：全開 24 小時還剩近 30% 電，爬大坑心跳衝到 138
+seo_title: Apple Watch Series 12 開箱：全開 24 小時還剩近 30%
 date: 2026-10-19
 category: 科技新聞
 tags: Apple Watch Series 12, Apple Watch, 心率變異, 準備指數, watchOS

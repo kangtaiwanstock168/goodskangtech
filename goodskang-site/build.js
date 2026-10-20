@@ -69,7 +69,7 @@ function loadPosts(){
     const yid = ytId(fm.youtube);
     if(!cover && yid) cover = `https://i.ytimg.com/vi/${yid}/maxresdefault.jpg`;
     if(!cover){ const im = body.match(/!\[[^\]]*\]\(([^)\s]+)\)/); if(im) cover = im[1]; }
-    posts.push({slug, url: `/posts/${slug}`, title: fm.title || slug, seoTitle: fm.seo_title || '', date, category: fm.category || '科技', tags, cover, summary, youtube: fm.youtube || '', ig: fm.ig || '', fb: fm.fb || '', disclosure: fm.disclosure || '', stats: (fm.stats || '').split(/\s*;\s*/).map(x => x.split(/\s*[｜|]\s*/)).filter(x => x[0] && x[1]).slice(0, 4), html: md(body), text, words: text.length});
+    posts.push({slug, url: `/posts/${slug}`, title: fm.title || slug, seoTitle: fm.seo_title || '', date, category: fm.category || '科技', tags, cover, summary, youtube: fm.youtube || '', ig: fm.ig || '', fb: fm.fb || '', disclosure: fm.disclosure || '', updated: fm.updated || '', stats: (fm.stats || '').split(/\s*;\s*/).map(x => x.split(/\s*[｜|]\s*/)).filter(x => x[0] && x[1]).slice(0, 4), html: md(body), text, words: text.length});
   }
   return posts.sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
 }
@@ -336,9 +336,13 @@ async function loadSocial(){
     finally { clearTimeout(timer); }
   };
   const tagsOf = t => [...String(t).matchAll(/#([^\s#]+)/g)].map(m => m[1]).slice(0, 8);
-  const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return ls.join(' ').replace(/\s+/g, ' ').trim().slice(0, 120); };
-  const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
-  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
+  // 截斷規則：先找句號問號驚嘆號，再找逗號頓號，最後空白；不切斷英文型號或數字
+  const cutAt = (s, n, dots) => { s = String(s).trim(); if(s.length <= n) return s; const c = s.slice(0, n);
+    for(const re of [/^[\s\S]*[！？。!?…」）)](?=[^！？。!?…」）)]*$)/, /^[\s\S]*[，、,；;：:](?=[^，、,；;：:]*$)/, /^[\s\S]*\s(?=\S*$)/]){ const m = c.match(re); if(m && m[0].length >= n * 0.5) return m[0].replace(/[，、,；;：:\s]+$/, '').replace(/[A-Za-z0-9]/.test(s[m[0].length] || '') ? /(?:\s*[A-Za-z0-9.+]+)+$/ : /$^/, '') + (dots && !/[！？。!?…]$/.test(m[0].trim()) ? '…' : ''); }
+    return c.replace(/[A-Za-z0-9.]+$/, '').trim() + '…'; };
+  const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return cutAt(ls.join(' ').replace(/\s+/g, ' ').trim(), 120, true); };
+  const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return cutAt(first.replace(/#\S+/g, '').trim(), 80, false) || '新貼文'; };
+  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}`, title: titleOf(text), date: ymd(date), iso: date || '', category: '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
   const out = []; let j_ig = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
@@ -499,7 +503,8 @@ footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);co
 const NAV = [['/videos.html', '最新影片'], ['/posts.html', '3C 科技新聞'], ['/travel.html', '親子旅遊快訊'], ['/picks.html', '阿康愛用清單推薦'], ['/hot.html', 'AI 股票工具'], ['/about.html', '關於阿康 / 合作']];
 // 分區:愛用清單(導購指南)、親子旅遊、其餘都是 3C 科技新聞
 const isPick = p => p.category === '阿康愛用清單';
-const isTravel = p => p.category === '親子旅遊' || /日本|沖繩|福岡|大阪|東京|京都|北海道|樂桃|退稅|親子旅遊|自由行|出國/.test(p.title + ' ' + p.tags.join(' '));
+const TECH_T = /iPhone|iPad|Apple|蘋果|AirPods|Mac|特斯拉|Tesla|手機/i;
+const isTravel = p => p.category === '親子旅遊' || !TECH_T.test(p.title) && /日本|沖繩|福岡|大阪|東京|京都|北海道|樂桃|退稅|親子旅遊|自由行|出國/.test(p.title + ' ' + p.tags.join(' '));
 const secOf = p => isTravel(p) ? {url: '/travel.html', name: '親子旅遊快訊', label: '親子旅遊'} : isPick(p) ? {url: '/picks.html', name: '阿康愛用清單推薦', label: '愛用清單'} : {url: '/posts.html', name: '3C 科技新聞', label: p.category};
 // 新聞文末延伸閱讀(MacRumors 式:一篇最多一行;業配／導購文本身不加)
 const PLUGS = [
@@ -512,7 +517,7 @@ const clean = u => String(u).replace(/(^|\/)index\.html$/, '$1').replace(/\.html
 const cleanHtml = h => h.replace(/((?:href|src)=["'](?:https:\/\/goodskang\.tw)?\/[^"'?#]*?)\.html(?=["'?#])/g, '$1');
 function page({title, desc, url, body, jsonld = [], image, type = 'website', noindex = false, cur = '', h1 = ''}){
   const full = url.startsWith('http') ? url : site.url + clean(url);
-  const img = image || `${site.url}/og.png`;
+  const img = image ? (image.startsWith('/') ? site.url + image : image) : `${site.url}/og.png`;
   const ld = [{'@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url, potentialAction: {'@type': 'SearchAction', target: site.url + '/posts?q={search_term_string}', 'query-input': 'required name=search_term_string'}},
     {'@context': 'https://schema.org', '@type': 'Person', name: site.author, alternateName: 'GOODSKANG', url: site.url, email: site.email, sameAs: [site.youtube, site.instagram, site.facebook, site.tool], jobTitle: '科技 YouTuber / 台股 AI 工具開發者', description: site.about},
     ...jsonld];
@@ -604,10 +609,11 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
   listPage('posts.html', '3C 科技新聞', '阿康整理的 iPhone、Apple、特斯拉、AI 產業新聞與實測觀點。', news, true);
   listPage('travel.html', '親子旅遊快訊', '阿康帶 1 歲、2 歲兩個小孩出國的實際經驗：日本自由行、機票優惠、退稅新制與出發前準備。', travel, false);
   listPage('picks.html', '阿康愛用清單推薦', '阿康自己在用、親手測過的 iPhone 配件、特斯拉配件與出國用品，附觀眾優惠碼。', picks, false, `<p style="color:var(--muted);margin:0 0 12px;">我自己在用、親手測過才放進來。部分連結為聯盟或合作連結，透過連結購買我可能拿到分潤，你付的價格不會變。</p>`);
-  // 每篇文章
+  // 每篇文章（IG 有真實發文時間就用台灣時間；手寫文章只標日期，有 updated 才寫修改日）
+  const tw = d => { const t = d ? new Date(d) : null; return t && !isNaN(t) ? new Date(t.getTime() + 8 * 3600e3).toISOString().slice(0, 19) + '+08:00' : ''; };
   for(const [i, p] of posts.entries()){
     const rel = posts.filter(q => q.slug !== p.slug && secOf(q).url === secOf(p).url && (q.category === p.category || q.tags.some(t => p.tags.includes(t)))).slice(0, 4);
-    const ld = [{'@context': 'https://schema.org', '@type': p.category === '科技新聞' ? 'NewsArticle' : 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover] : undefined, datePublished: p.date + 'T08:00:00+08:00', dateModified: p.date + 'T08:00:00+08:00', author: {'@type': 'Person', name: site.author, url: site.url}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: p.category, inLanguage: 'zh-Hant-TW', wordCount: p.words},
+    const ld = [{'@context': 'https://schema.org', '@type': p.category === '科技新聞' ? 'NewsArticle' : 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover.startsWith('/') ? site.url + p.cover : p.cover] : undefined, datePublished: tw(p.iso) || p.date, dateModified: p.updated || tw(p.iso) || p.date, author: {'@type': 'Person', name: site.author, url: site.url + '/about'}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: secOf(p).label, inLanguage: 'zh-Hant-TW', wordCount: p.words},
       {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: secOf(p).name, item: site.url + clean(secOf(p).url)}, {'@type': 'ListItem', position: 3, name: p.title, item: site.url + p.url}]}];
     const yid = ytId(p.youtube);
     const vMeta = yid && videos.find(v => v.id === yid);
@@ -637,12 +643,12 @@ ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list car
 </div></article>`;
   fs.writeFileSync(path.join(DIST, 'about.html'), page({title: `關於阿康 / 合作邀約|${site.name}`, desc: site.about, url: '/about.html', cur: '/about.html', type: 'profile', body: about}));
   // sitemap / rss / feed.json / robots / llms
-  const urls = [['/', BUILT], ['/videos.html', BUILT], ['/posts.html', BUILT], ['/travel.html', BUILT], ['/picks.html', BUILT], ['/hot.html', BUILT], ['/about.html', BUILT], ...posts.map(p => [p.url, p.date])];
+  const urls = [['/', BUILT], ['/videos.html', BUILT], ['/posts.html', BUILT], ['/travel.html', BUILT], ['/picks.html', BUILT], ['/hot.html', BUILT], ['/about.html', BUILT], ...posts.map(p => [p.url, p.updated || p.date])];
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([u, d]) => `<url><loc>${site.url}${clean(u)}</loc><lastmod>${ymd(d)}</lastmod></url>`).join('')}</urlset>`);
   const rssItems = [...posts.slice(0, 30).map(p => ({title: p.title, url: site.url + p.url, date: p.date, desc: p.summary, html: clean_llms(p.html)})), ...videos.slice(0, 15).map(v => ({title: '' + v.title, url: `https://www.youtube.com/watch?v=${v.id}`, date: v.published, desc: v.desc || v.title, html: `<p>${esc(v.desc || v.title)}</p>`}))].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   fs.writeFileSync(path.join(DIST, 'rss.xml'), `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>${esc(site.name)}</title><link>${site.url}</link><description>${esc(site.description)}</description><language>zh-TW</language><atom:link href="${site.url}/rss.xml" rel="self" type="application/rss+xml"/>${rssItems.map(i => `<item><title>${esc(i.title)}</title><link>${i.url}</link><guid>${i.url}</guid><pubDate>${new Date(i.date).toUTCString()}</pubDate><description><![CDATA[${i.html}]]></description></item>`).join('')}</channel></rss>`);
   fs.writeFileSync(path.join(DIST, 'feed.json'), JSON.stringify({version: 'https://jsonfeed.org/version/1.1', title: site.name, home_page_url: site.url, feed_url: site.url + '/feed.json', description: site.description, language: 'zh-Hant', authors: [{name: site.author, url: site.url}], items: rssItems.map(i => ({id: i.url, url: i.url, title: i.title, content_html: i.html, summary: i.desc, date_published: new Date(i.date).toISOString()}))}));
-  fs.writeFileSync(path.join(DIST, 'robots.txt'), `# 歡迎所有搜尋引擎與 AI 爬蟲索引本站(投稿後台除外)\nUser-agent: *\nAllow: /\nDisallow: /admin/\n\n${['GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'ClaudeBot', 'Claude-Web', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Googlebot', 'Bingbot', 'CCBot', 'Applebot', 'Applebot-Extended', 'Bytespider', 'Amazonbot', 'DuckAssistBot', 'meta-externalagent'].map(b => `User-agent: ${b}\nAllow: /`).join('\n\n')}\n\nSitemap: ${site.url}/sitemap.xml\n`);
+  fs.writeFileSync(path.join(DIST, 'robots.txt'), `# 歡迎所有搜尋引擎與 AI 爬蟲索引本站(投稿後台除外)\nUser-agent: *\nAllow: /\nDisallow: /admin/\n\n${['GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'ClaudeBot', 'Claude-Web', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Googlebot', 'Bingbot', 'CCBot', 'Applebot', 'Applebot-Extended', 'Bytespider', 'Amazonbot', 'DuckAssistBot', 'meta-externalagent'].map(b => `User-agent: ${b}\nAllow: /\nDisallow: /admin/`).join('\n\n')}\n\nSitemap: ${site.url}/sitemap.xml\n`);
   const llms = clean_llms(`# ${site.name}(GOODSKANG)\n\n> ${site.description}\n\n作者:${site.author}(${site.email})。YouTube:${site.youtube}|Instagram:${site.instagram}|Facebook:${site.facebook}|台股 AI 工具:${site.tool}\n\n## 站內頁面\n- [首頁](${site.url}/)\n- [最新影片](${site.url}/videos.html):YouTube 頻道最新影片\n- [3C 科技新聞](${site.url}/posts.html):iPhone、Apple、特斯拉、AI 產業新聞與阿康的實測觀點\n- [親子旅遊快訊](${site.url}/travel.html):帶小孩去日本的實際經驗與出發前準備\n- [阿康愛用清單推薦](${site.url}/picks.html):阿康自己在用、親手測過的配件與用品\n- [AI 股票工具・今日熱門股](${site.url}/hot.html):強勢股雷達與話題雷達,每天自動更新\n- [關於阿康 / 合作](${site.url}/about.html)\n- [台股 AI 作戰室](${site.tool}):五燈順勢檢查表、交易計畫卡、六種策略回測(免費、免註冊,非投資建議)\n\n## 最新科技快訊\n${posts.slice(0, 30).map(p => `- [${p.title}](${site.url}${p.url}):${p.summary}`).join('\n')}\n\n## 最新影片\n${videos.slice(0, 15).map(v => `- [${v.title}](https://www.youtube.com/watch?v=${v.id})(${ymd(v.published)})`).join('\n')}\n\n## 完整內容\n- [llms-full.txt](${site.url}/llms-full.txt)\n`);
   fs.writeFileSync(path.join(DIST, 'llms.txt'), llms);
   fs.writeFileSync(path.join(DIST, 'llms-full.txt'), llms + '\n\n---\n\n' + posts.map(p => `# ${p.title}\n日期:${p.date}|分類:${p.category}|標籤:${p.tags.join(', ')}|網址:${site.url}${p.url}\n\n${p.text}\n`).join('\n---\n\n'));

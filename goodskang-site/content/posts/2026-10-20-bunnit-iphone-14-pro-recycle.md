@@ -1,5 +1,6 @@
 ---
 title: 買 iPhone 18 Pro 後二手機怎麼處理？實測 iPhone 14 Pro 丟進 BUNNIT 回收機拿多少？阿康拿到這金額？雖比通訊行少一點但不用面交
+seo_title: iPhone 14 Pro 回收價實測：BUNNIT 回收機拿到 8,008 元
 date: 2026-10-20
 category: 科技新聞
 tags: BUNNIT, 手機回收, iPhone 14 Pro, iPhone 18 Pro, 二手 iPhone, LaLaport

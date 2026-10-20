@@ -1,5 +1,6 @@
 ---
 title: 換 iPhone 18 Pro 先別急著買配件！我家實際在用、親手試過的才放進這份清單
+seo_title: iPhone 18 Pro 配件推薦：充電頭、手機殼實測清單
 date: 2026-10-19
 category: 阿康愛用清單
 tags: iPhone18Pro, iPhone18ProMax, 充電器, 手機殼, 阿康愛用清單

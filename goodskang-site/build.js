@@ -69,7 +69,7 @@ function loadPosts(){
     const yid = ytId(fm.youtube);
     if(!cover && yid) cover = `https://i.ytimg.com/vi/${yid}/maxresdefault.jpg`;
     if(!cover){ const im = body.match(/!\[[^\]]*\]\(([^)\s]+)\)/); if(im) cover = im[1]; }
-    posts.push({slug, url: `/posts/${slug}.html`, title: fm.title || slug, date, category: fm.category || '科技', tags, cover, summary, youtube: fm.youtube || '', ig: fm.ig || '', fb: fm.fb || '', disclosure: fm.disclosure || '', html: md(body), text, words: text.length});
+    posts.push({slug, url: `/posts/${slug}`, title: fm.title || slug, seoTitle: fm.seo_title || '', date, category: fm.category || '科技', tags, cover, summary, youtube: fm.youtube || '', ig: fm.ig || '', fb: fm.fb || '', disclosure: fm.disclosure || '', html: md(body), text, words: text.length});
   }
   return posts.sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
 }
@@ -338,7 +338,7 @@ async function loadSocial(){
   const tagsOf = t => [...String(t).matchAll(/#([^\s#]+)/g)].map(m => m[1]).slice(0, 8);
   const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return ls.join(' ').replace(/\s+/g, ' ').trim().slice(0, 120); };
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return first.replace(/#\S+/g, '').trim().slice(0, 48) || '新貼文'; };
-  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}.html`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
+  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}`, title: titleOf(text), date: ymd(date), category: src === 'ig' ? '科技快訊' : '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
   const out = []; let j_ig = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
@@ -405,7 +405,8 @@ header.top{position:sticky;top:0;z-index:50;background:rgba(16,20,29,.96);border
 .hero .side .item:last-child{border-bottom:0}
 .hero .side img{width:96px;height:64px;object-fit:cover;border-radius:8px;flex:none}
 .sec{display:flex;align-items:baseline;gap:10px;margin:30px 0 10px;flex-wrap:wrap}
-.sec h2{margin:0;font-size:1.25rem;white-space:nowrap;padding-left:12px;border-left:3px solid var(--gold)}.sec a{margin-left:auto;font-size:.9rem}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sec h1,.sec h2{margin:0;font-size:1.25rem;white-space:nowrap;padding-left:12px;border-left:3px solid var(--gold)}.sec a{margin-left:auto;font-size:.9rem}
 .sec>span{color:var(--muted);font-size:.85rem}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
 .v{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s}
@@ -492,13 +493,16 @@ const PLUGS = [
   [p => /特斯拉|Tesla|Model ?Y|Model ?3/i.test(p.title + ' ' + p.tags.join(' ')), '/posts/2026-10-19-model-y-accessories.html', 'Model Y 開三年的配件心得和車主折扣碼，整理在這篇'],
   [p => isTravel(p), '/posts/2026-10-19-japan-family-trip.html', '帶 1 歲、2 歲小孩去日本前，我們家的確認清單']];
 const plugOf = p => { if(isPick(p) || /合作|業配|贊助|優惠碼|折扣碼|賣場|專屬優惠|聯盟|分潤/.test(p.text)) return ''; const m = PLUGS.find(([t, u]) => t(p) && !p.url.endsWith(u)); return m ? `<p class="plug">延伸閱讀:<a href="${m[1]}">${esc(m[2])}</a></p>` : ''; };
-function page({title, desc, url, body, jsonld = [], image, type = 'website', noindex = false, cur = ''}){
-  const full = url.startsWith('http') ? url : site.url + url;
+// 網址一律用沒有 .html 的版本（Netlify 會把站內連結改成這個樣子），canonical、sitemap、og:url 跟著一致
+const clean = u => String(u).replace(/(^|\/)index\.html$/, '$1').replace(/\.html(?=$|[?#])/, '');
+const cleanHtml = h => h.replace(/((?:href|src)=["'](?:https:\/\/goodskang\.tw)?\/[^"'?#]*?)\.html(?=["'?#])/g, '$1');
+function page({title, desc, url, body, jsonld = [], image, type = 'website', noindex = false, cur = '', h1 = ''}){
+  const full = url.startsWith('http') ? url : site.url + clean(url);
   const img = image || `${site.url}/og.png`;
-  const ld = [{'@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url, potentialAction: {'@type': 'SearchAction', target: site.url + '/posts.html?q={search_term_string}', 'query-input': 'required name=search_term_string'}},
+  const ld = [{'@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url, potentialAction: {'@type': 'SearchAction', target: site.url + '/posts?q={search_term_string}', 'query-input': 'required name=search_term_string'}},
     {'@context': 'https://schema.org', '@type': 'Person', name: site.author, alternateName: 'GOODSKANG', url: site.url, email: site.email, sameAs: [site.youtube, site.instagram, site.facebook, site.tool], jobTitle: '科技 YouTuber / 台股 AI 工具開發者', description: site.about},
     ...jsonld];
-  return `<!DOCTYPE html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return cleanHtml(`<!DOCTYPE html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${attr(desc)}">
 <link rel="canonical" href="${full}">
@@ -515,12 +519,12 @@ ${noindex ? '<meta name="robots" content="noindex,nofollow">' : '<meta name="rob
 ${site.ga ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${site.ga}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${site.ga}');</script>` : ''}
 </head><body>
 <header class="top"><div class="wrap nav"><a class="logo" href="/" aria-label="回首頁"><svg class="home" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 9.8V20h4.8v-5.5h3.4V20h4.8V9.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>阿康 <b>GOODSKANG</b></a><nav class="menu">${NAV.map(([h, t]) => `<a href="${h}"${cur === h ? ' class="on"' : ''}${h.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${t}</a>`).join('')}</nav></div></header>
-<main class="wrap">${body}</main>
+<main class="wrap">${h1 ? `<h1 class="sr">${esc(h1)}</h1>` : ''}${body}</main>
 <footer class="wrap">
 <div class="social"><a href="${site.youtube}" target="_blank" rel="noopener">YouTube</a><a href="${site.instagram}" target="_blank" rel="noopener">Instagram</a><a href="${site.facebook}" target="_blank" rel="noopener">Facebook</a><a href="${site.tool}" target="_blank" rel="noopener">台股 AI 作戰室</a><a href="mailto:${site.email}">合作邀約</a></div>
 <p style="margin-top:12px;">© ${BUILT.getFullYear()} ${esc(site.name)}(GOODSKANG)・本站內容為原創,未經授權禁止複製或商業使用・<a href="/rss.xml">RSS</a>・<a href="/llms.txt">llms.txt</a>・最後更新 ${ymd(BUILT)}</p>
 <div class="disc">股市相關內容皆為歷史統計與公開資料整理,非投資建議,損益自負。</div>
-</footer></body></html>`;
+</footer></body></html>`);
 }
 const vCard = v => `<a class="v" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div class="t">${esc(v.title)}</div><div class="m">${[ymd(v.published), v.views ? `${Number(v.views).toLocaleString('zh-TW')} 次觀看` : ''].filter(Boolean).join('・')}</div></a>`;
 const pRow = p => `<div class="row${p.auto ? ' igrow' : ''}" data-c="${attr(p.category)}"><a href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="${attr(p.title)}" loading="lazy">` : `<div style="width:150px;height:96px;border-radius:10px;background:rgba(91,133,245,.12);display:flex;align-items:center;justify-content:center;font-size:2rem;"></div>`}</a><div><span class="cat">${esc(secOf(p).label)}</span> <span style="color:var(--muted);font-size:.8rem;">${p.date}</span>${p.auto ? `<span class="tag">${p.source === 'ig' ? 'IG' : 'FB'}</span>` : ''}<h3><a href="${p.url}" style="color:var(--text);">${esc(p.title)}</a></h3><p>${esc(p.summary)}</p></div></div>`;
@@ -561,7 +565,7 @@ async function main(){
   const home = `
 <section class="hero">
   <div class="card main">${latest ? `${ytEmbed(latest.id)}<div class="cap"><span class="pill">最新影片・${ymd(latest.published)}</span><h2 style="margin:6px 0 4px;font-size:1.15rem;line-height:1.45;"><a href="https://www.youtube.com/watch?v=${latest.id}" target="_blank" rel="noopener" style="color:var(--text)">${esc(latest.title)}</a></h2>${latest.desc ? `<p style="margin:0;color:var(--muted);font-size:.9rem;">${esc(latest.desc.slice(0, 110))}…</p>` : ''}</div>` : '<div class="cap">影片載入中</div>'}</div>
-  <div class="card side"><h3 style="margin:0 0 6px;">本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">${weekLabel}</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
+  <div class="card side"><h3 style="margin:0 0 6px;">本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">${weekLabel}</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
 </section>
 <div class="sec"><h2>3C 科技新聞</h2><span style="color:var(--muted);font-size:.85rem;">iPhone・Apple・特斯拉・AI 產業</span><a href="/posts.html">更多 →</a></div>
 <div class="list card">${news.slice(0, 8).map(pRow).join('') || '<p style="color:var(--muted);">第一篇新聞準備中。</p>'}</div>
@@ -572,15 +576,16 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
 <div class="grid">${videos.slice(5, 13).map(vCard).join('')}</div>
 <div class="sec"><h2>關於阿康</h2><a href="/about.html">完整介紹 / 合作邀約 →</a></div>
 <div class="card"><p style="margin:0;">${esc(site.about)}</p></div>`;
-  fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|iPhone・Apple・特斯拉開箱 & 台股 AI 工具`, desc: site.description, url: '/', body: home, cur: '/', image: latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''}));
+  fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|iPhone・Apple・特斯拉開箱 & 台股 AI 工具`, desc: site.description, url: '/', body: home, cur: '/', h1: `${site.name}：iPhone、Apple、特斯拉開箱與台股 AI 工具`, image: latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''}));
   // 影片頁
   const vLd = videos.slice(0, 30).map(v => ({'@context': 'https://schema.org', '@type': 'VideoObject', name: v.title, description: v.desc || v.title, thumbnailUrl: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, ...(v.published && !v.published.startsWith('1970') ? {uploadDate: v.published} : {}), embedUrl: `https://www.youtube-nocookie.com/embed/${v.id}`, url: `https://www.youtube.com/watch?v=${v.id}`, author: {'@type': 'Person', name: site.author}}));
-  fs.writeFileSync(path.join(DIST, 'videos.html'), page({title: `最新影片|${site.name}`, desc: `阿康 YouTube 頻道最新影片:${videos.slice(0, 3).map(v => v.title).join('、')}`, url: '/videos.html', cur: '/videos.html', jsonld: vLd, body: `<div class="sec"><h2>最新影片</h2><a href="${site.youtube}" target="_blank" rel="noopener">YouTube 頻道 →</a></div><div class="grid">${videos.map(vCard).join('')}</div>`}));
+  fs.writeFileSync(path.join(DIST, 'videos.html'), page({title: `最新影片|${site.name}`, desc: `阿康 YouTube 頻道最新影片:${videos.slice(0, 3).map(v => v.title).join('、')}`, url: '/videos.html', cur: '/videos.html', jsonld: vLd, body: `<div class="sec"><h1>最新影片</h1><a href="${site.youtube}" target="_blank" rel="noopener">YouTube 頻道 →</a></div><div class="grid">${videos.map(vCard).join('')}</div>`}));
   // 列表頁:3C 科技新聞／親子旅遊快訊／阿康愛用清單推薦
+  const clean_llms = t => t.replace(/(goodskang\.tw\/[\w\/-]*?)\.html/g, '$1');
   const listPage = (file, h, desc, arr, chips, intro) => {
     const cats = chips ? [...new Set(arr.map(p => p.category))] : [];
     const chipHtml = cats.length > 1 ? `<p class="chips">${cats.map(c => `<a href="#" onclick="event.preventDefault();[...document.querySelectorAll('.list .row')].forEach(r=>r.style.display=(r.dataset.c===this.dataset.c)?'':'none')" data-c="${attr(c)}">${esc(c)}</a>`).join('')}<a href="#" onclick="event.preventDefault();[...document.querySelectorAll('.list .row')].forEach(r=>r.style.display='')">全部</a></p>` : '';
-    fs.writeFileSync(path.join(DIST, file), page({title: `${h}|${site.name}`, desc, url: '/' + file, cur: '/' + file, body: `<div class="sec"><h2>${h}</h2><span style="color:var(--muted);font-size:.85rem;">共 ${arr.length} 篇</span></div>${intro || ''}${chipHtml}<div class="list card">${arr.map(pRow).join('') || '<p style="color:var(--muted);">準備中。</p>'}</div>`}));
+    fs.writeFileSync(path.join(DIST, file), page({title: `${h}|${site.name}`, desc, url: '/' + file, cur: '/' + file, body: `<div class="sec"><h1>${h}</h1><span style="color:var(--muted);font-size:.85rem;">共 ${arr.length} 篇</span></div>${intro || ''}${chipHtml}<div class="list card">${arr.map(pRow).join('') || '<p style="color:var(--muted);">準備中。</p>'}</div>`}));
   };
   listPage('posts.html', '3C 科技新聞', '阿康整理的 iPhone、Apple、特斯拉、AI 產業新聞與實測觀點。', news, true);
   listPage('travel.html', '親子旅遊快訊', '阿康帶 1 歲、2 歲兩個小孩出國的實際經驗：日本自由行、機票優惠、退稅新制與出發前準備。', travel, false);
@@ -589,8 +594,10 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
   for(const [i, p] of posts.entries()){
     const rel = posts.filter(q => q.slug !== p.slug && secOf(q).url === secOf(p).url && (q.category === p.category || q.tags.some(t => p.tags.includes(t)))).slice(0, 4);
     const ld = [{'@context': 'https://schema.org', '@type': p.category === '科技新聞' ? 'NewsArticle' : 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover] : undefined, datePublished: p.date + 'T08:00:00+08:00', dateModified: p.date + 'T08:00:00+08:00', author: {'@type': 'Person', name: site.author, url: site.url}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: p.category, inLanguage: 'zh-Hant-TW', wordCount: p.words},
-      {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: secOf(p).name, item: site.url + secOf(p).url}, {'@type': 'ListItem', position: 3, name: p.title, item: site.url + p.url}]}];
+      {'@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{'@type': 'ListItem', position: 1, name: '首頁', item: site.url + '/'}, {'@type': 'ListItem', position: 2, name: secOf(p).name, item: site.url + clean(secOf(p).url)}, {'@type': 'ListItem', position: 3, name: p.title, item: site.url + p.url}]}];
     const yid = ytId(p.youtube);
+    const vMeta = yid && videos.find(v => v.id === yid);
+    if(vMeta && vMeta.published && !vMeta.approx && !String(vMeta.published).startsWith('1970')) ld.push({'@context': 'https://schema.org', '@type': 'VideoObject', name: vMeta.title, description: vMeta.desc || p.summary || vMeta.title, thumbnailUrl: [`https://i.ytimg.com/vi/${yid}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${yid}/hqdefault.jpg`], uploadDate: vMeta.published, embedUrl: `https://www.youtube-nocookie.com/embed/${yid}`, url: `https://www.youtube.com/watch?v=${yid}`, author: {'@type': 'Person', name: site.author}});
     const videoHero = p.video && p.ig ? (p.videoSrc
       ? `<div class="native-video"><video controls playsinline preload="none" poster="${attr(p.cover || '')}" aria-label="${attr(p.title)}" src="${attr(p.videoSrc)}" onerror="this.parentElement.querySelector('.video-error').hidden=false"><a href="${attr(p.ig)}">到 IG 看原文</a></video><p class="play-note">點播放即可觀看，不用離開網站。</p><p class="video-error" role="status" hidden>影片暫時無法播放，請重新整理，或使用下方 IG 原文連結。</p></div>`
       : (yid ? '' : `<div class="native-video">${p.cover ? '<a href="' + attr(p.ig) + '" target="_blank" rel="noopener" aria-label="到 Instagram 觀看：' + attr(p.title) + '"><img class="cover social" src="' + attr(p.cover) + '" alt="' + attr(p.title) + '"></a>' : ''}<p class="play-note">這支影片請到 Instagram 觀看。</p></div>`)) : '';
@@ -602,10 +609,10 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
 ${secOf(p).url === '/posts.html' ? `<div style="margin-top:26px;">${ctaHtml}</div>` : ''}
 ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list card">${rel.map(pRow).join('')}</div>` : ''}
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">${posts[i + 1] ? `<a class="btn o" href="${posts[i + 1].url}">← 上一篇:${esc(posts[i + 1].title.slice(0, 18))}…</a>` : ''}${posts[i - 1] ? `<a class="btn o" href="${posts[i - 1].url}">下一篇:${esc(posts[i - 1].title.slice(0, 18))}… →</a>` : ''}</div></article>`;
-    fs.writeFileSync(path.join(DIST, 'posts', p.slug + '.html'), page({title: `${p.title}|${site.short}`, desc: p.summary, url: p.url, image: p.cover, type: 'article', jsonld: ld, cur: secOf(p).url, body}));
+    fs.writeFileSync(path.join(DIST, 'posts', p.slug + '.html'), page({title: `${p.seoTitle || p.title}|${site.short}`, desc: p.summary, url: p.url, image: p.cover, type: 'article', jsonld: ld, cur: secOf(p).url, body}));
   }
   // 熱門股頁(建站快照 + 前端每 10 分鐘向本站函式要最新)
-  fs.writeFileSync(path.join(DIST, 'hot.html'), page({title: `AI 股票工具・今日熱門股|${site.name}`, desc: `每天自動更新:強勢股雷達與話題雷達(${(hot.scan && hot.scan.d) || ''})。點任一檔直接到台股 AI 作戰室看五燈檢查表。`, url: '/hot.html', cur: '/hot.html', body: `<div class="sec"><h2>AI 股票工具</h2></div>${ctaHtml.replace(' <a class="btn o" href="/hot.html">看今日熱門股</a>', '')}<div class="sec"><h2>今日熱門股快照</h2><span id="hotTime" style="color:var(--muted);font-size:.85rem;">快照時間 ${TZ(hot.fetchedAt || BUILT).toISOString().replace('T', ' ').slice(0, 16)}(台北)</span></div><div id="hotBox">${hotBlock(hot)}</div>
+  fs.writeFileSync(path.join(DIST, 'hot.html'), page({title: `AI 股票工具・今日熱門股|${site.name}`, desc: `每天自動更新:強勢股雷達與話題雷達(${(hot.scan && hot.scan.d) || ''})。點任一檔直接到台股 AI 作戰室看五燈檢查表。`, url: '/hot.html', cur: '/hot.html', body: `<div class="sec"><h1>AI 股票工具</h1></div>${ctaHtml.replace(' <a class="btn o" href="/hot.html">看今日熱門股</a>', '')}<div class="sec"><h2>今日熱門股快照</h2><span id="hotTime" style="color:var(--muted);font-size:.85rem;">快照時間 ${TZ(hot.fetchedAt || BUILT).toISOString().replace('T', ' ').slice(0, 16)}(台北)</span></div><div id="hotBox">${hotBlock(hot)}</div>
 <script>(async()=>{try{const r=await fetch('/.netlify/functions/hot');if(!r.ok)return;const j=await r.json();if(j&&j.html){document.getElementById('hotBox').innerHTML=j.html;document.getElementById('hotTime').textContent='即時 '+new Date().toLocaleString('zh-TW',{hour12:false});}}catch(e){}})();</script>`}));
   // 關於
   const about = `<article><h1>關於阿康(GOODSKANG)</h1><div class="body"><p>${esc(site.about)}</p>
@@ -617,12 +624,12 @@ ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list car
   fs.writeFileSync(path.join(DIST, 'about.html'), page({title: `關於阿康 / 合作邀約|${site.name}`, desc: site.about, url: '/about.html', cur: '/about.html', type: 'profile', body: about}));
   // sitemap / rss / feed.json / robots / llms
   const urls = [['/', BUILT], ['/videos.html', BUILT], ['/posts.html', BUILT], ['/travel.html', BUILT], ['/picks.html', BUILT], ['/hot.html', BUILT], ['/about.html', BUILT], ...posts.map(p => [p.url, p.date])];
-  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([u, d]) => `<url><loc>${site.url}${u}</loc><lastmod>${ymd(d)}</lastmod></url>`).join('')}</urlset>`);
-  const rssItems = [...posts.slice(0, 30).map(p => ({title: p.title, url: site.url + p.url, date: p.date, desc: p.summary, html: p.html})), ...videos.slice(0, 15).map(v => ({title: '' + v.title, url: `https://www.youtube.com/watch?v=${v.id}`, date: v.published, desc: v.desc || v.title, html: `<p>${esc(v.desc || v.title)}</p>`}))].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([u, d]) => `<url><loc>${site.url}${clean(u)}</loc><lastmod>${ymd(d)}</lastmod></url>`).join('')}</urlset>`);
+  const rssItems = [...posts.slice(0, 30).map(p => ({title: p.title, url: site.url + p.url, date: p.date, desc: p.summary, html: clean_llms(p.html)})), ...videos.slice(0, 15).map(v => ({title: '' + v.title, url: `https://www.youtube.com/watch?v=${v.id}`, date: v.published, desc: v.desc || v.title, html: `<p>${esc(v.desc || v.title)}</p>`}))].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   fs.writeFileSync(path.join(DIST, 'rss.xml'), `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>${esc(site.name)}</title><link>${site.url}</link><description>${esc(site.description)}</description><language>zh-TW</language><atom:link href="${site.url}/rss.xml" rel="self" type="application/rss+xml"/>${rssItems.map(i => `<item><title>${esc(i.title)}</title><link>${i.url}</link><guid>${i.url}</guid><pubDate>${new Date(i.date).toUTCString()}</pubDate><description><![CDATA[${i.html}]]></description></item>`).join('')}</channel></rss>`);
   fs.writeFileSync(path.join(DIST, 'feed.json'), JSON.stringify({version: 'https://jsonfeed.org/version/1.1', title: site.name, home_page_url: site.url, feed_url: site.url + '/feed.json', description: site.description, language: 'zh-Hant', authors: [{name: site.author, url: site.url}], items: rssItems.map(i => ({id: i.url, url: i.url, title: i.title, content_html: i.html, summary: i.desc, date_published: new Date(i.date).toISOString()}))}));
   fs.writeFileSync(path.join(DIST, 'robots.txt'), `# 歡迎所有搜尋引擎與 AI 爬蟲索引本站(投稿後台除外)\nUser-agent: *\nAllow: /\nDisallow: /admin/\n\n${['GPTBot', 'ChatGPT-User', 'OAI-SearchBot', 'ClaudeBot', 'Claude-Web', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Googlebot', 'Bingbot', 'CCBot', 'Applebot', 'Applebot-Extended', 'Bytespider', 'Amazonbot', 'DuckAssistBot', 'meta-externalagent'].map(b => `User-agent: ${b}\nAllow: /`).join('\n\n')}\n\nSitemap: ${site.url}/sitemap.xml\n`);
-  const llms = `# ${site.name}(GOODSKANG)\n\n> ${site.description}\n\n作者:${site.author}(${site.email})。YouTube:${site.youtube}|Instagram:${site.instagram}|Facebook:${site.facebook}|台股 AI 工具:${site.tool}\n\n## 站內頁面\n- [首頁](${site.url}/)\n- [最新影片](${site.url}/videos.html):YouTube 頻道最新影片\n- [3C 科技新聞](${site.url}/posts.html):iPhone、Apple、特斯拉、AI 產業新聞與阿康的實測觀點\n- [親子旅遊快訊](${site.url}/travel.html):帶小孩去日本的實際經驗與出發前準備\n- [阿康愛用清單推薦](${site.url}/picks.html):阿康自己在用、親手測過的配件與用品\n- [AI 股票工具・今日熱門股](${site.url}/hot.html):強勢股雷達與話題雷達,每天自動更新\n- [關於阿康 / 合作](${site.url}/about.html)\n- [台股 AI 作戰室](${site.tool}):五燈順勢檢查表、交易計畫卡、六種策略回測(免費、免註冊,非投資建議)\n\n## 最新科技快訊\n${posts.slice(0, 30).map(p => `- [${p.title}](${site.url}${p.url}):${p.summary}`).join('\n')}\n\n## 最新影片\n${videos.slice(0, 15).map(v => `- [${v.title}](https://www.youtube.com/watch?v=${v.id})(${ymd(v.published)})`).join('\n')}\n\n## 完整內容\n- [llms-full.txt](${site.url}/llms-full.txt)\n`;
+  const llms = clean_llms(`# ${site.name}(GOODSKANG)\n\n> ${site.description}\n\n作者:${site.author}(${site.email})。YouTube:${site.youtube}|Instagram:${site.instagram}|Facebook:${site.facebook}|台股 AI 工具:${site.tool}\n\n## 站內頁面\n- [首頁](${site.url}/)\n- [最新影片](${site.url}/videos.html):YouTube 頻道最新影片\n- [3C 科技新聞](${site.url}/posts.html):iPhone、Apple、特斯拉、AI 產業新聞與阿康的實測觀點\n- [親子旅遊快訊](${site.url}/travel.html):帶小孩去日本的實際經驗與出發前準備\n- [阿康愛用清單推薦](${site.url}/picks.html):阿康自己在用、親手測過的配件與用品\n- [AI 股票工具・今日熱門股](${site.url}/hot.html):強勢股雷達與話題雷達,每天自動更新\n- [關於阿康 / 合作](${site.url}/about.html)\n- [台股 AI 作戰室](${site.tool}):五燈順勢檢查表、交易計畫卡、六種策略回測(免費、免註冊,非投資建議)\n\n## 最新科技快訊\n${posts.slice(0, 30).map(p => `- [${p.title}](${site.url}${p.url}):${p.summary}`).join('\n')}\n\n## 最新影片\n${videos.slice(0, 15).map(v => `- [${v.title}](https://www.youtube.com/watch?v=${v.id})(${ymd(v.published)})`).join('\n')}\n\n## 完整內容\n- [llms-full.txt](${site.url}/llms-full.txt)\n`);
   fs.writeFileSync(path.join(DIST, 'llms.txt'), llms);
   fs.writeFileSync(path.join(DIST, 'llms-full.txt'), llms + '\n\n---\n\n' + posts.map(p => `# ${p.title}\n日期:${p.date}|分類:${p.category}|標籤:${p.tags.join(', ')}|網址:${site.url}${p.url}\n\n${p.text}\n`).join('\n---\n\n'));
   fs.writeFileSync(path.join(DIST, '_headers'), `/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/index.html\n  Cache-Control: public, max-age=0, must-revalidate\n/hot.html\n  Cache-Control: public, max-age=0, must-revalidate\n/llms.txt\n  Content-Type: text/plain; charset=utf-8\n/llms-full.txt\n  Content-Type: text/plain; charset=utf-8\n`);
@@ -636,7 +643,7 @@ async function indexNow(urls){
   try{ if(!key) key = fs.readdirSync(path.join(ROOT, 'static')).map(f => (f.match(/^([a-f0-9]{32})\.txt$/) || [])[1]).find(Boolean) || ''; }catch(e){}
   if(!key){ console.log('[indexnow] 沒有金鑰檔,略過'); return; }
   const prev = readCache('indexnow.json') || {};
-  const fresh = urls.map(([u, d]) => [site.url + u, ymd(d)]).filter(([u, d]) => prev[u] !== d);
+  const fresh = urls.map(([u, d]) => [site.url + clean(u), ymd(d)]).filter(([u, d]) => prev[u] !== d);
   if(!fresh.length){ console.log('[indexnow] 沒有新網址'); return; }
   try{
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);

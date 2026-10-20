@@ -6,6 +6,7 @@ category: 科技新聞
 tags: BUNNIT, 手機回收, iPhone 14 Pro, iPhone 18 Pro, 二手 iPhone, LaLaport
 youtube: https://www.youtube.com/watch?v=nk4NWxAVeqk
 summary: 阿康出錢幫剪輯換了 iPhone 18 Pro，她的舊 iPhone 14 Pro 128GB 拿去 LaLaport 的 BUNNIT 自助回收機，回收的錢上繳給阿康：總共 8,008 元，現金 7,208 元、超商抵用券 800 元。通訊回收通路參考價 9,000 到 9,500 元，差在哪、誰適合，整理在這篇。
+stats: 8,008 元｜BUNNIT 回收機總額 ; 7,208 元｜其中現金（其餘 800 元抵用券） ; 9,000–9,500 元｜128GB 通訊回收參考價（最高） ; 992 元起｜比參考價少
 ---
 「我好緊張喔。」剪輯站在 **BUNNIT 自助回收機**前面，手上拿著她用了好幾年的 iPhone 14 Pro。這支新的 iPhone 18 Pro 是阿康出錢幫她換的，所以舊機回收的錢要「上繳給老闆」。丟進機台，到底能拿多少？
 

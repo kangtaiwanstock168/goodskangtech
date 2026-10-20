@@ -6,6 +6,7 @@ category: 科技新聞
 tags: Apple, HomeView, 智慧家庭, HomePod mini 2, Siri AI, Matter
 youtube: https://www.youtube.com/watch?v=649F8rW6Ckc
 summary: Apple HomeView 美國售價 US$299、11/13 上市，首波沒有台灣。阿康在影片中提醒：機器本身不貴，真正要算的是周邊家電升級和中文 Siri 支援。這篇整理規格重點、隱藏成本與購買建議。
+stats: US$299｜美國售價 ; 7 吋｜Liquid Retina 螢幕 ; 6 位｜可辨識的家人 ; 11/13｜美國開始供貨，台灣未列首波
 ---
 Apple 在 10 月 13 日發表全新家庭裝置 **Apple HomeView**：一台 7 吋螢幕加喇叭的家庭中樞，美國售價 US$299，11 月 13 日開始供貨。首波開賣地區是美國、英國、加拿大、澳洲、紐西蘭、印度等地，**台灣目前不在名單內**。
 

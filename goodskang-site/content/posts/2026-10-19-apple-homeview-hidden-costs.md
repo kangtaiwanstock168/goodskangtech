@@ -1,5 +1,6 @@
 ---
 title: Apple HomeView 值得買嗎？US$299 智慧螢幕的兩個隱藏成本，台灣還沒開賣先看懂
+seo_title: Apple HomeView 值得買嗎？US$299 的兩個隱藏成本
 date: 2026-10-19
 category: 科技新聞
 tags: Apple, HomeView, 智慧家庭, HomePod mini 2, Siri AI, Matter

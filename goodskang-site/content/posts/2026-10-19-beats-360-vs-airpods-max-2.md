@@ -1,5 +1,6 @@
 ---
 title: Beats 360 開箱：音質輸 AirPods，老婆還是選它？台灣 NT$12,500，跟 AirPods Max 2 差 5,490 元差在哪
+seo_title: Beats 360 開箱：跟 AirPods Max 2 差 5,490 元差在哪
 date: 2026-10-19
 category: 科技新聞
 tags: Beats 360, AirPods Max 2, 耳罩式耳機, 主動降噪, Apple

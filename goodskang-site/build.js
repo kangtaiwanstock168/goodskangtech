@@ -342,7 +342,7 @@ async function loadSocial(){
     return c.replace(/[A-Za-z0-9.]+$/, '').trim() + '…'; };
   const summaryOf = t => { const ls = String(t).replace(/\r/g, '').split('\n').map(x => x.replace(/#[^\s#]+/g, '').trim()).filter(Boolean); const tt = titleOf(t).replace(/[！!？?。…]/g, '').slice(0, 20); if(ls.length > 1 && ls[0].replace(/[！!？?。…]/g, '').startsWith(tt)) ls.shift(); return cutAt(ls.join(' ').replace(/\s+/g, ' ').trim(), 120, true); };
   const titleOf = t => { const first = String(t).split('\n').map(x => x.trim()).find(x => x && !/^#/.test(x)) || ''; return cutAt(first.replace(/#\S+/g, '').trim(), 80, false) || '新貼文'; };
-  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}`, title: titleOf(text), date: ymd(date), iso: date || '', category: '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, source: src, auto: true, ...extra});
+  const mk = (src, id, text, date, permalink, imgUrl, extra) => ({slug: `${src}-${id}`, url: `/posts/${src}-${id}`, title: titleOf(text), date: ymd(date), iso: date || '', category: '科技快訊', tags: tagsOf(text), cover: '', coverRemote: imgUrl || '', summary: summaryOf(text), youtube: (String(text).match(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/) || [''])[0], ig: src === 'ig' ? permalink : '', fb: src === 'fb' ? permalink : '', html: socialMd(String(text), titleOf(text)), text: String(text).replace(/\s+/g, ' ').trim(), words: String(text).length, thin: String(text).length < 200, source: src, auto: true, ...extra});
   const out = []; let j_ig = [];
   // 路線 A(最簡單):Instagram API with Instagram Login——只要 IG 帳號本身,不需要粉專;Meta 後台「產生權杖」一鍵取得,60 天到期前再按一次
   try{
@@ -518,14 +518,14 @@ const cleanHtml = h => h.replace(/((?:href|src)=["'](?:https:\/\/goodskang\.tw)?
 function page({title, desc, url, body, jsonld = [], image, type = 'website', noindex = false, cur = '', h1 = ''}){
   const full = url.startsWith('http') ? url : site.url + clean(url);
   const img = image ? (image.startsWith('/') ? site.url + image : image) : `${site.url}/og.png`;
-  const ld = [{'@context': 'https://schema.org', '@type': 'WebSite', name: site.name, url: site.url, potentialAction: {'@type': 'SearchAction', target: site.url + '/posts?q={search_term_string}', 'query-input': 'required name=search_term_string'}},
+  const ld = [{'@context': 'https://schema.org', '@type': 'WebSite', name: site.name, alternateName: [site.short, 'GOODSKANG'], url: site.url, potentialAction: {'@type': 'SearchAction', target: site.url + '/posts?q={search_term_string}', 'query-input': 'required name=search_term_string'}},
     {'@context': 'https://schema.org', '@type': 'Person', name: site.author, alternateName: 'GOODSKANG', url: site.url, email: site.email, sameAs: [site.youtube, site.instagram, site.facebook, site.tool], jobTitle: '科技 YouTuber / 台股 AI 工具開發者', description: site.about},
     ...jsonld];
   return cleanHtml(`<!DOCTYPE html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${attr(desc)}">
 <link rel="canonical" href="${full}">
-${noindex ? '<meta name="robots" content="noindex,nofollow">' : '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">'}
+${noindex ? '<meta name="robots" content="noindex,follow">' : '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">'}
 <meta property="og:type" content="${type}"><meta property="og:site_name" content="${attr(site.name)}"><meta property="og:locale" content="zh_TW">
 <meta property="og:title" content="${attr(title)}"><meta property="og:description" content="${attr(desc)}"><meta property="og:url" content="${full}"><meta property="og:image" content="${attr(img)}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${attr(title)}"><meta name="twitter:description" content="${attr(desc)}"><meta name="twitter:image" content="${attr(img)}">
@@ -629,7 +629,7 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
 ${secOf(p).url === '/posts.html' ? `<div style="margin-top:26px;">${ctaHtml}</div>` : ''}
 ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list card">${rel.map(pRow).join('')}</div>` : ''}
 <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">${posts[i + 1] ? `<a class="btn o" href="${posts[i + 1].url}">← 上一篇:${esc(posts[i + 1].title.slice(0, 18))}…</a>` : ''}${posts[i - 1] ? `<a class="btn o" href="${posts[i - 1].url}">下一篇:${esc(posts[i - 1].title.slice(0, 18))}… →</a>` : ''}</div></article>`;
-    fs.writeFileSync(path.join(DIST, 'posts', p.slug + '.html'), page({title: `${p.seoTitle || p.title}|${site.short}`, desc: p.summary, url: p.url, image: p.cover, type: 'article', jsonld: ld, cur: secOf(p).url, body}));
+    fs.writeFileSync(path.join(DIST, 'posts', p.slug + '.html'), page({title: `${p.seoTitle || p.title}|${site.name}`, desc: p.summary, url: p.url, image: p.cover, type: 'article', jsonld: ld, noindex: !!p.thin, cur: secOf(p).url, body}));
   }
   // 熱門股頁(建站快照 + 前端每 10 分鐘向本站函式要最新)
   fs.writeFileSync(path.join(DIST, 'hot.html'), page({title: `AI 股票工具・今日熱門股|${site.name}`, desc: `每天自動更新:強勢股雷達與話題雷達(${(hot.scan && hot.scan.d) || ''})。點任一檔直接到台股 AI 作戰室看五燈檢查表。`, url: '/hot.html', cur: '/hot.html', body: `<div class="sec"><h1>AI 股票工具</h1></div>${ctaHtml.replace(' <a class="btn o" href="/hot.html">看今日熱門股</a>', '')}<div class="sec"><h2>今日熱門股快照</h2><span id="hotTime" style="color:var(--muted);font-size:.85rem;">快照時間 ${TZ(hot.fetchedAt || BUILT).toISOString().replace('T', ' ').slice(0, 16)}(台北)</span></div><div id="hotBox">${hotBlock(hot)}</div>
@@ -643,7 +643,7 @@ ${rel.length ? `<div class="sec"><h2>延伸閱讀</h2></div><div class="list car
 </div></article>`;
   fs.writeFileSync(path.join(DIST, 'about.html'), page({title: `關於阿康 / 合作邀約|${site.name}`, desc: site.about, url: '/about.html', cur: '/about.html', type: 'profile', body: about}));
   // sitemap / rss / feed.json / robots / llms
-  const urls = [['/', BUILT], ['/videos.html', BUILT], ['/posts.html', BUILT], ['/travel.html', BUILT], ['/picks.html', BUILT], ['/hot.html', BUILT], ['/about.html', BUILT], ...posts.map(p => [p.url, p.updated || p.date])];
+  const urls = [['/', BUILT], ['/videos.html', BUILT], ['/posts.html', BUILT], ['/travel.html', BUILT], ['/picks.html', BUILT], ['/hot.html', BUILT], ['/about.html', BUILT], ...posts.filter(p => !p.thin).map(p => [p.url, p.updated || p.date])];  // 太短的 IG 頁不放 sitemap、不送 IndexNow
   fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(([u, d]) => `<url><loc>${site.url}${clean(u)}</loc><lastmod>${ymd(d)}</lastmod></url>`).join('')}</urlset>`);
   const rssItems = [...posts.slice(0, 30).map(p => ({title: p.title, url: site.url + p.url, date: p.date, desc: p.summary, html: clean_llms(p.html)})), ...videos.slice(0, 15).map(v => ({title: '' + v.title, url: `https://www.youtube.com/watch?v=${v.id}`, date: v.published, desc: v.desc || v.title, html: `<p>${esc(v.desc || v.title)}</p>`}))].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   fs.writeFileSync(path.join(DIST, 'rss.xml'), `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>${esc(site.name)}</title><link>${site.url}</link><description>${esc(site.description)}</description><language>zh-TW</language><atom:link href="${site.url}/rss.xml" rel="self" type="application/rss+xml"/>${rssItems.map(i => `<item><title>${esc(i.title)}</title><link>${i.url}</link><guid>${i.url}</guid><pubDate>${new Date(i.date).toUTCString()}</pubDate><description><![CDATA[${i.html}]]></description></item>`).join('')}</channel></rss>`);

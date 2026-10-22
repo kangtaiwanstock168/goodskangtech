@@ -619,9 +619,11 @@ ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="colo
     const TOPIC = /(iPhone Duo|iPhone 18 Pro Max|iPhone 18 Pro|iPhone 17|iPhone Air|AirPods Pro 3|AirPods Max 2|AirPods 5|AirPods|Beats 360|Beats Pill|Beats|HomeView|HomePod mini 2|HomePod|Apple TV|Apple Watch|iPad mini|iPad|MacBook|Mac|Model Y|Roadster|Tesla|特斯拉|FSD|CASETiFY|MagSafe|行動電源|保護殼|回收|退稅|日本|沖繩|福岡|樂桃|Fold ?8|Galaxy|三星|台積電|RTX ?5090|HONOR|LINE)/gi;
     const topics = s => new Set((String(s).match(TOPIC) || []).map(x => x.toLowerCase().replace(/\s+/g, '')));
     const tp = topics(p.title + ' ' + p.tags.join(' '));
+    const prim = (String(p.title).match(TOPIC) || [''])[0].toLowerCase().replace(/\s+/g, '');   // 標題裡第一個產品名＝這篇的主角
     const rel = posts.filter(q => q.slug !== p.slug && !q.thin).map(q => {
       let s = 0; for(const t of q.tags) if(p.tags.includes(t)) s += GEN.test(t) ? 0.5 : 3;
       for(const x of topics(q.title + ' ' + q.tags.join(' '))) if(tp.has(x)) s += 4;
+      if(prim && topics(q.title).has(prim)) s += 6;
       if(!q.auto) s += 2; if(secOf(q).url === secOf(p).url) s += 1; if(q.category === p.category) s += 0.5;
       return [s, q]; }).filter(([s]) => s >= 5).sort((a, b) => b[0] - a[0] || String(b[1].date).localeCompare(String(a[1].date))).slice(0, 4).map(([, q]) => q);
     const ld = [{'@context': 'https://schema.org', '@type': p.category === '科技新聞' ? 'NewsArticle' : 'Article', headline: p.title, description: p.summary, image: p.cover ? [p.cover.startsWith('/') ? site.url + p.cover : p.cover] : undefined, datePublished: tw(p.iso) || p.date, dateModified: p.updated || tw(p.iso) || p.date, author: {'@type': 'Person', name: site.author, url: site.url + '/about'}, publisher: {'@type': 'Organization', name: site.name, logo: {'@type': 'ImageObject', url: site.url + '/favicon.svg'}}, mainEntityOfPage: site.url + p.url, keywords: p.tags.join(', '), articleSection: secOf(p).label, inLanguage: 'zh-Hant-TW', wordCount: p.words},

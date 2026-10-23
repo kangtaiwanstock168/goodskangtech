@@ -494,6 +494,45 @@ footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);co
 .milestone b{color:var(--gold)}
 .pill{display:inline-block;padding:2px 10px;border-radius:var(--pill);background:var(--gold-soft);color:var(--gold);font-size:.78rem;font-weight:700}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 6px}
+/* 首頁(2026-10 改版,MacRumors / 9to5Mac 式):第一屏=一則大主題+最新清單;第二排=四張圖卡;再來是新聞河流+右欄 */
+.fp{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin:16px 0 8px}
+@media(max-width:820px){.fp{grid-template-columns:1fr}}
+.lead1{position:relative;display:block;border-radius:var(--r);overflow:hidden;background:var(--card);border:1px solid var(--border)}
+.lead1 img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.lead1 .ov{position:absolute;inset:auto 0 0 0;padding:70px 18px 18px;background:linear-gradient(180deg,rgba(16,20,29,0) 0%,rgba(16,20,29,.92) 70%)}
+.lead1 .k{display:inline-block;padding:2px 10px;border-radius:var(--pill);background:var(--gold);color:#10141D;font-size:.75rem;font-weight:800;margin-bottom:8px}
+.lead1 h2{margin:0;font-size:1.55rem;line-height:1.35;color:#fff}
+.lead1 p{margin:8px 0 0;color:#D5D9E2;font-size:.95rem;line-height:1.6}
+.lead1 .meta{color:var(--muted);font-size:.8rem;margin-top:8px}
+@media(max-width:560px){.lead1 h2{font-size:1.2rem}.lead1 .ov{padding:50px 14px 14px}.lead1 p{display:none}}
+.latest{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.latest h3{margin:0 0 4px;font-size:1rem;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.latest h3::after{content:"";flex:1;height:1px;background:var(--border)}
+.latest a.it{display:grid;grid-template-columns:82px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:start;color:var(--text)}
+.latest a.it:last-of-type{border-bottom:0}.latest a.it:hover{text-decoration:none}.latest a.it:hover b{color:var(--accent)}
+.latest a.it img{width:82px;height:56px;object-fit:cover;border-radius:var(--r-s);background:var(--bg)}
+.latest a.it b{display:block;font-size:.93rem;line-height:1.45;font-weight:700}
+.latest .m{color:var(--muted);font-size:.76rem;margin-top:3px}
+.latest .more{display:block;margin-top:8px;font-size:.88rem}
+.k2{display:inline-block;font-size:.72rem;font-weight:800;color:var(--gold);margin-right:6px}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 6px}
+@media(max-width:820px){.strip{grid-template-columns:repeat(2,1fr)}}
+.strip a{display:block;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;color:var(--text);transition:transform .15s}
+.strip a:hover{transform:translateY(-2px);text-decoration:none}.strip a:hover b{color:var(--accent)}
+.strip img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.strip b{display:block;padding:10px 12px 4px;font-size:.92rem;line-height:1.45}
+.strip .m{padding:0 12px 10px;color:var(--muted);font-size:.76rem}
+.two{display:grid;grid-template-columns:1fr 330px;gap:22px;margin-top:8px;align-items:start}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.river .row{grid-template-columns:168px 1fr;padding:14px 0}.river .row img{width:168px;height:106px}
+.river .row.igrow{grid-template-columns:120px 1fr}.river .row.igrow img{width:120px;height:150px}
+.river .row h3{font-size:1.08rem}.river .row p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:560px){.river .row{grid-template-columns:110px 1fr}.river .row img{width:110px;height:72px}.river .row.igrow{grid-template-columns:96px 1fr}.river .row.igrow img{width:96px;height:120px}}
+.rail .card{margin-bottom:16px}.rail h3{margin:0 0 8px;font-size:1rem;display:flex;align-items:center;gap:8px}.rail h3::after{content:"";flex:1;height:1px;background:var(--border)}
+.rail .vi{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);color:var(--text);align-items:start}.rail .vi:last-of-type{border-bottom:0}.rail .vi:hover{text-decoration:none}.rail .vi:hover b{color:var(--accent)}
+.rail .vi img{width:96px;height:64px;object-fit:cover;border-radius:var(--r-s);flex:none}.rail .vi b{display:block;font-size:.88rem;line-height:1.45;font-weight:600}.rail .vi .m{color:var(--muted);font-size:.74rem;margin-top:2px}
+.rail .stock{font-size:.9rem}
+.ctaS{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--r);padding:14px 16px}.ctaS h3::after{display:none}.ctaS p{margin:4px 0 10px;color:var(--muted);font-size:.9rem;line-height:1.6}
 .kpi{background:var(--card);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:var(--r);padding:10px 12px}
 .kpi b{display:block;color:var(--gold);font-size:1.3rem;font-weight:900;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .kpi span{display:block;color:var(--muted);font-size:.8rem;line-height:1.45;margin-top:3px}
@@ -572,31 +611,52 @@ async function main(){
   if(fs.existsSync(path.join(ROOT, 'static'))) fs.cpSync(path.join(ROOT, 'static'), DIST, {recursive: true});
   if(fs.existsSync(path.join(ROOT, 'admin'))) fs.cpSync(path.join(ROOT, 'admin'), path.join(DIST, 'admin'), {recursive: true});
   fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d1117"/><rect x="24" y="14" width="16" height="30" rx="4" fill="#f85149"/><rect x="31" y="6" width="2" height="8" fill="#f85149"/><rect x="31" y="44" width="2" height="10" fill="#f85149"/><circle cx="28" cy="26" r="2" fill="#0d1117"/><circle cx="36" cy="26" r="2" fill="#0d1117"/><path d="M27 34q5 4 10 0" stroke="#0d1117" stroke-width="2" fill="none"/></svg>`);
-  // 首頁:大圖=最新一支;右欄「本週影片」=7 天內的影片,觀看數高→低、同觀看數新→舊;不足 4 支就用最新的補
+  // 首頁(MacRumors / 9to5Mac 式):第一屏=一則大主題+最新清單,第二排=四張圖卡(本週最多人看的影片),再來是新聞河流+右欄
+  // 「本週影片」=7 天內的影片,觀看數高→低、同觀看數新→舊;不足 4 支就用最新的補
   const latest = videos[0];
   const wk = Date.now() - 7 * 864e5;
   const week = videos.filter(v => v.id !== (latest && latest.id) && new Date(v.published).getTime() >= wk).sort((a, b) => (b.views || 0) - (a.views || 0) || String(b.published).localeCompare(String(a.published)));
   const vid4 = week.concat(videos.filter(v => v.id !== (latest && latest.id) && !week.includes(v))).slice(0, 4);
-  const weekLabel = week.length ? '7 天內・依觀看數' : '近期・依日期';
   const toolFeat = ['五燈順勢檢查表', '防守位與部位計算', '交易計畫卡(5/10/20 日歷史統計)', '話題雷達・強勢股雷達', '六種存股策略回測', '本益比體檢'];
   const ctaHtml = `<div class="cta"><div><h2>阿康的台股 AI 作戰室——免費・免註冊</h2><p>打一檔代號:五燈檢查表、標註 K 線、防守與部位、交易計畫卡馬上出來;想存股就做六種策略回測。不報明牌、不喊進出,把數據攤開你自己決定。</p><a class="btn" href="${site.tool}" target="_blank" rel="noopener">開啟工具 →</a> <a class="btn o" href="/hot.html">看今日熱門股</a></div><div class="feat">${toolFeat.map(f => `<div>${f}</div>`).join('')}</div></div>`;
-  // 首頁
+  // 「多久以前」:今天用小時,其餘用日期(IG 有精確時間、手寫文章只有日期)
+  const ago = (iso, date) => { const t = iso ? new Date(iso).getTime() : NaN; if(!isNaN(t)){ const h = (Date.now() - t) / 36e5; if(h < 1) return '剛剛'; if(h < 24) return `${Math.floor(h)} 小時前`; if(h < 48) return '昨天'; } return date || ymd(iso); };
+  // 新聞河流:所有文章(原創實測、IG 快訊、親子旅遊、愛用清單)依時間混排;太短的 IG 頁不進首頁
+  const river = posts.filter(p => !p.thin);
+  const lead = river.find(p => !p.auto && p.cover) || river.find(p => p.cover) || river[0];
+  const rest = river.filter(p => p !== lead);
+  const vTime = v => `https://www.youtube.com/watch?v=${v.id}`;
+  const leadHtml = lead
+    ? `<a class="lead1" href="${lead.url}"><img src="${attr(lead.cover || (latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''))}" alt="${attr(lead.title)}" fetchpriority="high"><div class="ov"><span class="k">${esc(secOf(lead).label)}</span><h2>${esc(lead.title)}</h2><p>${esc(lead.summary.slice(0, 90))}${lead.summary.length > 90 ? '…' : ''}</p><div class="meta">${ago(lead.iso, lead.date)}・${esc(site.author)}</div></div></a>`
+    : (latest ? `<a class="lead1" href="${vTime(latest)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg" alt="${attr(latest.title)}"><div class="ov"><span class="k">最新影片</span><h2>${esc(latest.title)}</h2><div class="meta">${ymd(latest.published)}</div></div></a>` : '');
+  const latestList = rest.slice(0, 5).map(p => `<a class="it" href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="" loading="lazy">` : `<span style="width:82px;height:56px;border-radius:var(--r-s);background:var(--accent-soft);display:block;"></span>`}<span><b>${esc(p.title)}</b><span class="m"><span class="k2">${esc(secOf(p).label)}</span>${ago(p.iso, p.date)}</span></span></a>`).join('');
+  const stripHtml = vid4.length ? `<div class="sec" style="margin-top:22px;"><h2>本週影片</h2><span>${week.length ? '7 天內・最多人看' : '最新上片'}</span><a href="/videos.html">全部影片 →</a></div><div class="strip">${(latest ? [latest].concat(vid4) : vid4).slice(0, 4).map(v => `<a href="${vTime(v)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><b>${esc(v.title)}</b><span class="m">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</span></a>`).join('')}</div>` : '';
+  const riverRows = rest.slice(5, 17).map(p => pRow(p).replace('<span style="color:var(--muted);font-size:.8rem;">' + p.date + '</span>', `<span style="color:var(--muted);font-size:.8rem;">${ago(p.iso, p.date)}</span>`)).join('');
+  const railVideos = videos.slice(0, 6).filter(v => v !== latest && !vid4.includes(v)).concat(videos.slice(6, 14)).slice(0, 5);
+  const hotMini = (() => { const list = ((hot.scan && hot.scan.list) || []).slice(0, 5); if(!list.length) return ''; const link = id => `${site.tool}?s=${encodeURIComponent(id)}`;
+    return `<div class="card"><h3>今日強勢股 <span style="color:var(--muted);font-size:.75rem;font-weight:400;">${esc((hot.scan && hot.scan.d) || '')}</span></h3>${list.map(h => `<div class="stock"><span><a class="nm" href="${link(h.id)}" target="_blank" rel="noopener">${esc((h.name || h.id).replace(/\*/g, ''))}</a> <span class="sub">${h.id}</span></span><span><b>${h.c}</b> <span class="up">▲ ${Number(h.pct).toFixed(2)}%</span></span></div>`).join('')}<a href="/hot.html" style="display:block;margin-top:8px;font-size:.88rem;">話題雷達、完整名單 →</a><p class="disc" style="margin-top:8px;">公開資料客觀排序,非選股建議。</p></div>`; })();
   const home = `
-<section class="hero">
-  <div class="card main">${latest ? `${ytEmbed(latest.id)}<div class="cap"><span class="pill">最新影片・${ymd(latest.published)}</span><h2 style="margin:6px 0 4px;font-size:1.15rem;line-height:1.45;"><a href="https://www.youtube.com/watch?v=${latest.id}" target="_blank" rel="noopener" style="color:var(--text)">${esc(latest.title)}</a></h2>${latest.desc ? `<p style="margin:0;color:var(--muted);font-size:.9rem;">${esc(latest.desc.slice(0, 110))}…</p>` : ''}</div>` : '<div class="cap">影片載入中</div>'}</div>
-  <div class="card side"><h3 style="margin:0 0 6px;">本週影片 <span style="color:var(--muted);font-size:.78rem;font-weight:400;">${weekLabel}</span></h3>${vid4.map(v => `<a class="item" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><div style="font-size:.9rem;line-height:1.45;color:var(--text);font-weight:600;">${esc(v.title)}<div style="color:var(--muted);font-size:.78rem;font-weight:400;">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</div></div></a>`).join('')}<a href="/videos.html" style="display:block;margin-top:8px;font-size:.9rem;">全部影片 →</a></div>
+<section class="fp">
+  ${leadHtml}
+  <div class="latest"><h3>最新</h3>${latestList}<a class="more" href="/posts.html">更多 3C 科技新聞 →</a></div>
 </section>
-<div class="sec"><h2>阿康實測文章</h2><span style="color:var(--muted);font-size:.85rem;">影片裡的數字、原話，整理成一篇可以查的文章</span><a href="/posts.html">更多 →</a></div>
-<div class="list card">${posts.filter(p => !p.auto && !isPick(p)).slice(0, 5).map(pRow).join('') || '<p style="color:var(--muted);">第一篇實測準備中。</p>'}</div>
-<div class="sec"><h2>科技快訊</h2><span style="color:var(--muted);font-size:.85rem;">IG 同步・iPhone・Apple・特斯拉</span><a href="/posts.html">更多 →</a></div>
-<div class="list card">${news.filter(p => p.auto && !p.thin).slice(0, 6).map(pRow).join('') || '<p style="color:var(--muted);">第一篇快訊準備中。</p>'}</div>
-${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span style="color:var(--muted);font-size:.85rem;">帶兩個小孩出國的實際經驗</span><a href="/travel.html">更多 →</a></div><div class="list card">${travel.slice(0, 3).map(pRow).join('')}</div>` : ''}
-<div class="sec"><h2>AI 股票工具</h2><a href="/hot.html">今日熱門股 →</a></div>${ctaHtml}
-<div class="sec"><h2>今日熱門股快照</h2><span style="color:var(--muted);font-size:.85rem;">每天自動更新</span><a href="/hot.html">完整 →</a></div>${hotBlock(hot)}
-<div class="sec"><h2>更多影片</h2><a href="${site.youtube}" target="_blank" rel="noopener">到 YouTube 訂閱 →</a></div>
-<div class="grid">${videos.slice(5, 13).map(vCard).join('')}</div>
-<div class="sec"><h2>關於阿康</h2><a href="/about.html">完整介紹 / 合作邀約 →</a></div>
-<div class="card"><p style="margin:0;">${esc(site.about)}</p></div>`;
+${stripHtml}
+<div class="two">
+  <div>
+    <div class="sec"><h2>科技新聞</h2><span>實測文章・IG 快訊・親子旅遊,依時間排</span><a href="/posts.html">更多 →</a></div>
+    <div class="list card river">${riverRows || '<p style="color:var(--muted);">第一篇快訊準備中。</p>'}</div>
+    ${travel.length ? `<div class="sec"><h2>親子旅遊快訊</h2><span>帶兩個小孩出國的實際經驗</span><a href="/travel.html">更多 →</a></div><div class="list card">${travel.slice(0, 3).map(pRow).join('')}</div>` : ''}
+    ${picks.length ? `<div class="sec"><h2>阿康愛用清單</h2><span>自己在用、親手測過才放</span><a href="/picks.html">全部 →</a></div><div class="list card">${picks.slice(0, 3).map(pRow).join('')}</div>` : ''}
+  </div>
+  <aside class="rail">
+    <div class="card ctaS"><h3>台股 AI 作戰室</h3><p>打一檔代號,五燈檢查表、交易計畫卡、六種存股回測馬上出來。免費、免註冊,不報明牌。</p><a class="btn" href="${site.tool}" target="_blank" rel="noopener">開啟工具 →</a></div>
+    ${hotMini}
+    ${railVideos.length ? `<div class="card"><h3>更多影片</h3>${railVideos.map(v => `<a class="vi" href="${vTime(v)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><span><b>${esc(v.title)}</b><span class="m">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</span></span></a>`).join('')}<a href="${site.youtube}" target="_blank" rel="noopener" style="display:block;margin-top:8px;font-size:.88rem;">到 YouTube 訂閱 →</a></div>` : ''}
+    <div class="card"><h3>關於阿康</h3><p style="margin:0;color:var(--muted);font-size:.9rem;line-height:1.7;">${esc(site.about.slice(0, 110))}…</p><a href="/about.html" style="display:block;margin-top:8px;font-size:.88rem;">完整介紹 / 合作邀約 →</a></div>
+  </aside>
+</div>
+<div class="sec"><h2>今日熱門股快照</h2><span>每天自動更新</span><a href="/hot.html">完整 →</a></div>${hotBlock(hot)}
+<div style="margin-top:22px;">${ctaHtml}</div>`;
   fs.writeFileSync(path.join(DIST, 'index.html'), page({title: `${site.name}|iPhone・Apple・特斯拉開箱 & 台股 AI 工具`, desc: site.description, url: '/', body: home, cur: '/', h1: `${site.name}：iPhone、Apple、特斯拉開箱與台股 AI 工具`, image: latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''}));
   // 影片頁
   const vLd = videos.slice(0, 30).map(v => ({'@context': 'https://schema.org', '@type': 'VideoObject', name: v.title, description: v.desc || v.title, thumbnailUrl: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, ...(v.published && !v.published.startsWith('1970') ? {uploadDate: v.published} : {}), embedUrl: `https://www.youtube-nocookie.com/embed/${v.id}`, url: `https://www.youtube.com/watch?v=${v.id}`, author: {'@type': 'Person', name: site.author}}));

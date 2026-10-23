@@ -315,6 +315,23 @@ function tsStrip(html, yid){
   });
   return {html: out.join(''), sections};
 }
+// 分級閱讀:內文裡的「錢和數字」金色、「原話」淡藍,其餘白字——眼睛掃過去就知道哪裡是重點;標題、連結、目錄、影片對照不處理
+function hiText(html){
+  const NUM = /(NT\$\s?[\d,]+(?:\.\d+)?|US\$\s?[\d,]+(?:\.\d+)?|(?<![\w.])[\d,]+(?:\.\d+)?\s?(?:元|萬元|萬|億|g|kg|mm|cm|吋|%|％|倍|W|mAh|GB|TB|Hz|nits|小時|分鐘|天|年)(?![\w]))/g;
+  const QT = /「([^「」]{4,120})」/g;
+  let skip = 0;   // 在 h2/h3/a/nav.toc 裡面就不動
+  return html.split(/(<[^>]+>)/).map(x => {
+    if(x.startsWith('<')){
+      if(/^<(h2|h3|a|nav)[\s>]/i.test(x)) skip++;
+      else if(/^<\/(h2|h3|a|nav)>/i.test(x)) skip = Math.max(0, skip - 1);
+      return x;
+    }
+    if(skip || !x.trim()) return x;
+    return x.replace(QT, '<span class="qt">「$1」</span>').replace(NUM, m => `<b class="num">${m}</b>`);
+  }).join('');
+}
+// 數字卡:依單位自動配 emoji(錢 💰、重量 ⚖️、尺寸 📏、百分比 📊、時間 ⏱、容量 💾)
+const kpiIcon = n => /NT\$|US\$|\$|元|萬|億/.test(n) ? '💰' : /\bk?g\b|公斤|公克/.test(n) ? '⚖️' : /mm|cm|吋|公分/.test(n) ? '📏' : /%|％/.test(n) ? '📊' : /小時|分鐘|秒|天|hr|min/i.test(n) ? '⏱' : /GB|TB|mAh|W\b/.test(n) ? '🔋' : '🔹';
 function tsAppendix(sections, yid){
   if(!yid || !sections.length) return '';
   const sec = t => { const [m, s2] = t.split(':').map(Number); return m * 60 + s2; };
@@ -497,8 +514,10 @@ article .body h2{font-size:1.32rem;margin:36px 0 10px}
 article .body .tip{border-left:3px solid var(--gold);background:var(--gold-soft);padding:8px 12px;border-radius:0}
 article .body .tip b{color:var(--gold);margin-right:6px}
 article .body .src{color:var(--muted);font-size:.85rem;margin-top:22px}
-article .body .lead p:first-child{font-size:1.14rem;color:var(--text);line-height:1.85}
-.toc{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:18px 0 10px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.toc b{font-size:.82rem;color:var(--muted);margin-right:4px;letter-spacing:.04em}.toc a{font-size:.9rem;color:var(--text);padding:0}.toc a::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:0 6px 2px 0}.toc a:hover{color:var(--accent);text-decoration:none}
+article .body .lead p:first-child{font-size:1.16rem;color:var(--text);line-height:1.9;padding-left:14px;border-left:3px solid var(--accent)}
+article .body .num{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums}article .body .qt{color:#CFE0FF}article .body td .num{font-weight:700}
+@media(max-width:560px){article .body{font-size:1.02rem}article .body .lead p:first-child{font-size:1.08rem}article .body h2{font-size:1.18rem;margin:28px 0 8px}}
+.toc{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:18px 0 10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r)}.toc b{font-size:.82rem;color:var(--gold);margin-right:4px;letter-spacing:.04em;width:100%}.toc a{font-size:.92rem;color:var(--muted);padding:0}.toc a::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:0 6px 2px 0}.toc a:hover{color:var(--text);text-decoration:none}@media(max-width:560px){.toc{gap:4px 0}.toc a{width:100%;padding:3px 0}}
 article .body .blk{--c:var(--accent);background:transparent;border:0;border-radius:0;padding:0;margin:0;scroll-margin-top:90px}
 article .body .blk.c1{--c:var(--gold)}article .body .blk.c2{--c:var(--green)}article .body .blk.c3{--c:var(--amber)}
 article .body .blk h2{border-left:4px solid var(--gold);padding-left:12px;margin:36px 0 10px;font-size:1.32rem;color:var(--gold)}
@@ -571,7 +590,7 @@ footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);co
 .rail .stock{font-size:.9rem}
 .ctaS{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--r);padding:14px 16px}.ctaS h3::after{display:none}.ctaS p{margin:4px 0 10px;color:var(--muted);font-size:.9rem;line-height:1.6}
 .kpi{padding:12px 14px;border-right:1px solid var(--border)}.kpi:last-child{border-right:0}
-.kpi b{display:block;color:var(--text);font-size:1.25rem;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kpi i{font-style:normal;font-size:.95rem;display:block;margin-bottom:2px}.kpi b{display:block;color:var(--gold);font-size:1.3rem;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .kpi span{display:block;color:var(--muted);font-size:.8rem;line-height:1.45;margin-top:3px}
 @media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}.kpi b{font-size:1.1rem}.kpi:nth-child(2n){border-right:0}.kpi:nth-child(-n+2){border-bottom:1px solid var(--border)}}
 .pop .row{grid-template-columns:168px 1fr;padding:14px 0}.pop .row img{width:168px;height:106px}.pop .row h3{font-size:1.08rem}@media(max-width:560px){.pop .row{grid-template-columns:110px 1fr}.pop .row img{width:110px;height:72px}}
@@ -741,7 +760,7 @@ ${stripHtml}
       + (p.fb ? `<p><a class="btn o" href="${attr(p.fb)}" target="_blank" rel="noopener">在 Facebook 看這則貼文</a></p>` : '');
     const mins = Math.max(1, Math.round((p.words || 0) / 420));
     const tsR = tsStrip(enhance(p.html.replace(yid ? ytEmbed(yid) : '__none__', ''), p), p.auto ? '' : yid);
-    const body = `<div class="artwrap"><article><p class="crumb"><a href="${secOf(p).url}">${secOf(p).name}</a><span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="by"><span class="av" aria-hidden="true"></span><span><b>${esc(site.author)}</b>・${p.date}${p.updated ? `(更新 ${p.updated})` : ''}${!p.auto ? `・約 ${mins} 分鐘讀完` : ''}</span></div>${shareBar(p, 'top')}${p.video && p.ig ? videoHero : (p.slides ? `<div class="gal" aria-label="輪播圖片"><div class="track">${p.slides.map((g, k) => `<img src="${attr(g)}" alt="${attr(p.title)} 第 ${k + 1} 張" loading="${k ? 'lazy' : 'eager'}">`).join('')}</div><div class="galnav"><button type="button" onclick="galGo(this,-1)" aria-label="上一張">‹</button><span>滑動看 ${p.slides.length} 張</span><button type="button" onclick="galGo(this,1)" aria-label="下一張">›</button></div></div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''))}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${p.stats && p.stats.length ? `<div class="kpis" aria-label="關鍵數字">${p.stats.map(([n, l]) => `<div class="kpi"><b>${esc(n)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : ''}${videoLinks}<div class="body">${tsR.html}${tsAppendix(tsR.sections, p.auto ? '' : yid)}${plugOf(p)}</div>${shareBar(p, 'bottom')}${SHARE_JS}${yid && !p.auto ? TS_JS : ''}<script>function galGo(b,d){var t=b.closest('.gal').querySelector('.track');t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}</script>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
+    const body = `<div class="artwrap"><article><p class="crumb"><a href="${secOf(p).url}">${secOf(p).name}</a><span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="by"><span class="av" aria-hidden="true"></span><span><b>${esc(site.author)}</b>・${p.date}${p.updated ? `(更新 ${p.updated})` : ''}${!p.auto ? `・約 ${mins} 分鐘讀完` : ''}</span></div>${shareBar(p, 'top')}${p.video && p.ig ? videoHero : (p.slides ? `<div class="gal" aria-label="輪播圖片"><div class="track">${p.slides.map((g, k) => `<img src="${attr(g)}" alt="${attr(p.title)} 第 ${k + 1} 張" loading="${k ? 'lazy' : 'eager'}">`).join('')}</div><div class="galnav"><button type="button" onclick="galGo(this,-1)" aria-label="上一張">‹</button><span>滑動看 ${p.slides.length} 張</span><button type="button" onclick="galGo(this,1)" aria-label="下一張">›</button></div></div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''))}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${p.stats && p.stats.length ? `<div class="kpis" aria-label="關鍵數字">${p.stats.map(([n, l]) => `<div class="kpi"><i>${kpiIcon(n)}</i><b>${esc(n)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : ''}${videoLinks}<div class="body">${hiText(tsR.html)}${tsAppendix(tsR.sections, p.auto ? '' : yid)}${plugOf(p)}</div>${shareBar(p, 'bottom')}${SHARE_JS}${yid && !p.auto ? TS_JS : ''}<script>function galGo(b,d){var t=b.closest('.gal').querySelector('.track');t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}</script>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
 ${secOf(p).url === '/posts.html' ? `<div style="margin-top:26px;">${ctaHtml}</div>` : ''}
 <div class="meta" style="margin-top:22px;">${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>
 ${(() => { const more = rel.length >= 2 ? rel : rel.concat(posts.filter(q => q.slug !== p.slug && !q.thin && !rel.includes(q)).slice(0, 4 - rel.length)); return more.length ? `<div class="sec"><h2>${rel.length >= 2 ? '同主題文章' : '更多阿康的文章'}</h2><a href="${secOf(p).url}">${secOf(p).name} →</a></div><div class="list pop">${more.map(pRow).join('')}</div>` : ''; })()}

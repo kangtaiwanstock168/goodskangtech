@@ -289,6 +289,37 @@ function tsLink(html, yid){
     });
   }).join('');
 }
+// 時間碼移到文末:新聞讀者先讀完文章,想查證的人再到「影片對照」點時間碼——內文不再出現 (▶ 2:32)
+// 抽的規則:全形/半形括號包住的 2:32、3:50–4:02、2:20、4:20 整組拿掉;「阿康 7:40 說」這種裸時間也拿掉;上午/下午 開頭的時刻不動
+function tsStrip(html, yid){
+  if(!yid) return {html, sections: []};
+  const T = String.raw`(?<![\d:])\d{1,2}:[0-5]\d(?![\d:])`;
+  const GROUP = new RegExp(String.raw`\s*[（(]\s*(?:▶\s*)?${T}(?:\s*[–\-~、,，/]\s*(?:▶\s*)?${T})*\s*[)）]`, 'g');
+  const BARE = new RegExp(String.raw`(?<!上午|下午|晚上|早上|凌晨|中午)(?<![\d:])\s?(${T})\s?`, 'g');
+  const sections = [];
+  const parts = html.split(/(?=<section class="blk)/);
+  const out = parts.map((seg, i) => {
+    const h = (seg.match(/<h2>([^]*?)<\/h2>/) || [])[1];
+    const title = h ? h.replace(/<[^>]+>/g, '').trim() : (i === 0 ? '開頭' : '');
+    const times = [];
+    const take = m => { for(const t of m.match(new RegExp(T, 'g')) || []){ if(!times.includes(t)) times.push(t); } return ''; };
+    // 只動文字節點,不碰標籤裡的屬性
+    let inA = 0;
+    const cleaned = seg.split(/(<[^>]+>)/).map(x => {
+      if(x.startsWith('<')){ if(/^<a[\s>]/i.test(x)) inA++; else if(/^<\/a>/i.test(x)) inA = Math.max(0, inA - 1); return x; }
+      if(inA) return x;
+      return x.replace(GROUP, take).replace(BARE, (m, t, off, str) => { const pre = str.slice(Math.max(0, off - 3), off); if(/上午|下午|晚上|早上|凌晨|中午/.test(pre)) return m; take(t); return ''; }).replace(/ {2,}/g, ' ').replace(/\s+([,，。、;；:：)）」])/g, '$1');
+    }).join('');
+    if(times.length && title) sections.push({title, times});
+    return cleaned;
+  });
+  return {html: out.join(''), sections};
+}
+function tsAppendix(sections, yid){
+  if(!yid || !sections.length) return '';
+  const sec = t => { const [m, s2] = t.split(':').map(Number); return m * 60 + s2; };
+  return `<section class="tsbox" id="tsbox"><h2>影片對照</h2><p>文章裡的數字和原話都出自影片;想查證,點時間碼就從那一秒播。</p>${sections.map(x => `<div class="tsrow"><b>${esc(x.title)}</b><span>${x.times.map(t => `<a class="ts" href="https://www.youtube.com/watch?v=${yid}&amp;t=${sec(t)}s" data-t="${sec(t)}" onclick="return tsGo(this)">${t}</a>`).join('')}</span></div>`).join('')}</section>`;
+}
 const TS_JS = `<script>function tsGo(a){var f=document.querySelector('article .yt iframe');if(!f)return true;var u=f.src.split('?')[0];f.src=u+'?start='+a.dataset.t+'&autoplay=1';f.closest('.yt').scrollIntoView({behavior:'smooth',block:'center'});return false}</script>`;
 const shareBar = (p, where) => { const u = site.url + p.url, t = p.title; const e = encodeURIComponent;
   return `<div class="share ${where}" data-url="${attr(u)}" data-title="${attr(t)}"><span class="lbl">分享給朋友</span><a class="sh line" href="https://social-plugins.line.me/lineit/share?url=${e(u)}" target="_blank" rel="noopener">LINE</a><a class="sh fb" href="https://www.facebook.com/sharer/sharer.php?u=${e(u)}" target="_blank" rel="noopener">Facebook</a><a class="sh th" href="https://www.threads.net/intent/post?text=${e(t + ' ' + u)}" target="_blank" rel="noopener">Threads</a><button type="button" class="sh cp" onclick="shCopy(this)">複製連結</button><button type="button" class="sh more" onclick="shMore(this)">IG・更多</button></div>`; };
@@ -456,13 +487,13 @@ article h1{font-size:1.85rem;line-height:1.3;margin:10px 0 10px;letter-spacing:-
 .by{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;margin:0 0 14px}.by .av{width:30px;height:30px;border-radius:50%;background:var(--gold) url(/favicon.svg) center/70% no-repeat;flex:none}.by b{color:var(--text);font-weight:700}
 .crumb{color:var(--muted);font-size:.85rem;margin:14px 0 0;letter-spacing:.02em}.crumb .cat{margin-left:8px}
 article .meta{color:var(--muted);font-size:.85rem;margin-bottom:14px}
-article .body{font-size:1.08rem}article .body h2{font-size:1.3rem;margin:34px 0 8px;border-left:0;padding-left:0;line-height:1.4}
+article .body{font-size:1.08rem}article .body h2{font-size:1.32rem;margin:36px 0 10px;border-left:4px solid var(--gold);padding-left:12px;line-height:1.4;color:var(--gold)}article .body h3{font-size:1.08rem;margin:24px 0 6px;color:var(--amber)}
 article .body img{border-radius:var(--r);margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
 .body .tbl{overflow-x:auto;margin:14px 0}.body table{width:100%;border-collapse:collapse;font-size:.95rem}.body th,.body td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top;line-height:1.6}.body th{background:var(--accent-soft);white-space:nowrap}.body td:first-child{white-space:nowrap;font-weight:600}
 .cover{width:100%;max-height:440px;object-fit:cover;border-radius:var(--r)}
 .cover.social{display:block;width:100%;max-width:min(420px,100%);max-height:525px;margin:0 auto;object-fit:contain;background:var(--bg)}.native-video{margin:16px auto;max-width:420px}.native-video video{display:block;width:100%;max-height:75vh;aspect-ratio:9/16;object-fit:contain;background:#000;border-radius:var(--r)}.native-video .play-note{color:var(--muted);font-size:.9rem;margin:8px 0}.native-video .video-error{color:var(--gold);font-size:.9rem}.video-links{margin:12px auto 20px;max-width:420px}.video-links .ig-url{font-size:.82rem;line-height:1.5;overflow-wrap:anywhere;margin:10px 0 0}.video-links .ig-help{font-size:.82rem;color:var(--muted);line-height:1.6;margin:8px 0}.native-video a:focus-visible,.video-links a:focus-visible{outline:2px solid var(--gold);outline-offset:4px}.igtop{display:flex;justify-content:center;margin:12px 0}.igtop .instagram-media{margin:0 auto!important;max-width:420px!important;min-width:0!important;width:100%!important}
 article .body p{line-height:1.9;margin:14px 0}
-article .body h2{font-size:1.3rem;margin:34px 0 8px}
+article .body h2{font-size:1.32rem;margin:36px 0 10px}
 article .body .tip{border-left:3px solid var(--gold);background:var(--gold-soft);padding:8px 12px;border-radius:0}
 article .body .tip b{color:var(--gold);margin-right:6px}
 article .body .src{color:var(--muted);font-size:.85rem;margin-top:22px}
@@ -470,10 +501,11 @@ article .body .lead p:first-child{font-size:1.14rem;color:var(--text);line-heigh
 .toc{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:18px 0 10px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.toc b{font-size:.82rem;color:var(--muted);margin-right:4px;letter-spacing:.04em}.toc a{font-size:.9rem;color:var(--text);padding:0}.toc a::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin:0 6px 2px 0}.toc a:hover{color:var(--accent);text-decoration:none}
 article .body .blk{--c:var(--accent);background:transparent;border:0;border-radius:0;padding:0;margin:0;scroll-margin-top:90px}
 article .body .blk.c1{--c:var(--gold)}article .body .blk.c2{--c:var(--green)}article .body .blk.c3{--c:var(--amber)}
-article .body .blk h2{border-left:0;padding-left:0;margin:34px 0 8px;font-size:1.3rem;color:var(--text)}
+article .body .blk h2{border-left:4px solid var(--gold);padding-left:12px;margin:36px 0 10px;font-size:1.32rem;color:var(--gold)}
 article .body .blk.sum{--c:var(--gold)}article .body .blk.sum h2::before{content:"";}article .body .blk.sum .tbl{margin:8px 0 14px}
 article .body .blk.me{--c:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-line);border-left:4px solid var(--gold);border-radius:var(--r);padding:4px 20px 12px;margin:30px 0}
-article .body .blk.me h2{color:var(--gold);margin:14px 0 6px;font-size:1.15rem}
+article .body .blk.me h2{color:var(--gold);margin:14px 0 6px;font-size:1.15rem;border-left:0;padding-left:0}
+article .body .tsbox{margin:36px 0 10px;padding:14px 18px 8px;border:1px solid var(--border);border-radius:var(--r);background:var(--card)}article .body .tsbox h2{font-size:1.05rem;margin:0 0 4px;border-left:0;padding-left:0;color:var(--text)}article .body .tsbox h2::before{content:'🎬 ';}article .body .tsbox p{margin:0 0 8px;color:var(--muted);font-size:.9rem}article .body .tsrow{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--border);align-items:baseline}article .body .tsrow b{font-size:.92rem;font-weight:700;line-height:1.5}article .body .tsrow a.ts{display:inline-block;font-size:.88rem;color:var(--text);background:var(--accent-soft);border-radius:var(--r-s);padding:2px 8px;margin:2px 6px 2px 0}article .body .tsrow a.ts::before{color:var(--accent)}@media(max-width:560px){article .body .tsrow{grid-template-columns:1fr}}
 article .body p.you{background:transparent;border-left:3px solid var(--green);padding:2px 0 2px 14px;border-radius:0}
 article .body .warn{background:var(--red-soft);border:1px solid var(--red-line);border-radius:var(--r);padding:12px 16px;margin:16px 0;line-height:1.8}
 article .body .warn b{display:block;color:var(--red);font-size:.9rem;margin-bottom:2px}
@@ -708,7 +740,8 @@ ${stripHtml}
     const embeds = (yid && !p.html.includes(`embed/${yid}`) ? ytEmbed(yid) : '') + igEmbed
       + (p.fb ? `<p><a class="btn o" href="${attr(p.fb)}" target="_blank" rel="noopener">在 Facebook 看這則貼文</a></p>` : '');
     const mins = Math.max(1, Math.round((p.words || 0) / 420));
-    const body = `<div class="artwrap"><article><p class="crumb"><a href="${secOf(p).url}">${secOf(p).name}</a><span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="by"><span class="av" aria-hidden="true"></span><span><b>${esc(site.author)}</b>・${p.date}${p.updated ? `(更新 ${p.updated})` : ''}${!p.auto ? `・約 ${mins} 分鐘讀完` : ''}</span></div>${shareBar(p, 'top')}${p.video && p.ig ? videoHero : (p.slides ? `<div class="gal" aria-label="輪播圖片"><div class="track">${p.slides.map((g, k) => `<img src="${attr(g)}" alt="${attr(p.title)} 第 ${k + 1} 張" loading="${k ? 'lazy' : 'eager'}">`).join('')}</div><div class="galnav"><button type="button" onclick="galGo(this,-1)" aria-label="上一張">‹</button><span>滑動看 ${p.slides.length} 張</span><button type="button" onclick="galGo(this,1)" aria-label="下一張">›</button></div></div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''))}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${p.stats && p.stats.length ? `<div class="kpis" aria-label="關鍵數字">${p.stats.map(([n, l]) => `<div class="kpi"><b>${esc(n)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : ''}${videoLinks}<div class="body">${tsLink(enhance(p.html.replace(yid ? ytEmbed(yid) : '__none__', ''), p), p.auto ? '' : yid)}${plugOf(p)}</div>${shareBar(p, 'bottom')}${SHARE_JS}${yid && !p.auto ? TS_JS : ''}<script>function galGo(b,d){var t=b.closest('.gal').querySelector('.track');t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}</script>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
+    const tsR = tsStrip(enhance(p.html.replace(yid ? ytEmbed(yid) : '__none__', ''), p), p.auto ? '' : yid);
+    const body = `<div class="artwrap"><article><p class="crumb"><a href="${secOf(p).url}">${secOf(p).name}</a><span class="cat">${esc(secOf(p).label)}</span>${p.auto ? ` <span class="tag">${p.source === 'ig' ? 'Instagram' : 'Facebook'} 同步</span>` : ''}</p><h1>${esc(p.title)}</h1><div class="by"><span class="av" aria-hidden="true"></span><span><b>${esc(site.author)}</b>・${p.date}${p.updated ? `(更新 ${p.updated})` : ''}${!p.auto ? `・約 ${mins} 分鐘讀完` : ''}</span></div>${shareBar(p, 'top')}${p.video && p.ig ? videoHero : (p.slides ? `<div class="gal" aria-label="輪播圖片"><div class="track">${p.slides.map((g, k) => `<img src="${attr(g)}" alt="${attr(p.title)} 第 ${k + 1} 張" loading="${k ? 'lazy' : 'eager'}">`).join('')}</div><div class="galnav"><button type="button" onclick="galGo(this,-1)" aria-label="上一張">‹</button><span>滑動看 ${p.slides.length} 張</span><button type="button" onclick="galGo(this,1)" aria-label="下一張">›</button></div></div>` : (p.cover && !yid ? `<img class="cover${p.auto ? ' social' : ''}" src="${attr(p.cover)}" alt="${attr(p.title)}">` : ''))}${yid && !p.videoSrc ? ytEmbed(yid) : ''}${p.disclosure ? `<p class="note">${esc(p.disclosure)}</p>` : ''}${p.stats && p.stats.length ? `<div class="kpis" aria-label="關鍵數字">${p.stats.map(([n, l]) => `<div class="kpi"><b>${esc(n)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : ''}${videoLinks}<div class="body">${tsR.html}${tsAppendix(tsR.sections, p.auto ? '' : yid)}${plugOf(p)}</div>${shareBar(p, 'bottom')}${SHARE_JS}${yid && !p.auto ? TS_JS : ''}<script>function galGo(b,d){var t=b.closest('.gal').querySelector('.track');t.scrollBy({left:d*t.clientWidth,behavior:'smooth'})}</script>${(p.ig || p.fb) && !(p.video && p.ig) ? `<h2 style="font-size:1.05rem;margin-top:24px;">原始貼文</h2>${embeds.replace(ytEmbed(yid), '')}` : ''}
 ${secOf(p).url === '/posts.html' ? `<div style="margin-top:26px;">${ctaHtml}</div>` : ''}
 <div class="meta" style="margin-top:22px;">${p.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('')}</div>
 ${(() => { const more = rel.length >= 2 ? rel : rel.concat(posts.filter(q => q.slug !== p.slug && !q.thin && !rel.includes(q)).slice(0, 4 - rel.length)); return more.length ? `<div class="sec"><h2>${rel.length >= 2 ? '同主題文章' : '更多阿康的文章'}</h2><a href="${secOf(p).url}">${secOf(p).name} →</a></div><div class="list pop">${more.map(pRow).join('')}</div>` : ''; })()}

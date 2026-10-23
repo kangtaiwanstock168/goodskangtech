@@ -499,7 +499,7 @@ header.top{position:sticky;top:0;z-index:50;background:rgba(16,20,29,.96);border
 /* 文章頁(2026-10 改版):像 MacRumors / 9to5Mac 一樣用「讀的版面」——內文不裝框、行距寬、小標是純文字;只有「阿康怎麼看」和「要注意」保留底色 */
 .artwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start;margin-top:8px}
 @media(max-width:980px){.artwrap{grid-template-columns:1fr}.artwrap>.rail{display:none}}
-article{max-width:760px;margin:0 auto;min-width:0}
+article{max-width:760px;margin:0 auto;min-width:0;width:100%}
 article h1{font-size:1.85rem;line-height:1.3;margin:10px 0 10px;letter-spacing:-.01em}
 .by{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.9rem;margin:0 0 14px}.by .av{width:30px;height:30px;border-radius:50%;background:var(--gold) url(/favicon.svg) center/70% no-repeat;flex:none}.by b{color:var(--text);font-weight:700}
 .crumb{color:var(--muted);font-size:.85rem;margin:14px 0 0;letter-spacing:.02em}.crumb .cat{margin-left:8px}

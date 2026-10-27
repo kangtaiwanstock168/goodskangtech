@@ -2,13 +2,15 @@
   command = "node build.js"
   publish = "dist"
   functions = "netlify/functions"
+  # 只有 goodskang-site/ 裡有東西改才重建;kdh-site 的 commit 不再讓這個站白跑一次(每次部署 15 點)
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
   NODE_VERSION = "20"
 
-# 每天台北時間 06:10 與 18:10 自動重建(抓最新影片、IG/FB 貼文與熱門股);需在 Netlify 設定 BUILD_HOOK 環境變數
+# 每天台北時間 06:10 自動重建一次(2026-10-28 起由一天兩次改成一次,省部署點數);實際由 GitHub Actions daily-rebuild 觸發
 [functions."daily"]
-  schedule = "10 10,22 * * *"
+  schedule = "10 22 * * *"
 
 [[headers]]
   for = "/admin/*"

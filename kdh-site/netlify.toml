@@ -1,6 +1,8 @@
 [build]
   command = "node build.js"
   publish = "dist"
+  # 只有 kdh-site/ 裡有東西改才重建;goodskang-site 的 commit 不再讓這個站白跑一次(每次部署 15 點)
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
   NODE_VERSION = "20"

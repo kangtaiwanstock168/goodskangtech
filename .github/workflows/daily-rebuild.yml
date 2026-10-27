@@ -1,10 +1,10 @@
-# ⏰ 每天台北 06:10 / 18:10 自動重建 goodskangtech(不需要任何 Netlify 設定、不需要 BUILD_HOOK)
+# ⏰ 每天台北 06:10 自動重建(2026-10-28 起由一天兩次改成一次,省 Netlify 部署點數) goodskangtech(不需要任何 Netlify 設定、不需要 BUILD_HOOK)
 # 原理:在 goodskang-site/ 裡寫一個時間戳檔並 commit → GitHub push → Netlify 照常自動建站(抓最新影片、IG、熱門股)
 # 這個檔案要放在 repo 根目錄的 .github/workflows/ 底下(不是 goodskang-site 裡面)
 name: daily-rebuild
 on:
   schedule:
-    - cron: "10 10,22 * * *"   # UTC 10:10 / 22:10 = 台北 18:10 / 06:10
+    - cron: "10 22 * * *"      # UTC 22:10 = 台北 06:10
   workflow_dispatch:           # 也可以在 GitHub → Actions 手動按 Run workflow 立刻重建
 permissions:
   contents: write

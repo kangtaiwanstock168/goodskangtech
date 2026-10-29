@@ -23,16 +23,23 @@ const writeCache = (f, v) => { try{ fs.writeFileSync(path.join(C, 'cache', f), J
 // ── Markdown(夠用就好:標題、段落、粗體、連結、圖片、清單、引用、YouTube 連結自動嵌入) ──
 function md(src){
   const inline = t => esc(t)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g, (m, pre, u) => `${pre}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
-  const out = []; let list = null, para = [], tbl = null;
+  const out = []; let list = null, para = [], tbl = null, code = null;
   const flushT = () => { if(tbl){ const rows = tbl.filter(r => !/^\s*\|?\s*:?-{2,}/.test(r)).map(r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())); const [hd, ...bd] = rows; out.push(`<div class="tbl"><table><thead><tr>${hd.map(c => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${bd.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`); tbl = null; } };
   const flushP = () => { flushT(); if(para.length){ out.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } };
   const flushL = () => { if(list){ out.push(`<${list.t}>${list.items.map(i => `<li>${inline(i)}</li>`).join('')}</${list.t}>`); list = null; } };
   for(const raw of src.split('\n')){
     const line = raw.replace(/\s+$/, '');
+    if(/^```/.test(line)){
+      if(code){ out.push(`<div class="codebox"><button type="button" class="copy" onclick="cpCode(this)">複製程式碼</button><pre><code>${esc(code.join('\n'))}</code></pre></div>`); code = null; }
+      else { flushP(); flushL(); code = []; }
+      continue;
+    }
+    if(code){ code.push(raw); continue; }
     if(/^\s*\|.*\|\s*$/.test(line)){ if(para.length){ out.push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } flushL(); (tbl = tbl || []).push(line); continue; }
     const yt = line.match(/^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
     if(yt){ flushP(); flushL(); out.push(ytEmbed(yt[1])); continue; }
@@ -340,7 +347,7 @@ function tsAppendix(sections, yid){
 const TS_JS = `<script>function tsGo(a){var f=document.querySelector('article .yt iframe');if(!f)return true;var u=f.src.split('?')[0];f.src=u+'?start='+a.dataset.t+'&autoplay=1';f.closest('.yt').scrollIntoView({behavior:'smooth',block:'center'});return false}</script>`;
 const shareBar = (p, where) => { const u = site.url + p.url, t = p.title; const e = encodeURIComponent;
   return `<div class="share ${where}" data-url="${attr(u)}" data-title="${attr(t)}"><span class="lbl">分享給朋友</span><a class="sh line" href="https://social-plugins.line.me/lineit/share?url=${e(u)}" target="_blank" rel="noopener">LINE</a><a class="sh fb" href="https://www.facebook.com/sharer/sharer.php?u=${e(u)}" target="_blank" rel="noopener">Facebook</a><a class="sh th" href="https://www.threads.net/intent/post?text=${e(t + ' ' + u)}" target="_blank" rel="noopener">Threads</a><button type="button" class="sh cp" onclick="shCopy(this)">複製連結</button><button type="button" class="sh more" onclick="shMore(this)">IG・更多</button></div>`; };
-const SHARE_JS = `<script>function shCopy(b){var u=b.parentNode.dataset.url;var ok=function(){var o=b.textContent;b.textContent='已複製 ✓';setTimeout(function(){b.textContent=o},1600)};if(navigator.clipboard){navigator.clipboard.writeText(u).then(ok,function(){prompt('複製這個連結',u)})}else{prompt('複製這個連結',u)}}function shMore(b){var d=b.parentNode.dataset;if(navigator.share){navigator.share({title:d.title,url:d.url}).catch(function(){})}else{shCopy(b.previousElementSibling);alert('已複製連結，可以貼到 IG 限動或私訊。')}}</script>`;
+const SHARE_JS = `<script>function cpCode(b){var t=b.parentNode.querySelector('code').textContent;var ok=function(){var o=b.textContent;b.textContent='已複製 ✓';setTimeout(function(){b.textContent=o},1600)};if(navigator.clipboard){navigator.clipboard.writeText(t).then(ok,function(){prompt('手動全選複製',t)})}else{prompt('手動全選複製',t)}}function shCopy(b){var u=b.parentNode.dataset.url;var ok=function(){var o=b.textContent;b.textContent='已複製 ✓';setTimeout(function(){b.textContent=o},1600)};if(navigator.clipboard){navigator.clipboard.writeText(u).then(ok,function(){prompt('複製這個連結',u)})}else{prompt('複製這個連結',u)}}function shMore(b){var d=b.parentNode.dataset;if(navigator.share){navigator.share({title:d.title,url:d.url}).catch(function(){})}else{shCopy(b.previousElementSibling);alert('已複製連結，可以貼到 IG 限動或私訊。')}}</script>`;
 
 // ── 自動抓 IG / FB 貼文(Meta Graph API;需環境變數 META_TOKEN + IG_USER_ID / FB_PAGE_ID)──
 // 每次建站抓最近 50 則,圖片下載到 dist/img/social/(IG 的 CDN 圖檔網址會過期,所以要抓下來自己放)
@@ -505,7 +512,7 @@ article h1{font-size:1.85rem;line-height:1.3;margin:10px 0 10px;letter-spacing:-
 .crumb{color:var(--muted);font-size:.85rem;margin:14px 0 0;letter-spacing:.02em}.crumb .cat{margin-left:8px}
 article .meta{color:var(--muted);font-size:.85rem;margin-bottom:14px}
 article .body{font-size:1.08rem}article .body h2{font-size:1.32rem;margin:36px 0 10px;border-left:4px solid var(--gold);padding-left:12px;line-height:1.4;color:var(--gold)}article .body h3{font-size:1.08rem;margin:24px 0 6px;color:var(--amber)}
-article .body img{border-radius:var(--r);margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
+article .body p code,article .body li code,article .body td code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--accent-soft);padding:1px 6px;border-radius:4px}article .body .codebox{position:relative;margin:14px 0}article .body .codebox pre{margin:0;padding:40px 14px 14px;background:#0b0d10;color:#e6e6e6;border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;font-size:.82rem;line-height:1.55;-webkit-overflow-scrolling:touch}article .body .codebox code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}article .body .codebox .copy{position:absolute;top:8px;right:8px;font-size:.78rem;padding:5px 10px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer}article .body .codebox .copy:hover{border-color:var(--gold)}article .body img{border-radius:var(--r);margin:8px 0}article .body blockquote{border-left:3px solid var(--gold);margin:12px 0;padding:6px 12px;color:var(--muted)}
 .body .tbl{overflow-x:auto;margin:14px 0}.body table{width:100%;border-collapse:collapse;font-size:.95rem}.body th,.body td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top;line-height:1.6}.body th{background:var(--accent-soft);white-space:nowrap}.body td:first-child{white-space:nowrap;font-weight:600}
 .cover{width:100%;max-height:440px;object-fit:cover;border-radius:var(--r)}
 .cover.social{display:block;width:100%;max-width:min(420px,100%);max-height:525px;margin:0 auto;object-fit:contain;background:var(--bg)}.native-video{margin:16px auto;max-width:420px}.native-video video{display:block;width:100%;max-height:75vh;aspect-ratio:9/16;object-fit:contain;background:#000;border-radius:var(--r)}.native-video .play-note{color:var(--muted);font-size:.9rem;margin:8px 0}.native-video .video-error{color:var(--gold);font-size:.9rem}.video-links{margin:12px auto 20px;max-width:420px}.video-links .ig-url{font-size:.82rem;line-height:1.5;overflow-wrap:anywhere;margin:10px 0 0}.video-links .ig-help{font-size:.82rem;color:var(--muted);line-height:1.6;margin:8px 0}.native-video a:focus-visible,.video-links a:focus-visible{outline:2px solid var(--gold);outline-offset:4px}.igtop{display:flex;justify-content:center;margin:12px 0}.igtop .instagram-media{margin:0 auto!important;max-width:420px!important;min-width:0!important;width:100%!important}

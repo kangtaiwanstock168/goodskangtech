@@ -50,7 +50,7 @@ C 真的加不進自動化也沒關係：每天早上起來自己按一下捷徑
 
 **④ 裝 Scriptable，貼程式碼**
 
-免費：[App Store 下載](https://apps.apple.com/tw/app/scriptable/id1405459188)。打開後左上齒輪 → File Bookmarks → ＋ → Pick Folder → iCloud 雲碟 → Shortcuts → 名稱打 `Shortcuts`（大小寫要一樣）。
+免費：[App Store 下載](https://apps.apple.com/tw/app/scriptable/id1405459188)。打開後左上齒輪 → File Bookmarks → ＋ → Pick Folder → iCloud 雲碟 → 「捷徑」資料夾（中文介面叫「捷徑」，英文叫 Shortcuts，圖示是捷徑 App 的 logo）→ 名稱打 `Shortcuts`（大小寫要一樣）。
 
 回 Scriptable 首頁按 ＋ 新增腳本，名稱改成 `Duo`。按下面**黃色的「一鍵複製程式碼」**，回 Scriptable 在空白處長按 → 貼上。程式很長，捲到最下面也有一顆一樣的按鈕。
 
@@ -215,10 +215,13 @@ A 那條自動化沒在跑。照順序看：
 1. 捷徑 → 自動化，有沒有「iPhone 打開時」這條？沒有 → 回第②步建。
 2. 點進去是不是「立即執行」？「確認後執行」每次只會跳通知問你，不會自己記。
 3. 回捷徑首頁手動按一下 A，跳「要允許取用檔案嗎」按「永遠允許」。自動化在背景跑不會問你，沒按過會悄悄失敗。
-4. 檔案 App → iCloud 雲碟 → Shortcuts → 打開 duo_today.txt，幾行 open 就是記了幾次。有 3 行但 B 顯示 1，再來留言，那是 B 的問題。
+4. 檔案 App → iCloud 雲碟 → 「捷徑」資料夾 → 打開 duo_today.txt，幾行 open 就是記了幾次。有 3 行但 B 顯示 1，再來留言，那是 B 的問題。
 
 **跑 A 跳紅字「無法執行動作，因為所選位置不存在」？**
-A 要把紀錄寫進 iCloud 雲碟裡的「Shortcuts」資料夾，你的手機 iCloud 雲碟沒開、或捷徑沒在同步，那個資料夾就不存在。設定 → 最上面你的名字 → iCloud → 雲碟 → 「同步此 iPhone」打開；再往下找「捷徑」也要是開的。開完回捷徑 App 隨便開一下，再到「檔案」App → iCloud 雲碟 看有沒有 Shortcuts 資料夾，有了再按一次 A 就會過。
+A 要把紀錄寫進 iCloud 雲碟裡「捷徑」App 的資料夾，你的 iCloud 雲碟沒開、或捷徑沒在同步，那個資料夾就不存在。設定 → 最上面你的名字 → iCloud → 雲碟 → 「同步此 iPhone」打開 → 同一頁往下「顯示全部」→ 找「捷徑」打開。然後把捷徑 App 整個關掉重開，手動按一次 A（第一次會問允許，按「永遠允許」）。
+
+**「檔案」App 裡找不到 Shortcuts 資料夾？**
+中文介面那個資料夾叫「捷徑」，不叫 Shortcuts，圖示是捷徑 App 的 logo，位置在 檔案 → 瀏覽 → iCloud 雲碟。還是沒有，就是上一題 iCloud 沒開；開完手動跑一次 A，資料夾會自己長出來，不用自己建。
 
 **點 A、C 只有「加入捷徑」，沒有「加入自動化」？**
 正常，大部分手機都這樣。按「加入捷徑」，然後照第②步自己建兩條自動化。
@@ -280,7 +283,7 @@ IG 和 FB 內建的瀏覽器會擋剪貼簿。右上角「⋯」→「用 Safari
 
 iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhone 打開時」。A 就是跟著這條自動化跑：每次展開手機，往 iCloud 的 duo_today.txt 加一行 open。B 數這個檔有幾行，就是今天幾次。C 每天 04:00 把 duo_today.txt 整包搬進 duo_history.txt、再清空，這就是換天。D 數歷史檔裡的 open，就是以前的總和。Widget 把兩個加起來畫成血條。
 
-三個檔案都在 iCloud 雲碟的 Shortcuts 資料夾，用「檔案」App 打得開，資料在你自己手上，不經過任何伺服器。
+三個檔案都在 iCloud 雲碟的「捷徑」資料夾（英文叫 Shortcuts），用「檔案」App 打得開，資料在你自己手上，不經過任何伺服器。
 
 想改的只有程式最上面幾行：`BASE` 是裝之前已經開過的次數，`GOAL` 是滿血 HP（預設 20000），`START` 是拿到手機的日期，`LV_STEP` 是幾次升一級（預設 1000）。
 

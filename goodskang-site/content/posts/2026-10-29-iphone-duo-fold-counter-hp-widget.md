@@ -4,7 +4,7 @@ seo_title: iPhone Duo 開合次數統計教學：捷徑自動記錄＋Scriptable
 date: 2026-10-29
 category: 科技新聞
 tags: iPhone Duo, 捷徑, Scriptable, 摺疊手機, 鉸鏈, iOS 27, Widget
-cover: /img/duo-review-hero.jpg
+cover: /img/duo-titles-cover.jpg
 summary: 網路一直傳摺疊機開合一萬次會壞，阿康從拿到 iPhone Duo 那天開始每一次都記。三條捷徑加一個免費 App，桌面上就有一條 HP 血條，今天幾次、累計幾次、還剩幾滴血全部自動跳。捷徑連結和 Widget 程式碼都在這篇，複製貼上就能用。
 stats: 20,000｜HP 滿血值，開合一次扣 1; 105 次｜阿康 10/23 入手到 10/29 的累計; 1,000 次｜升一級，共 11 個稱號; 0 元｜全部用內建捷徑＋免費 Scriptable
 ---
@@ -71,6 +71,12 @@ iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的自動化觸發條�
 | GOAL | 滿血 HP | 想對一萬次傳聞就改 10000 |
 | START | 你拿到手機的日期 | 月份要減 1，10 月填 9 |
 | LV_STEP | 幾次升一級 | 預設 1000 |
+
+## 稱號長什麼樣
+
+阿康把 11 個稱號做成了升級動畫，每升一級角色換一次裝，5,000 次從「摺疊」換成「鉸鏈」系，10,000 次鉸鏈宗師舉書發光。Widget 本身是文字版，動畫是影片用的。
+
+![摺疊機之路 11 個稱號：摺疊初心者到鉸鏈宗師的升級動畫截圖](/img/duo-titles-cover.jpg)
 
 ## 稱號表
 

@@ -2,8 +2,9 @@
 title: 換 iPhone 18 Pro 先別急著買配件！我家實際在用、親手試過的才放進這份清單
 seo_title: iPhone 18 Pro 配件推薦：充電頭、手機殼實測清單
 date: 2026-10-19
+updated: 2026-10-29
 category: 阿康愛用清單
-tags: iPhone18Pro, iPhone18ProMax, 充電器, 手機殼, 阿康愛用清單
+tags: iPhone18Pro, iPhone18ProMax, 充電器, 行動電源, 手機殼, 阿康愛用清單
 youtube: https://www.youtube.com/watch?v=-gU6l6UyuCA
 summary: 舊殼先試、充電頭先看數字再買。這頁只放阿康家裡在用、或親手測過的 iPhone 配件，每次換機更新。
 disclosure: 註：部分連結為聯盟連結，透過連結購買，阿康可能拿到一點分潤，你付的價格不會因此改變。
@@ -24,6 +25,17 @@ disclosure: 註：部分連結為聯盟連結，透過連結購買，阿康可�
 不想花 1,290 的話，影片裡我也測了他牌充電頭，替代方案有兩顆。一顆是 [Anker A121D 45W 螢幕充電器](https://ankr.club/阿康爸蘋果安心充選A121D)，另一顆是 [Anker A121A 70W 多孔氮化鎵充電器](https://ankr.club/阿康爸蘋果多孔快充選A121A)，手機、手錶、筆電要一起充的人看這顆。
 
 誰才真的需要原廠這顆，我在影片 6:37 講完了，上面直接看。
+
+## 行動電源：我最近很愛用穩如鈦山 Pro
+
+我最近很愛用的 MagSafe 行動電源是[穩如鈦山 TITANSHIELD Pro](https://grantclassic.com/pages/team-p99ycynd)。我拿它充 iPhone 18 Pro Max，從 12% 磁吸充 1 小時到 81%，1 小時 51 分充滿，10,000mAh 的它還剩 27%。挑 MagSafe 行動電源的 6 個重點和完整實測：[挑 iPhone 18 Pro Max 的 MagSafe 行動電源看 6 件事](/posts/2026-10-29-titanshield-pro-magsafe-power-bank)
+
+同一系列三款，看你要什麼：
+- Pro：Qi2.2 25W 最快，有小螢幕和隱藏式支架，不能充 Apple Watch。官網 NT$2,980，觀眾團購價 NT$2,580
+- 標準款：Qi2 15W，可以充 Apple Watch。10,000mAh 官網 NT$2,280、團購價 NT$1,799；5,000mAh 官網 NT$1,980、團購價 NT$1,680
+- Air：6mm、113 公克，5,000mAh。官網 NT$1,980，團購價 NT$1,680。iPhone Duo 我建議選這顆，薄的吸上去比較不凸
+
+團購價結帳時自動套用，不用輸入折扣碼。穩如鈦山是我以前合作過的品牌，這支影片是拿它示範、不是業配；缺點我在影片裡也講了：價格比其他品牌高。
 
 ## 手機殼：iPhone 17 Pro 的舊殼先別丟
 
@@ -55,4 +67,4 @@ iPhone 17 Pro 那年我親自拍過 BUNNIT 自助回收機。好處是操作簡�
 
 你換新 iPhone，第一個買的配件是什麼？
 
-資料來源：Apple 台灣官網（2026/10/19 查價）、Apple 技術規格與 Developer 工程圖、阿康個人實測與使用紀錄。價格與活動以各賣場當下頁面為準。
+資料來源：Apple 台灣官網（2026/10/19 查價）、穩如鈦山官網與阿康觀眾團購頁（2026/10/29 查價）、Apple 技術規格與 Developer 工程圖、阿康個人實測與使用紀錄。價格與活動以各賣場當下頁面為準。

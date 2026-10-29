@@ -272,22 +272,29 @@ IG 和 FB 內建瀏覽器會擋剪貼簿。
 2. 再按一次黃色「一鍵複製程式碼」
 3. 還是不行：用 Safari 開 [Duo.txt](https://goodskang.tw/Duo.txt) 長按全選
 
-### Q13. Widget 數字不動？
+### Q13. Widget 跳紅字「No bookmark named "Shortcuts" found」？
+Scriptable 的 File Bookmark 沒設，或名稱打錯。程式是用「Shortcuts」這個名字去找書籤的，大小寫要一樣。
+1. 打開 Scriptable → 左上齒輪 → File Bookmarks
+2. 有書籤但名字不是 Shortcuts：點進去改名成 `Shortcuts`（S 大寫，其他小寫）
+3. 沒有書籤：＋ → Pick Folder → iCloud 雲碟 → 「捷徑」資料夾 → 名稱打 `Shortcuts`
+4. 回主畫面長按 Widget → 編輯小工具 → 再點回來，紅字就會消失
+
+### Q14. Widget 數字不動？
 它 10 到 15 分鐘才更新一次，不是壞了。
 - 要看當下的：按 B
 - 要它馬上刷新：長按 Widget → 編輯小工具 → 再點回來
 
-### Q14. 我拿到手機已經開過很多次了，怎麼補？
+### Q15. 我拿到手機已經開過很多次了，怎麼補？
 程式最上面兩行改掉再貼一次：
 - `BASE = 0` 改成你估的次數
 - `START` 改成拿到手機的日期，月份要減 1（10 月填 9）
 
 **其他**
 
-### Q15. 別的 iPhone 可以用嗎？
+### Q16. 別的 iPhone 可以用嗎？
 不行。「iPhone 打開時」只有 iPhone Duo 有。
 
-### Q16. 資料會傳到哪？
+### Q17. 資料會傳到哪？
 哪都不傳。三個檔案都在你自己 iCloud 雲碟的「捷徑」資料夾，捷徑和 Scriptable 都在你手機上跑，不經過任何伺服器。
 
 ## 稱號長什麼樣

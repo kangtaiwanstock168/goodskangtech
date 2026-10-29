@@ -1,0 +1,145 @@
+const fm = FileManager.iCloud()
+const dir = fm.bookmarkedPath("Shortcuts")
+const BASE = 0
+const GOAL = 20000
+const START = new Date(2026, 9, 23)
+const LV_STEP = 1000
+
+function readLines(name) {
+  const p = fm.joinPath(dir, name)
+  if (!fm.fileExists(p)) return []
+  try { fm.downloadFileFromiCloud(p) } catch (e) {}
+  return (fm.readString(p) || "").split("\n")
+}
+
+const today = readLines("duo_today.txt").filter(l => l.trim() === "open").length
+
+const byDay = {}
+let cur = null
+for (const l of readLines("duo_history.txt")) {
+  const m = l.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
+  if (m) {
+    const d = new Date(+m[1], +m[2] - 1, +m[3])
+    d.setDate(d.getDate() - 1)
+    cur = d.toDateString()
+    if (!(cur in byDay)) byDay[cur] = 0
+  } else if (l.trim() === "open" && cur) {
+    byDay[cur]++
+  }
+}
+
+const now = new Date()
+const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0)
+const weekStart = new Date(dayStart); weekStart.setDate(dayStart.getDate() - ((dayStart.getDay() + 6) % 7))
+const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+function sumFrom(start) {
+  let s = 0
+  for (const k in byDay) if (new Date(k) >= start) s += byDay[k]
+  return s
+}
+const hist = sumFrom(new Date(0))
+const week = sumFrom(weekStart) + today
+const month = sumFrom(monthStart) + today + BASE
+const total = BASE + hist + today
+
+const hp = Math.max(0, GOAL - total)
+const hpPct = hp / GOAL
+const hpColor = hpPct > 0.5 ? new Color("#30d158")
+              : hpPct > 0.2 ? new Color("#ffd60a")
+              : new Color("#ff453a")
+
+const titles = [
+  "摺疊初心者", "摺疊見習生", "摺疊勇者", "摺疊達人", "摺疊騎士",
+  "鉸鏈大師", "鉸鏈狂人", "鉸鏈守護者", "鉸鏈傳說", "鉸鏈終結者", "鉸鏈宗師"
+]
+const lv = Math.min(Math.floor(total / LV_STEP) + 1, titles.length)
+const title = titles[lv - 1]
+const nextLv = lv < titles.length ? LV_STEP * lv - total : 0
+const lvColor = lv >= 11 ? new Color("#ffd700")
+              : lv >= 9  ? new Color("#ff9f0a")
+              : lv >= 6  ? new Color("#bf5af2")
+              : lv >= 3  ? new Color("#64d2ff")
+              : new Color("#c8cce6")
+
+const quip = today === 0 ? "手機在休假"
+           : today <= 10 ? "佛系使用"
+           : today <= 30 ? "正常人的一天"
+           : today <= 60 ? "手指在練肌肉"
+           : "跟鉸鏈吵架中"
+
+const days = Math.max(1, (dayStart - START) / 86400000 + 1)
+const rate = total / days
+const daysLeft = rate > 0 ? Math.round(hp / rate) : 0
+const zero = new Date(now); zero.setDate(zero.getDate() + daysLeft)
+const df = new DateFormatter(); df.dateFormat = "yyyy/MM/dd"
+
+const gray = new Color("#9aa0c0")
+const white = Color.white()
+const w = new ListWidget()
+w.backgroundColor = new Color("#14172b")
+w.setPadding(11, 16, 9, 16)
+
+const head = w.addStack(); head.centerAlignContent()
+const h1 = head.addText("摺疊機之路")
+h1.font = Font.boldSystemFont(13); h1.textColor = white
+head.addSpacer()
+const lvT = head.addText("Lv." + lv + "  " + title)
+lvT.font = Font.boldSystemFont(11); lvT.textColor = lvColor
+
+w.addSpacer(8)
+
+const body = w.addStack(); body.centerAlignContent()
+
+const L = body.addStack(); L.layoutVertically(); L.size = new Size(96, 0)
+const l1 = L.addText("累計開合"); l1.font = Font.systemFont(10); l1.textColor = gray
+const l2 = L.addText(total.toLocaleString()); l2.font = Font.boldSystemFont(30); l2.textColor = white; l2.minimumScaleFactor = 0.6
+const l3 = L.addText("次"); l3.font = Font.systemFont(10); l3.textColor = gray
+
+body.addSpacer()
+
+const C = body.addStack(); C.layoutVertically(); C.centerAlignContent()
+const c1 = C.addText("今天"); c1.font = Font.systemFont(10); c1.textColor = gray; c1.centerAlignText()
+const c2 = C.addText(String(today)); c2.font = Font.boldSystemFont(46); c2.textColor = hpColor; c2.centerAlignText(); c2.minimumScaleFactor = 0.6
+const c3 = C.addText(quip); c3.font = Font.systemFont(10); c3.textColor = new Color("#c8cce6"); c3.centerAlignText()
+
+body.addSpacer()
+
+const R = body.addStack(); R.layoutVertically(); R.size = new Size(96, 0)
+function mini(label, val, color) {
+  const r = R.addStack(); r.centerAlignContent()
+  r.addSpacer()
+  const a = r.addText(label + "  "); a.font = Font.systemFont(10); a.textColor = gray
+  const b = r.addText(String(val)); b.font = Font.boldSystemFont(14); b.textColor = color || white
+  R.addSpacer(3)
+}
+mini("本週", week)
+mini("本月", month)
+mini("升級還差", nextLv > 0 ? nextLv.toLocaleString() : "滿級", lvColor)
+
+w.addSpacer(8)
+
+const hpHead = w.addStack(); hpHead.centerAlignContent()
+const hl = hpHead.addText("HP"); hl.font = Font.boldSystemFont(10); hl.textColor = hpColor
+hpHead.addSpacer(6)
+const hv = hpHead.addText(hp.toLocaleString() + " / " + GOAL.toLocaleString()); hv.font = Font.systemFont(10); hv.textColor = gray
+hpHead.addSpacer()
+const hpTxt = hpHead.addText((hpPct * 100).toFixed(1) + "%"); hpTxt.font = Font.boldSystemFont(10); hpTxt.textColor = hpColor
+
+w.addSpacer(3)
+const bar = w.addStack()
+bar.size = new Size(0, 6); bar.cornerRadius = 3
+bar.backgroundColor = new Color("#2a2e4a")
+const fill = bar.addStack()
+fill.backgroundColor = hpColor; fill.cornerRadius = 3
+fill.size = new Size(Math.max(2, 300 * hpPct), 6)
+bar.addSpacer()
+
+w.addSpacer(4)
+const ft = w.addText("每天約 " + rate.toFixed(1) + " 次・照這速度 " + df.string(zero) + " 血條歸零")
+ft.font = Font.systemFont(9); ft.textColor = new Color("#6b7090"); ft.minimumScaleFactor = 0.8
+
+w.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000)
+Script.setWidget(w)
+w.presentMedium()
+Script.complete()

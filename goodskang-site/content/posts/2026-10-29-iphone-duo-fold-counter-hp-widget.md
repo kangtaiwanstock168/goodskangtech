@@ -42,7 +42,7 @@ A 和 C 是自動化，匯入時會多一頁設定。A 的「iPhone 打開時」
 
 **④ 貼程式碼**
 
-Scriptable 首頁按 ＋ 新增腳本，名稱改成 `Duo`。按下面方塊右上角「複製程式碼」，回 Scriptable 長按貼上。
+Scriptable 首頁按 ＋ 新增腳本，名稱改成 `Duo`。按下面**黃色的「一鍵複製程式碼」**，回 Scriptable 在空白處長按 → 貼上。程式很長，捲到最下面也有一顆一樣的按鈕。
 
 ```
 const fm = FileManager.iCloud()
@@ -235,7 +235,7 @@ iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhon
 - 「iPhone 打開時」只有 iPhone Duo 有，其他 iPhone 匯入不會記。
 - C 跑到「刪除」那步如果報錯，點進 C 把刪除那格重新選一次 duo_today.txt。
 - 04:00 手機關機的話那天不會換天，兩天的次數會疊在一起，歷史檔裡看日期分得出來。
-- 複製鈕沒反應的話，用 Safari 開 [Duo.txt](https://goodskang.tw/Duo.txt) 長按全選也可以。
+- 從 IG、Facebook 裡面點進來的，複製鈕沒反應就按右上角「用 Safari 開啟」再按一次；或直接用 Safari 開 [Duo.txt](https://goodskang.tw/Duo.txt) 長按全選。
 
 ## 阿康自己最想看的
 

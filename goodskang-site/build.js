@@ -562,6 +562,9 @@ footer{margin:40px 0 20px;padding-top:18px;border-top:1px solid var(--border);co
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:18px 0 6px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 /* 首頁(2026-10 改版,MacRumors / 9to5Mac 式):第一屏=一則大主題+最新清單;第二排=四張圖卡;再來是新聞河流+右欄 */
 .fp{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin:16px 0 8px}
+.latest .it.pin{background:color-mix(in srgb,var(--gold) 10%,transparent);border:2px solid var(--gold);border-radius:var(--r-s);padding:8px;margin-bottom:6px}.latest .it.pin .k2{color:var(--gold)}
+.pinbar{display:none}
+@media(max-width:820px){.pinbar{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 12px;border:2px solid var(--gold);border-radius:var(--r);background:color-mix(in srgb,var(--gold) 10%,transparent);color:var(--text);text-decoration:none;font-size:.92rem;line-height:1.4}.pinbar span{flex:none;color:var(--gold);font-weight:800}.pinbar b{flex:1;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.pinbar em{font-style:normal;color:var(--gold);font-weight:800}.latest .it.pin{display:none}}
 @media(max-width:820px){.fp{grid-template-columns:1fr}}
 .lead1{position:relative;display:block;border-radius:var(--r);overflow:hidden;background:var(--card);border:1px solid var(--border)}
 .lead1 img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
@@ -699,19 +702,29 @@ async function main(){
   const ago = (iso, date) => { const t = iso ? new Date(iso).getTime() : NaN; if(!isNaN(t)){ const h = (Date.now() - t) / 36e5; if(h < 1) return '剛剛'; if(h < 24) return `${Math.floor(h)} 小時前`; if(h < 48) return '昨天'; } return date || ymd(iso); };
   // 新聞河流:所有文章(原創實測、IG 快訊、親子旅遊、愛用清單)依時間混排;太短的 IG 頁不進首頁
   const river = posts.filter(listed);
-  const lead = river.find(p => isFeat(p) && p.cover) || river.find(p => !p.auto && p.cover) || river.find(p => p.cover) || river[0];
-  const rest = river.filter(p => p !== lead);
+  // 2026-10-30 阿康:置頂熱門文和新影片並存——大圖永遠給「最新」(新上的長影片比最新文章新就放影片),熱門文改成右側清單第一格＋手機頂端金色條
+  const pin = river.find(isFeat);
+  const leadPost = river.find(p => p !== pin && !p.auto && p.cover) || river.find(p => p !== pin && p.cover) || river.find(p => p !== pin);
+  const vt = d => new Date(d).getTime() || 0;
+  const lv = videos.find(v => !v.short && v.published && !String(v.published).startsWith('1970') && !v.approx);
+  const vidLead = lv && !posts.some(p => ytId(p.youtube) === lv.id) && (!leadPost || vt(lv.published) > vt(leadPost.iso || (leadPost.date + 'T23:59:00+08:00'))) ? lv : null;
+  const lead = vidLead ? null : leadPost;
+  const heroV = vidLead || latest;
+  const rest = river.filter(p => p !== lead && p !== pin);
   const vTime = v => `https://www.youtube.com/watch?v=${v.id}`;
   const leadHtml = lead
     ? `<a class="lead1" href="${lead.url}"><img src="${attr(lead.cover || (latest ? `https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg` : ''))}" alt="${attr(lead.title)}" fetchpriority="high"><div class="ov"><span class="k">${isFeat(lead) ? '🔥 大家都在看・' : ''}${esc(secOf(lead).label)}</span><h2>${esc(lead.title)}</h2><p>${esc(lead.summary.slice(0, 90))}${lead.summary.length > 90 ? '…' : ''}</p><div class="meta">${ago(lead.iso, lead.date)}・${esc(site.author)}</div></div></a>`
-    : (latest ? `<a class="lead1" href="${vTime(latest)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${latest.id}/maxresdefault.jpg" alt="${attr(latest.title)}"><div class="ov"><span class="k">最新影片</span><h2>${esc(latest.title)}</h2><div class="meta">${ymd(latest.published)}</div></div></a>` : '');
-  const latestList = rest.slice(0, 5).map(p => `<a class="it" href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="" loading="lazy">` : `<span style="width:82px;height:56px;border-radius:var(--r-s);background:var(--accent-soft);display:block;"></span>`}<span><b>${esc(p.title)}</b><span class="m"><span class="k2">${esc(secOf(p).label)}</span>${ago(p.iso, p.date)}</span></span></a>`).join('');
-  const stripHtml = vid4.length ? `<div class="sec" style="margin-top:22px;"><h2>本週影片</h2><span>${week.length ? '7 天內・最多人看' : '最新上片'}</span><a href="/videos.html">全部影片 →</a></div><div class="strip">${(latest ? [latest].concat(vid4) : vid4).slice(0, 4).map(v => `<a href="${vTime(v)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><b>${esc(v.title)}</b><span class="m">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</span></a>`).join('')}</div>` : '';
-  const riverRows = rest.slice(5, 17).map(p => pRow(p).replace('<span style="color:var(--muted);font-size:.8rem;">' + p.date + '</span>', `<span style="color:var(--muted);font-size:.8rem;">${ago(p.iso, p.date)}</span>`)).join('');
+    : (heroV ? `<a class="lead1" href="${vTime(heroV)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${heroV.id}/maxresdefault.jpg" alt="${attr(heroV.title)}" fetchpriority="high"><div class="ov"><span class="k">🎬 最新影片</span><h2>${esc(heroV.title)}</h2><div class="meta">${ago(heroV.published, ymd(heroV.published))}・YouTube</div></div></a>` : '');
+  const pinItem = pin ? `<a class="it pin" href="${pin.url}">${pin.cover ? `<img src="${attr(pin.cover)}" alt="" loading="lazy">` : ''}<span><b>${esc(pin.title)}</b><span class="m"><span class="k2">🔥 大家都在看</span>${esc(secOf(pin).label)}</span></span></a>` : '';
+  const pinBar = pin ? `<a class="pinbar" href="${pin.url}"><span>🔥 大家都在看</span><b>${esc(pin.title)}</b><em>→</em></a>` : '';
+  const latestList = pinItem + rest.slice(0, pin ? 4 : 5).map(p => `<a class="it" href="${p.url}">${p.cover ? `<img src="${attr(p.cover)}" alt="" loading="lazy">` : `<span style="width:82px;height:56px;border-radius:var(--r-s);background:var(--accent-soft);display:block;"></span>`}<span><b>${esc(p.title)}</b><span class="m"><span class="k2">${esc(secOf(p).label)}</span>${ago(p.iso, p.date)}</span></span></a>`).join('');
+  const stripHtml = vid4.length ? `<div class="sec" style="margin-top:22px;"><h2>本週影片</h2><span>${week.length ? '7 天內・最多人看' : '最新上片'}</span><a href="/videos.html">全部影片 →</a></div><div class="strip">${(latest && latest !== vidLead ? [latest].concat(vid4) : vid4).slice(0, 4).map(v => `<a href="${vTime(v)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="${attr(v.title)}" loading="lazy"><b>${esc(v.title)}</b><span class="m">${[ymd(v.published), v.views ? Number(v.views).toLocaleString('zh-TW') + ' 次' : ''].filter(Boolean).join('・')}</span></a>`).join('')}</div>` : '';
+  const riverRows = rest.slice(pin ? 4 : 5, 17).map(p => pRow(p).replace('<span style="color:var(--muted);font-size:.8rem;">' + p.date + '</span>', `<span style="color:var(--muted);font-size:.8rem;">${ago(p.iso, p.date)}</span>`)).join('');
   const railVideos = videos.slice(0, 6).filter(v => v !== latest && !vid4.includes(v)).concat(videos.slice(6, 14)).slice(0, 5);
   const hotMini = (() => { const list = ((hot.scan && hot.scan.list) || []).slice(0, 5); if(!list.length) return ''; const link = id => `${site.tool}?s=${encodeURIComponent(id)}`;
     return `<div class="card"><h3>今日強勢股 <span style="color:var(--muted);font-size:.75rem;font-weight:400;">${esc((hot.scan && hot.scan.d) || '')}</span></h3>${list.map(h => `<div class="stock"><span><a class="nm" href="${link(h.id)}" target="_blank" rel="noopener">${esc((h.name || h.id).replace(/\*/g, ''))}</a> <span class="sub">${h.id}</span></span><span><b>${h.c}</b> <span class="up">▲ ${Number(h.pct).toFixed(2)}%</span></span></div>`).join('')}<a href="/hot.html" style="display:block;margin-top:8px;font-size:.88rem;">話題雷達、完整名單 →</a><p class="disc" style="margin-top:8px;">公開資料客觀排序,非選股建議。</p></div>`; })();
   const home = `
+${pinBar}
 <section class="fp">
   ${leadHtml}
   <div class="latest"><h3>最新</h3>${latestList}<a class="more" href="/posts.html">更多 3C 科技新聞 →</a></div>

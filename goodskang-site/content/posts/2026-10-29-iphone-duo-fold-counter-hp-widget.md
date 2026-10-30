@@ -246,7 +246,14 @@ Script.complete()
 ✅ 點旁邊空白處關掉，血條就出來了
 ```
 
-搞定。Widget 會顯示今天次數、累計、本週、本月、稱號、HP 血條和「照這速度哪天歸零」，大概 3 到 5 分鐘自己更新一次；想立刻看到最新數字，點一下 Widget 就馬上更新。
+搞定。Widget 會顯示今天次數、累計、本週、本月、稱號、HP 血條和「照這速度哪天歸零」。
+
+**開合完數字沒馬上動？正常的，看這兩張卡**
+
+```steps
+⏱️ Widget 不是即時的，大概每 3 到 5 分鐘才自己更新一次，開完合完數字還停在原地很正常
+👆 想立刻看到最新數字：手指點一下 Widget，它會馬上重算一次
+```
 
 ## 常見問題
 
@@ -301,8 +308,15 @@ IG 和 FB 自己的瀏覽器會擋剪貼簿。
 🧭 還是不行：用 Safari 開 https://goodskang.tw/Duo.txt ，長按「全選」→「拷貝」
 ```
 
-### Q7. 桌面 Widget 整塊紅字「No bookmark named "Shortcuts" found」／數字一直不動
-紅字是 Scriptable 找不到書籤：Scriptable → 左上齒輪 →「File Bookmarks」，書籤名稱要是「Shortcuts」（S 大寫），沒有就照第⑤步加一個。數字不動是正常的，Widget 大概 3 到 5 分鐘才自己更新一次；要馬上看到最新的，點一下 Widget 就會立刻刷新，紅字修好書籤後也是點一下就消失。
+### Q7. 開合完 Widget 數字沒動／整塊紅字「No bookmark named "Shortcuts" found」
+數字沒動是正常的，Widget 不是即時的：
+
+```steps
+⏱️ Widget 大概每 3 到 5 分鐘才自己更新一次
+👆 想馬上看到最新數字，點一下 Widget 就立刻重算
+```
+
+紅字是 Scriptable 找不到書籤：Scriptable → 左上齒輪 →「File Bookmarks」，書籤名稱要是「Shortcuts」（S 大寫），沒有就照第⑤步加一個，加完點一下 Widget 紅字就消失。
 
 ### Q8. 我拿到 Duo 已經開過很多次了，想從真實數字開始
 Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，`START` 改成拿到手機那天（月份要減 1，10 月填 9），右上角「完成」，Widget 下次更新就會算進去。

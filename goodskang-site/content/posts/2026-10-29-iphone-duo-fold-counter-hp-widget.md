@@ -8,6 +8,8 @@ cover: /img/duo-titles-cover.jpg
 featured: 2026-11-12
 read_mins: 5
 merge: ig-18014415008967821
+next: /posts/2026-10-27-iphone-duo-review｜Duo 兩天實測影片; /posts/2026-10-21-iphone-duo-apple-case-unboxing｜Duo 原廠殼開箱; /posts/2026-10-29-titanshield-pro-magsafe-power-bank｜MagSafe 行動電源怎麼挑
+next_title: 👀 血條裝好了？接著看這幾支
 summary: 網路一直傳摺疊機開合一萬次會壞，阿康從拿到 iPhone Duo 那天起每一次都記。六個步驟：升到 iOS 27.2、匯入四個捷徑、建兩條自動化、開合三次測試、裝免費的 Scriptable 貼程式碼、放小工具，桌面就有一條 HP 血條，開一次扣一滴，一千次升一級，11 個稱號等你解。
 stats: 20,000｜HP 滿血值，開合一次扣 1; 40–50 次｜阿康正常用一天開合的次數; 1,000 次｜升一級，共 11 個稱號; 0 元｜全部用內建捷徑＋免費 Scriptable
 ---
@@ -257,6 +259,8 @@ Script.complete()
 ⏱️ Widget 不是即時的，大概每 3 到 5 分鐘才自己更新一次，開完合完數字還停在原地很正常
 👆 想立刻看到最新數字：手指點一下 Widget，它會馬上重算一次
 ```
+
+[[接著看]]
 
 ## 常見問題
 

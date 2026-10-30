@@ -5,6 +5,7 @@ date: 2026-10-27
 category: 科技新聞
 tags: iPhone Duo, Apple, 摺疊手機, Galaxy Z Fold8, iPhone 18 Pro Max, 開箱
 youtube: https://www.youtube.com/watch?v=JW1q3Hsg1FM
+next: /posts/2026-10-29-iphone-duo-fold-counter-hp-widget｜Duo 開合次數 HP 血條教學; /posts/2026-10-21-iphone-duo-apple-case-unboxing｜Duo 原廠殼開箱; /posts/2026-10-29-titanshield-pro-magsafe-power-bank｜MagSafe 行動電源怎麼挑
 summary: 阿康用 iPhone Duo 兩天：充飽後遊戲、拍照錄影、Netflix、YouTube 各半小時，兩小時剩 73%；12% 充到滿要一個半小時。內螢幕霧面在室內幾乎不反光、摺痕上能轉硬幣，但戶外強光輸給 Galaxy Z Fold8，多工也只能開兩個 App。
 stats: 73%｜充飽後混合使用 2 小時剩下的電量; 1.5 小時｜從 12% 充到 100%（瓦數錶最高約 37W）; 44.4°C｜120FPS 遊戲半小時後背面最高溫; NT$74,900｜iPhone Duo 256GB 起價
 ---

@@ -5,6 +5,7 @@ date: 2026-10-29
 category: 科技新聞
 tags: MagSafe 行動電源, iPhone 18 Pro Max, Qi2.2, 穩如鈦山, iPhone Duo, Apple Watch
 youtube: https://www.youtube.com/watch?v=JXoYV7m1Qdk
+next: /posts/2026-10-27-iphone-duo-review｜iPhone Duo 兩天實測; /posts/2026-10-29-iphone-duo-fold-counter-hp-widget｜Duo 開合次數 HP 血條教學; /posts/2026-10-21-iphone-duo-apple-case-unboxing｜Duo 原廠殼開箱
 summary: 阿康整理挑 iPhone 18 Pro Max MagSafe 行動電源的 6 個重點：好帶、Qi2.2 25W、充電孔、支架、安全認證、外觀。用穩如鈦山 Pro 示範，磁吸充 iPhone 18 Pro Max 1 小時從 12% 到 81%、1 小時 51 分充滿；要充 Apple Watch 改看 Qi2 15W 的標準款。
 stats: 6 個｜阿康挑 MagSafe 行動電源看的重點; 81%｜iPhone 18 Pro Max 從 12% 用 Qi2.2 25W 充 1 小時（影片畫面）; 1 小時 51 分｜12% 充到 100%，最後 8% 涓流花約 20 分鐘; 27%｜充滿一支 Pro Max 後，10,000mAh 行動電源還剩的電量
 disclosure: 影片示範用的穩如鈦山是阿康以前合作過的品牌，這支影片不是業配；喜歡其他品牌，照文中重點挑也可以。

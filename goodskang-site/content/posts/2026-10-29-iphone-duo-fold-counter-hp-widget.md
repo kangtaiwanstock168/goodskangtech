@@ -44,6 +44,8 @@ stats: 20,000｜HP 滿血值，開合一次扣 1; 40–50 次｜阿康正常用�
 
 加完到「所有捷徑」會看到四個。iCloud 連結帶不過去「什麼時候跑」這件事，所以 A 和 C 要跑的時機，下一步自己設，兩條加起來一分鐘。
 
+[[卡:/posts/2026-10-27-iphone-duo-review｜📺 四個捷徑加好了？先看阿康 Duo 用兩天的真實續航｜看完按返回，接著做第 ③ 步 →]]
+
 **③ 建兩條自動化，告訴手機 A、C 什麼時候跑**
 
 A 這條，每次打開手機就記一次：
@@ -259,6 +261,8 @@ Script.complete()
 ⏱️ Widget 不是即時的，大概每 3 到 5 分鐘才自己更新一次，開完合完數字還停在原地很正常
 👆 想立刻看到最新數字：手指點一下 Widget，它會馬上重算一次
 ```
+
+💬 **做到一半卡關？**[到「阿康的科技好康」LINE 社群直接問阿康 →](https://line.me/ti/g2/-pss-Qh7VBGsfn6_6CI6BK9xipk3wl8MPifxOQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default)
 
 [[接著看]]
 

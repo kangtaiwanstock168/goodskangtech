@@ -2,7 +2,7 @@
 
 const $=id=>document.getElementById(id);
 let A=window.ASSET||{art:{},gtex:{},town:{},props:{}};const JDG=window.JDG,EASY=window.EASY,COMIC=window.COMIC,BOOK=window.BOOK,NCH=CH.length;
-const COVER=new Proxy({},{get:(o,k)=>(/^\d+$/.test(k)?`img/cover-${k}.webp`:(["lion","fox","bee"].includes(k)?`img/${k}.webp`:undefined))});
+const COVER=new Proxy({},{get:(o,k)=>(/^\d+$/.test(k)?(window.BOOK&&BOOK.cv&&BOOK.cv[k]?`img/${BOOK.cv[k]}.webp`:`img/cover-${k}.webp`):(["lion","fox","bee"].includes(k)?`img/${k}.webp`:undefined))});
 // ---------- 存檔（只存在這台裝置） ----------
 const SK=BOOK.key;let SAVE={ch:{},days:[],mode:""};
 try{const r=localStorage.getItem(SK);if(r)SAVE=Object.assign(SAVE,JSON.parse(r));}catch(e){}
@@ -82,9 +82,9 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
   const a=st[si],b=si===sc.length-1?N:Math.min(N,st[si+1]-1);si++;if(a>b)return;
   const ill=(window.NOILL||[]).includes(n+"-"+k)?"":`img/${n}-${k}.webp`;x.ill=ill;
   const chunks=[];{const L=v=>T[v-1].length;let tot=0;for(let v=a;v<=b;v++)tot+=L(v);
-   if(tot<=150){const c=[];for(let v=a;v<=b;v++)c.push(v);chunks.push(c);}
-   else{let v=a,cur=[],len=0;while(v<=b&&(!cur.length||len+L(v)<=100)){cur.push(v);len+=L(v);v++;}chunks.push(cur);
-    let rest=0;for(let u=v;u<=b;u++)rest+=L(u);const kk=Math.max(1,Math.ceil(rest/230)),tg=rest/kk;cur=[];len=0;
+   if(tot<=170){const c=[];for(let v=a;v<=b;v++)c.push(v);chunks.push(c);}
+   else{let v=a,cur=[],len=0;while(v<=b&&(!cur.length||len+L(v)<=100)){cur.push(v);len+=L(v);v++;}
+    let rest=0;for(let u=v;u<=b;u++)rest+=L(u);while(rest<90&&cur.length>1){v--;cur.pop();rest+=L(v);}chunks.push(cur);const kk=Math.max(1,Math.ceil(rest/230)),tg=rest/kk;cur=[];len=0;
     for(;v<=b;v++){if(cur.length&&(len+L(v)>250||len+L(v)/2>tg)){chunks.push(cur);cur=[];len=0;}cur.push(v);len+=L(v);}
     if(cur.length)chunks.push(cur);}}
   chunks.forEach((vs,j)=>{const y=x.slice();y[5]=vs;y.part=j;if(ill)y.ill=ill;
@@ -95,7 +95,7 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
    P.push({t:"scene",d:y});});});
  P.push({t:"end"},{t:"next"});return P;}
 function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs[0]===vs.length-1?`${vs[0]}–${vs[vs.length-1]}`:vs.join("、");
- return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span>${vs.map(v=>V[v-1]?`<p class="v"><sup>${v}</sup>${V[v-1]}</p>`:"").join("")}</div>`;}
+ return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span>${vs.map(v=>V[v-1]?`<p class="v"><sup>${v}${V[v]===""?"–"+(v+1):""}</sup>${V[v-1]}</p>`:"").join("")}</div>`;}
 // 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
 function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);

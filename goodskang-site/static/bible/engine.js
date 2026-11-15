@@ -54,7 +54,7 @@ function installTip(){if(STANDALONE||!TOUCH||SAVE.notip)return "";
 function renderHome(){const n=nextCh(),c=CH[n-1],D=doneCount(),all=D===NCH,s=SAVE.ch[n],resume=s&&s.page>0&&!s.done;
  $("home").innerHTML=`<div class="wrap"><div class="hero"><div class="bg" style="background-image:url(${COVER[BOOK.hero]})"></div><div class="shade"></div>
   <a class="tosh" href="../">‹ 全部書卷</a><div class="txt"><h1>${BOOK.name}</h1><div class="sub">${BOOK.sub}</div></div></div>
- <div class="today"><div class="cv" style="background-image:url(${coverURL(n)})"></div><div class="bd"><div class="lab">${all?"上架的都讀完了":D?"今天讀這一章":"從這裡開始"}</div><h2>第 ${n} 章　${c.title}</h2><div class="meta">${c.who}・${COMIC[n].length} 頁漫畫＋小遊戲</div><button class="btn pri wide" data-open="${n}">${all?"再看一次":resume?"接著看":D?"翻開第 "+n+" 章":"翻開第一章"}</button></div></div>
+ <div class="today"><div class="cv" style="background-image:url(${coverURL(n)})"></div><div class="bd"><div class="lab">${all?"上架的都讀完了":D?"今天讀這一章":"從這裡開始"}</div><h2>第 ${n} 章　${c.title}</h2><div class="meta">${c.who}・${COMIC[n].length} 頁漫畫＋小遊戲</div>${BOOK.pre?`<button class="btn ghost wide" data-pre="1" style="margin-bottom:8px">📖 先看導讀：這卷書在講什麼？</button>`:""}<button class="btn pri wide" data-open="${n}">${all?"再看一次":resume?"接著看":D?"翻開第 "+n+" 章":"翻開第一章"}</button></div></div>
  ${installTip()}
  <div class="stats"><div class="stat"><b>${D}</b><span>讀完章數 / ${NCH}</span></div><div class="stat"><b>${streak()}</b><span>連續讀經天數</span></div><div class="stat"><b>${gamesDone()}</b><span>小遊戲過關 / ${gamesTotal()}</span></div></div>
  <div class="card"><h3>${NCH} 本漫畫</h3><p class="note" style="margin:0 0 10px">一章就是一本。${BOOK.battle?"⚔ 的章節可以親自上場打仗。":""}${BOOK.more||""}</p>
@@ -74,7 +74,7 @@ const BCOVER={ehud:3,barak:4,gideon:7,jephthah:11,samson1:15,samson2:16};
 let CUR=null;const R={n:0,pages:[],i:0,mode:"flip",spread:false,busy:false};
 const VLIM=120;
 function cjk(s){return (s||"").replace(/（[^）]*）/g,"").replace(/[^一-鿿]/g,"");}
-function buildPages(n){const P=[{t:"cover"}],T=JDG[n-1],N=T.length,all=cjk(T.join(""));
+function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.preSeen)BOOK.pre.forEach((d,i)=>P.push({t:"pre",d:d,k:i}));P.push({t:"cover"});const __=[],T=JDG[n-1],N=T.length,all=cjk(T.join(""));
  const sc=[];COMIC[n].forEach((x,k)=>{if(Array.isArray(x))sc.push(x);});
  const st=[];sc.forEach((x,i)=>{let m=Math.min.apply(null,x[5].length?x[5]:[1]);m=i?Math.max(m,st[i-1]+1):1;st.push(m);});
  let si=0;
@@ -135,14 +135,15 @@ function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=
  else if(g.g==="battle"){const won=!!s.ch;q=`換你上場：${BTITLE[g.k]}`;b+=`<button class="btcard" data-battle="${g.k}"><div class="art" style="background-image:url(${coverURL(BCOVER[g.k])})"></div><em>${won?"再打一次":"點我開打"}</em><span>⚔ ${BTITLE[g.k]}</span></button><p class="bhelp">點畫面上的敵人，主角就會衝過去攻擊；能量滿了按右下角的大按鈕。${won?"<br><b>✓ 已經打贏過了！</b>":""}</p>`;}
  return `<div class="gm g-${g.g}"><div class="ghead" style="background-image:url(${gameArt(n,k)})"><span class="tag">🎮 小遊戲${solved?"　✓ 過關":""}</span><h2>${q}</h2></div><div class="gbody"><div class="fitin">${b}</div></div></div>`;}
 function endHTML(n){const c=CH[n-1],e=EASY[n],s=st(n),V=JDG[n-1];
- return `<div class="endp"><div class="ghead ehead" style="background-image:url(${coverURL(n)})"><span class="tag">📖 第 ${n} 章看完了</span><h2>今天帶走一句話</h2></div><div class="ebody"><div class="fitin"><div class="keyv"><div class="rf">${BOOK.name} ${n}:${e.key}</div><div class="tx">${V[e.key-1]}</div><button class="btn ghost" data-copy="1" style="min-height:36px;font-size:14px">複製這節經文</button></div>
- <div class="ask">想一想：${e.ask}</div><textarea id="note" placeholder="寫一句你的回應（可以不寫，只存在這台裝置）">${(s.note||"").replace(/</g,"&lt;")}</textarea>
- ${R.mode==="scroll"&&!s.done?`<button class="btn pri wide" data-finish="1">✓ 完成今天的讀經</button>`:(n<NCH?`<button class="btn pri wide nxgo" data-open="${n+1}"><small>✓ 第 ${n} 章讀完了・下一章</small><b>第 ${n+1} 章　${CH[n].title}　›</b></button><div class="swhint">← 一直往左滑，也會直接進下一章</div>`:`<div class="donebox">✓ ${BOOK.endnote||"這卷書讀完了"}</div><button class="btn pri wide" data-home="1">回${BOOK.name}目錄</button>`)}</div></div></div>`;}
-function nextHTML(n){const s=st(n),last=n>=NCH,nx=last?null:CH[n];
- return `<div class="endp nextp"><div class="ghead ehead" style="background-image:url(${last?coverURL(n):coverURL(n+1)})"><span class="tag">${last?"✓ 全卷讀完":"← 再往左滑＝下一章"}</span><h2>還想多懂一點？</h2></div><div class="ebody"><div class="fitin">
- <button class="deepbtn" data-deep="1"><em>📚</em><span><b>深度解析</b>用白話講背景，和聖經為什麼這樣寫</span></button>
- ${last?`<div class="nxcard off"><span><small>${BOOK.endnote||"這卷書讀完了"}</small></span></div>`:`<button class="nxcard" data-open="${n+1}"><i style="background-image:url(${coverURL(n+1)})"></i><span><small>下一章</small><b>第 ${n+1} 章　${nx.title}</b><em>${nx.line||""}</em></span></button>`}
- <button class="btn ghost wide" data-home="1">回${BOOK.name}目錄</button></div></div></div>`;}
+ return `<div class="endp"><div class="ghead ehead" style="background-image:url(${coverURL(n)})"><span class="tag">📖 第 ${n} 章看完了</span><h2>先停一下，別急著翻</h2></div><div class="ebody"><div class="fitin"><div class="keyv"><div class="rf">帶走一句話・${BOOK.name} ${n}:${e.key}</div><div class="tx">${V[e.key-1]}</div><button class="btn ghost" data-copy="1" style="min-height:36px;font-size:14px">複製這節經文</button></div>
+ <div class="step"><b>👣 走進去</b>${e.me||"如果你就站在這一章的現場，你會是裡面的哪一個人？你會怎麼反應？"}</div><div class="step"><b>🪞 照自己</b>${e.ask}</div>
+ ${R.mode==="scroll"&&!s.done?`<button class="btn pri wide" data-finish="1">✓ 完成今天的讀經</button>`:(n<NCH?`<button class="btn pri wide nxgo" data-open="${n+1}"><small>✓ 第 ${n} 章讀完了・下一章</small><b>第 ${n+1} 章　${CH[n].title}　›</b></button><div class="swhint">← 往左滑還有一頁：回應神</div>`:`<div class="donebox">✓ ${BOOK.endnote||"這卷書讀完了"}</div>`)}</div></div></div>`;}
+function nextHTML(n){const s=st(n),e=EASY[n],last=n>=NCH,nx=last?null:CH[n];
+ return `<div class="endp nextp"><div class="ghead ehead" style="background-image:url(${last?coverURL(n):coverURL(n+1)})"><span class="tag">${last?"✓ 全卷讀完":"← 再往左滑＝下一章"}</span><h2>帶著這一章去生活</h2></div><div class="ebody"><div class="fitin">
+ <div class="step pray"><b>🙏 回應神</b>${e.pray||"主啊，這一章祢要我改變的是什麼？求祢幫助我今天就去做，不要只是知道。"}</div>
+ <textarea id="note" placeholder="寫下今天要做的一件小事，或一句禱告（可以不寫，只存在這台裝置）">${(s.note||"").replace(/</g,"&lt;")}</textarea>
+ <button class="deepbtn" data-deep="1"><em>📚</em><span><b>深度解析</b>了解背景，是為了更明白神的心</span></button>
+ ${last?`<button class="btn pri wide" data-home="1">回${BOOK.name}目錄</button>`:`<button class="nxcard" data-open="${n+1}"><i style="background-image:url(${coverURL(n+1)})"></i><span><small>下一章</small><b>第 ${n+1} 章　${nx.title}</b><em>${nx.line||""}</em></span></button>`}</div></div></div>`;}
 const GS={};const gs=(n,k)=>GS[n+k]||(GS[n+k]={});
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function pageEl(k,play){const P=R.pages[k];const d=document.createElement("div");d.className="pg";d.dataset.k=k;
@@ -150,7 +151,7 @@ function pageEl(k,play){const P=R.pages[k];const d=document.createElement("div")
  if(P.t==="cover"){d.classList.add("cover");d.innerHTML=coverHTML(R.n);}
  else if(P.t==="scene"){d.innerHTML=sceneHTML(R.n,P.d,k)+`<span class="pno">${k}</span>`;}
  else if(P.t==="game"){d.innerHTML=gameHTML(R.n,P.d,P.k);}
- else if(P.t==="next")d.innerHTML=nextHTML(R.n);else d.innerHTML=endHTML(R.n);
+ else if(P.t==="pre")d.innerHTML=preHTML(P.d,P.k); else if(P.t==="next")d.innerHTML=nextHTML(R.n);else d.innerHTML=endHTML(R.n);
  if(play)requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("play")));return d;}
 // ================= 閱讀器版面（滿版、自動隱藏工具列） =================
 let PW=0,PH=0,BLEED=false,UIT=0;const NS=16;
@@ -184,11 +185,13 @@ function fitBody(el){if(R.mode==="scroll")return;el.querySelectorAll(".fitin").f
 function fitPage(el,k){const P=R.pages[k];if(!P||R.mode==="scroll")return;const m=$("meas");m.style.width=PW+"px";m.style.height=PH+"px";m.appendChild(el);
  if(P.t==="scene")fitScene(el,k,R.n+"|"+k+"|"+PW+"x"+PH);else fitBody(el);m.removeChild(el);}
 function mkPage(k,play){const el=pageEl(k,play);if(k>=0&&k<R.pages.length)fitPage(el,k);return el;}
+function preHTML(d,k){const N=BOOK.pre.length;return `<div class="endp prep"><div class="ghead ehead" style="background-image:url(${coverURL(d.img||1)})"><span class="tag">📖 ${BOOK.name}導讀 ${k+1} / ${N}</span><h2>${d.t}</h2></div><div class="ebody"><div class="fitin">${d.p.map(x=>`<p class="prp">${x}</p>`).join("")}<div class="swhint">${k===N-1?"← 往左滑，翻開第 1 章":"← 往左滑繼續"}</div></div></div></div>`;}
+function preSeen(){if(R.n!==1||SAVE.preSeen||!BOOK.pre)return;const P=R.pages[R.i];if(P&&P.t!=="pre"){SAVE.preSeen=1;save();}}
 function autoDone(){if(R.mode==="scroll"||!R.n)return;const s=st(R.n);if(s.done)return;const ks=R.spread?[R.i,R.i+1]:[R.i];if(!ks.some(k=>R.pages[k]&&(R.pages[k].t==="end"||R.pages[k].t==="next")))return;
  s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
 function hopCh(dir){if(R.mode==="scroll")return false;if(dir>0&&R.n<NCH){const n=R.n+1;st(n).page=0;openBook(n);R.i=0;renderBook(true);return true;}
  if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}return false;}
-function renderBook(play){layout();autoDone();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
+function renderBook(play){layout();autoDone();preSeen();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
  if(R.mode==="scroll"){showUI(true,true);renderScroll();return;}
  R.i=norm(R.i);const book=document.createElement("div");book.className="book";book.style.width=(R.spread?PW*2:PW)+"px";book.style.height=PH+"px";book.style.perspective=Math.round(PW*4.2)+"px";
  if(R.spread){book.append(slot(0,R.i,play),slot(PW,R.i+1,play),spine());}else book.append(slot(0,R.i,play));
@@ -270,7 +273,7 @@ let BTP=null;
 function loadBattle(){if(BTP)return BTP;toast("戰鬥載入中…");const ld=src=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=src;e.onload=ok;e.onerror=no;document.body.appendChild(e);});
  BTP=ld("assets.js").then(()=>{A=window.ASSET;return ld("battle.js");});BTP.catch(()=>{BTP=null;});return BTP;}
 function openDeep(n){const c=CH[n-1],D=window.DEEP[n],L=D.s.length;
- let h=`<button class="dx" data-deepx="1" aria-label="關閉深度解析">✕</button><div class="dwrap"><div class="dhead" style="background-image:url(${coverURL(n)})"><small>${BOOK.name} 第 ${n} 章・深度解析</small><h1>${c.title}</h1></div><div class="dbody"><div class="dlead">${D.lead}</div>`;
+ let h=`<button class="dx" data-deepx="1" aria-label="關閉深度解析">✕</button><div class="dwrap"><div class="dhead" style="background-image:url(${coverURL(n)})"><small>${BOOK.name} 第 ${n} 章・深度解析</small><h1>${c.title}</h1></div><div class="dbody"><div class="dlead">${D.lead}</div><div class="dheart">了解背景，是為了更明白神的心、回頭看自己，不是為了比別人懂得多，更不是拿來量別人。</div>`;
  D.s.forEach(([t,...ps],i)=>{h+=`<div class="dsec ${i===L-1?"last":""}"><h3><i>${i+1}</i>${t}</h3>${ps.map(p=>`<p>${p}</p>`).join("")}</div>`;});
  h+=`<div class="dmore">${c.tbl?`<h3>一張表看懂</h3><table><thead><tr>${c.tbl.h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${c.tbl.r.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join("")}</tr>`).join("")}</tbody></table>`:""}
  ${c.d4&&c.d4.refs?`<h3>聖經其他地方怎麼說</h3>${c.d4.refs.map(([r,t])=>`<div class="rf"><b>${r}</b>${t}</div>`).join("")}`:""}</div>
@@ -308,3 +311,5 @@ renderHome();const m0=location.hash.match(/^#ch(\d+)$/);if(m0&&CH[+m0[1]-1])open
   clearTimeout(tm);const rel=()=>{if(performance.now()-last<520){tm=setTimeout(rel,120);return;}lock=false;acc=0;};tm=setTimeout(rel,220);
   if(lock){if(now-last>700&&Math.abs(d)>60){lock=false;acc=0;}else return;}
   acc+=d;if(Math.abs(acc)>=40){lock=true;last=now;const dir=acc>0?1:-1;acc=0;go(dir);}},{passive:false});})();
+
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pre]");if(!b)return;e.stopPropagation();SAVE.preSeen=0;st(1).page=0;const d=st(1).done;st(1).done=0;openBook(1);st(1).done=d;R.i=0;renderBook(true);},true);

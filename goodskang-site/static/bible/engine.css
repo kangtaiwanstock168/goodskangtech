@@ -343,3 +343,19 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 /* ===== 只留翻頁模式；避免瀏覽器把左右滑當成上一頁 ===== */
 html,body{overscroll-behavior:none}
 #rmode,[data-mode]{display:none!important}
+
+/* ===== 導讀頁 ===== */
+.prep .prp{font-family:var(--serif);font-size:clamp(18px,4.8cqw,24px);line-height:1.8;margin:0 0 .9em}
+.prep .ghead{min-height:38%}
+.prep .fitin{display:flex;flex-direction:column;justify-content:flex-start}
+.prep .swhint{margin-top:auto;padding-top:14px}
+
+/* ===== 章末三步：走進去、照自己、回應神 ===== */
+.endp .step{font-family:var(--serif);font-size:clamp(16px,4.3cqw,20px);line-height:1.6;font-weight:700;background:#fffaf0;border:2px solid #d9c59a;border-radius:12px;padding:9px 12px}
+.endp .step b{display:block;font-family:var(--sans);font-size:13px;letter-spacing:.06em;color:#7a4f16;margin-bottom:2px}
+.endp .step.pray{background:#f3ead2;border-color:#a8742a}
+.nextp textarea{flex:1 1 50px;min-height:54px;max-height:130px}
+.nextp .deepbtn{flex:0 0 auto;min-height:64px;max-height:none}
+.nextp .deepbtn b{font-size:17px}
+@media (max-height:720px){.endp .keyv .btn{display:none}.endp .keyv .tx{margin:4px 0 0}}
+.dheart{margin:10px 0 4px;padding:9px 12px;border-left:4px solid #a8742a;background:#f3ead2;border-radius:6px;font-size:14px;color:#4a3518;font-weight:700}

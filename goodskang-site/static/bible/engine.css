@@ -360,6 +360,8 @@ html,body{overscroll-behavior:none}
 @media (max-height:720px){.endp .keyv .btn{display:none}.endp .keyv .tx{margin:4px 0 0}}
 .dheart{margin:10px 0 4px;padding:9px 12px;border-left:4px solid #a8742a;background:#f3ead2;border-radius:6px;font-size:14px;color:#4a3518;font-weight:700}
 
+/* 沒有對白時，對白區不可把經文往上拉去蓋到圖 */
+.talk:empty,.talk:not(:has(*)){display:none}
 /* ===== 2026-11-16 閱讀版面重整 ===== */
 /* 主圖整張顯示，不裁切；空出來的地方用同一張圖的柔焦補滿 */
 .panel{height:min(52%,calc(100cqw - 20px))}

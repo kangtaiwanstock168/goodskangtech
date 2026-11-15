@@ -137,9 +137,9 @@ function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=
 function endHTML(n){const c=CH[n-1],e=EASY[n],s=st(n),V=JDG[n-1];
  return `<div class="endp"><div class="ghead ehead" style="background-image:url(${coverURL(n)})"><span class="tag">📖 第 ${n} 章看完了</span><h2>今天帶走一句話</h2></div><div class="ebody"><div class="fitin"><div class="keyv"><div class="rf">${BOOK.name} ${n}:${e.key}</div><div class="tx">${V[e.key-1]}</div><button class="btn ghost" data-copy="1" style="min-height:36px;font-size:14px">複製這節經文</button></div>
  <div class="ask">想一想：${e.ask}</div><textarea id="note" placeholder="寫一句你的回應（可以不寫，只存在這台裝置）">${(s.note||"").replace(/</g,"&lt;")}</textarea>
- ${s.done?`<div class="donebox">✓ 第 ${n} 章完成　往左翻還有深度解析 ›</div>`:`<button class="btn pri wide" data-finish="1">✓ 完成今天的讀經</button>`}</div></div></div>`;}
+ ${R.mode==="scroll"&&!s.done?`<button class="btn pri wide" data-finish="1">✓ 完成今天的讀經</button>`:(n<NCH?`<button class="btn pri wide nxgo" data-open="${n+1}"><small>✓ 第 ${n} 章讀完了・下一章</small><b>第 ${n+1} 章　${CH[n].title}　›</b></button><div class="swhint">← 一直往左滑，也會直接進下一章</div>`:`<div class="donebox">✓ ${BOOK.endnote||"這卷書讀完了"}</div><button class="btn pri wide" data-home="1">回${BOOK.name}目錄</button>`)}</div></div></div>`;}
 function nextHTML(n){const s=st(n),last=n>=NCH,nx=last?null:CH[n];
- return `<div class="endp nextp"><div class="ghead ehead" style="background-image:url(${last?coverURL(n):coverURL(n+1)})"><span class="tag">${s.done?"✓ 第 "+n+" 章完成":"最後一頁"}</span><h2>還想多懂一點？</h2></div><div class="ebody"><div class="fitin">
+ return `<div class="endp nextp"><div class="ghead ehead" style="background-image:url(${last?coverURL(n):coverURL(n+1)})"><span class="tag">${last?"✓ 全卷讀完":"← 再往左滑＝下一章"}</span><h2>還想多懂一點？</h2></div><div class="ebody"><div class="fitin">
  <button class="deepbtn" data-deep="1"><em>📚</em><span><b>深度解析</b>用白話講背景，和聖經為什麼這樣寫</span></button>
  ${last?`<div class="nxcard off"><span><small>${BOOK.endnote||"這卷書讀完了"}</small></span></div>`:`<button class="nxcard" data-open="${n+1}"><i style="background-image:url(${coverURL(n+1)})"></i><span><small>下一章</small><b>第 ${n+1} 章　${nx.title}</b><em>${nx.line||""}</em></span></button>`}
  <button class="btn ghost wide" data-home="1">回${BOOK.name}目錄</button></div></div></div>`;}
@@ -184,7 +184,11 @@ function fitBody(el){if(R.mode==="scroll")return;el.querySelectorAll(".fitin").f
 function fitPage(el,k){const P=R.pages[k];if(!P||R.mode==="scroll")return;const m=$("meas");m.style.width=PW+"px";m.style.height=PH+"px";m.appendChild(el);
  if(P.t==="scene")fitScene(el,k,R.n+"|"+k+"|"+PW+"x"+PH);else fitBody(el);m.removeChild(el);}
 function mkPage(k,play){const el=pageEl(k,play);if(k>=0&&k<R.pages.length)fitPage(el,k);return el;}
-function renderBook(play){layout();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
+function autoDone(){if(R.mode==="scroll"||!R.n)return;const s=st(R.n);if(s.done)return;const ks=R.spread?[R.i,R.i+1]:[R.i];if(!ks.some(k=>R.pages[k]&&(R.pages[k].t==="end"||R.pages[k].t==="next")))return;
+ s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
+function hopCh(dir){if(R.mode==="scroll")return false;if(dir>0&&R.n<NCH){const n=R.n+1;st(n).page=0;openBook(n);R.i=0;renderBook(true);return true;}
+ if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}return false;}
+function renderBook(play){layout();autoDone();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
  if(R.mode==="scroll"){showUI(true,true);renderScroll();return;}
  R.i=norm(R.i);const book=document.createElement("div");book.className="book";book.style.width=(R.spread?PW*2:PW)+"px";book.style.height=PH+"px";book.style.perspective=Math.round(PW*4.2)+"px";
  if(R.spread){book.append(slot(0,R.i,play),slot(PW,R.i+1,play),spine());}else book.append(slot(0,R.i,play));
@@ -238,13 +242,13 @@ function animP(to,done,tap){const f=FL;if(!f)return;const from=f.p,t0=performanc
  const step=now=>{if(FL!==f)return;const k=Math.min(1,(now-t0)/D);setP(from+(to-from)*E(k));if(k<1)requestAnimationFrame(step);else done();};requestAnimationFrame(step);}
 function finishFlip(tap){const f=FL;if(!f)return;animP(1,()=>{R.i+=f.dir*f.step;FL=null;renderBook(true);},tap);}
 function cancelFlip(){const f=FL;if(!f)return;animP(0,()=>{FL=null;renderBook(false);});}
-function go(dir){if(R.mode==="scroll"){const S=$("stage");S.scrollBy({top:dir*S.clientHeight*.85,behavior:"smooth"});return;}if(FL)return;if(!canGo(dir)){bump(dir);return;}au();if(beginFlip(dir))finishFlip(true);}
+function go(dir){if(R.mode==="scroll"){const S=$("stage");S.scrollBy({top:dir*S.clientHeight*.85,behavior:"smooth"});return;}if(FL)return;if(!canGo(dir)){if(!hopCh(dir))bump(dir);return;}au();if(beginFlip(dir))finishFlip(true);}
 function bump(dir){const b=$("stage").querySelector(".book");if(!b)return;b.animate([{transform:"translateX(0)"},{transform:`translateX(${-dir*14}px)`},{transform:"translateX(0)"}],{duration:260});}
 // 拖曳翻頁：紙跟著手指走
 let DR=null;const NOFLIP="button,textarea,a,summary,input";
 $("stage").addEventListener("pointerdown",e=>{if(R.mode==="scroll"||FL)return;if(e.target.closest(NOFLIP))return;DR={x:e.clientX,y:e.clientY,t:performance.now(),on:false,id:e.pointerId,lx:e.clientX,lt:performance.now(),v:0};});
 $("stage").addEventListener("pointermove",e=>{if(!DR||DR.id!==e.pointerId)return;const dx=e.clientX-DR.x,dy=e.clientY-DR.y,now=performance.now();
- if(!DR.on){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){const dir=dx<0?1:-1;if(!canGo(dir)){DR=null;bump(dir);return;}au();if(!beginFlip(dir)){DR=null;return;}DR.on=true;DR.x=e.clientX;try{$("stage").setPointerCapture(e.pointerId);}catch(_){}}else if(Math.abs(dy)>14){DR=null;}return;}
+ if(!DR.on){if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){const dir=dx<0?1:-1;if(!canGo(dir)){DR=null;if(!hopCh(dir))bump(dir);return;}au();if(!beginFlip(dir)){DR=null;return;}DR.on=true;DR.x=e.clientX;try{$("stage").setPointerCapture(e.pointerId);}catch(_){}}else if(Math.abs(dy)>14){DR=null;}return;}
  if(now>DR.lt){DR.v=(e.clientX-DR.lx)/(now-DR.lt);DR.lx=e.clientX;DR.lt=now;}
  const w=R.spread?PW*1.7:PW*1.15;setP(Math.max(0,Math.min(1,Math.abs(e.clientX-DR.x)/w)));});
 const endDrag=e=>{if(!DR)return;const d=DR;DR=null;if(!d.on||!FL)return;const fwd=FL.dir>0?-d.v:d.v;if(fwd>.35||(FL.p>.3&&fwd>-.25))finishFlip();else cancelFlip();};

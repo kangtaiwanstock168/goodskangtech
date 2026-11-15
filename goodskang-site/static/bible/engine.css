@@ -331,3 +331,11 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 .illimg.pt2{transform:scale(1.5);transform-origin:88% 35%;animation:none!important}
 .illimg.pt3{transform:scale(1.6);transform-origin:50% 85%;animation:none!important}
 .illimg.pt4{transform:scale(1.8);transform-origin:50% 20%;animation:none!important}
+
+/* ===== 章末：醒目的下一章按鈕 ===== */
+.nxgo{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:76px;padding:12px 14px;font-family:var(--serif);background:#2f6a1f;color:#fff;border:3px solid #173d0d;border-radius:16px;box-shadow:0 6px 0 #173d0d;animation:nxpulse 1.5s ease-in-out infinite}
+.nxgo small{font-size:14px;font-weight:700;opacity:.92;letter-spacing:.04em}
+.nxgo b{font-size:clamp(19px,5.2cqw,26px);line-height:1.25}
+@keyframes nxpulse{0%,100%{transform:translateY(0);box-shadow:0 6px 0 #173d0d,0 0 0 0 rgba(47,106,31,.55)}50%{transform:translateY(-2px);box-shadow:0 8px 0 #173d0d,0 0 0 12px rgba(47,106,31,0)}}
+.swhint{text-align:center;font-size:14px;color:#5a4a33;margin-top:10px;font-weight:700}
+@media (prefers-reduced-motion:reduce){.nxgo{animation:none}}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120e0a">
+<title>約書亞記漫畫讀經｜一天一章</title>
+<meta name="description" content="用漫畫讀約書亞記：一天一章，和合本經文一節不漏。">
+<meta property="og:title" content="約書亞記漫畫讀經｜一天一章">
+<meta property="og:description" content="每一格漫畫配和合本經文，翻頁像看漫畫書，還有小遊戲。">
+<meta property="og:image" content="https://goodskang.tw/bible/joshua/img/3-0.webp">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://goodskang.tw/bible/joshua/">
+<link rel="canonical" href="https://goodskang.tw/bible/joshua/">
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="漫畫讀經">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../engine.css?v=21">
+</head>
+<body>
+<div id="home" class="on"></div>
+<div id="reader">
+ <div class="rbar"><button class="icon" id="rhome" aria-label="回首頁">⌂</button><div class="t" id="rtitle"></div><span class="pn" id="rpn"></span><button class="icon" id="rfull" aria-label="全螢幕">⛶</button><button class="icon" id="rmode" aria-label="切換翻頁或條漫">📜</button></div>
+ <div id="stage"></div><div id="meas"></div>
+ <div class="rfoot"><button class="icon" id="rprev" aria-label="上一頁">‹</button><div class="pb"><i id="rpb"></i></div><button class="icon" id="rnext" aria-label="下一頁">›</button></div>
+</div>
+<div id="deep"></div>
+<div id="bt"><canvas id="cv"></canvas>
+ <div class="bhud"><span class="nm" id="bname"></span><span class="hp"><i id="bhp"></i></span><span class="cnt" id="bcnt"></span></div>
+ <button class="icon bx" id="bexit" aria-label="離開">✕</button>
+ <div class="bgoal" id="bgoal"></div>
+ <div class="bbtns"><button class="spirit" id="bsp"><i id="bspf"></i><span>神的<br>能力</span></button></div>
+ <button class="btn pri bcenter" id="bact"></button>
+ <div class="bover" id="bover"><div class="box"><h2 id="bovt"></h2><p id="bovp"></p><button class="btn pri" id="bovb">回到漫畫</button></div></div>
+</div>
+<script src="text.js?v=21"></script>
+<script src="part1.js?v=21"></script>
+<script src="book.js?v=21"></script>
+<script src="../engine.js?v=21"></script>
+</body>
+</html>

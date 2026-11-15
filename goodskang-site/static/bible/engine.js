@@ -75,6 +75,8 @@ let CUR=null;const R={n:0,pages:[],i:0,mode:SAVE.mode||"flip",spread:false,busy:
 function buildPages(n){const P=[{t:"cover"}];COMIC[n].forEach((x,k)=>{if(Array.isArray(x)){if(!(window.NOILL||[]).includes(n+"-"+k))x.ill=`img/${n}-${k}.webp`;P.push({t:"scene",d:x});}else P.push({t:"game",d:x,k:"g"+k});});P.push({t:"end"},{t:"next"});return P;}
 function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs[0]===vs.length-1?`${vs[0]}–${vs[vs.length-1]}`:vs.join("、");
  return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span><br>${vs.map(v=>V[v-1]?`<sup>${v}</sup>${V[v-1]}`:"").join(" ")}</div>`;}
+// 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
+function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);
  if(d.ill){let h=`<div class="panel ill ${fx.includes("shake")?"fx-shake":""}"><img class="illimg" alt="" src="${d.ill}" decoding="async" ${R.mode==="scroll"?'loading="lazy"':""} draggable="false">`;
   if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("rain"))h+=`<div class="fx fx-rain"></div>`;if(fx.includes("fire"))h+=`<div class="fx fx-fire"></div>`;if(fx.includes("torch"))h+=`<div class="fx fx-torch"></div>`;
@@ -82,7 +84,7 @@ function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.f
   // 對白和旁白放在圖的下緣，不蓋住人物的臉
   h+=`</div><div class="talk ${fx.includes("big")?"big":""}">`;
   say.forEach(([i,t],j)=>{const dl=(.5+j*.5).toFixed(2);h+=i<0?`<div class="bb god" style="--d:${dl}s">${t}</div>`:`<div class="bb ${j%2?"r":""}" style="--d:${dl}s">${t}</div>`;});
-  return h+`<div class="cap">${cap}</div></div>${verses(n,vs)}`;}
+  return h+(dupCap(cap,n,vs)&&!fx.includes("big")?"":`<div class="cap">${cap}</div>`)+`</div>${verses(n,vs)}`;}
  let h=`<div class="panel m-${mood} ${fx.includes("shake")?"fx-shake":""} ${fx.includes("big")?"big":""}"><div class="sky"></div>`;
  if(gr==="in")h+=`<div class="wall"></div><div class="gnd in"></div>`;else h+=`<div class="gnd" style="background-image:url(${A.gtex[{m:"meadow",f:"forest",r:"road",a:"ash"}[gr]]})"></div>`;
  if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("speed"))h+=`<div class="fx fx-speed"></div>`;
@@ -152,11 +154,14 @@ function lastIdx(){const L=R.pages.length-1;return R.spread?L-(L%2):L;}
 // 經文字級自動縮到剛好放得下（每種頁面尺寸只量一次）
 const FIT={};
 function fitScene(el,k,key){const vb=el.querySelector(".vbox"),pn=el.querySelector(".panel");if(!vb)return;
- if(FIT[key]===undefined){let fs=parseFloat(getComputedStyle(vb).fontSize),n=0,st=0;const over=()=>vb.scrollHeight>vb.clientHeight+1;
-  while(over()&&fs>12&&n++<14){fs-=.6;vb.style.fontSize=fs+"px";}
-  if(over()){st=1;vb.style.maxHeight="58%";if(pn)pn.style.minHeight="24%";while(over()&&fs>11&&n++<20){fs-=.5;vb.style.fontSize=fs+"px";}}
-  FIT[key]=n||st?[fs,st]:0;}
- const f=FIT[key];if(f){vb.style.fontSize=f[0]+"px";if(f[1]){vb.style.maxHeight="58%";if(pn)pn.style.minHeight="24%";}}}
+ const H=["","50%","43%","36%"];
+ if(FIT[key]===undefined){const base=parseFloat(getComputedStyle(vb).fontSize);let fs=base,n=0,st=0;const over=()=>vb.scrollHeight>vb.clientHeight+1;const set=()=>{vb.style.fontSize=fs+"px";};
+  if(!over()){while(!over()&&fs<base*1.45&&n++<40){fs+=.5;set();}if(over()){fs-=.5;set();}}
+  else{const lim=[Math.max(15.5,base-2),Math.max(15,base-3.5),14.5,12.5];
+   for(st=0;st<4;st++){if(st&&pn)pn.style.height=H[st];while(over()&&fs>lim[st]&&n++<90){fs-=.5;set();}if(!over())break;}
+   if(st>3)st=3;}
+  FIT[key]=[fs,st];}
+ const f=FIT[key];vb.style.fontSize=f[0]+"px";if(f[1]&&pn)pn.style.height=H[f[1]];}
 // 小遊戲和結尾頁：內容超過一頁就整塊等比例縮小，永遠不用往下滑
 function fitBody(el){if(R.mode==="scroll")return;el.querySelectorAll(".fitin").forEach(f=>{let k=1;const set=()=>{f.style.width=(100/k)+"%";f.style.height=(100/k)+"%";f.style.transform=k<1?`scale(${k})`:"";};set();
   let n=0;while(f.scrollHeight>f.clientHeight+1&&k>.5&&n++<16){k-=.04;set();}});}

@@ -314,3 +314,14 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 .tip{position:relative;border-color:var(--brass)}
 .tip ol{margin:6px 0 4px;padding-left:22px}.tip li{margin:2px 0}
 .tipx{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--dim)}
+
+/* ===== 圖六成、字四成：經文放大，當主要閱讀內容 ===== */
+.panel{flex:0 0 auto;height:min(58%,calc(100cqw - 20px));min-height:0}
+.vbox{flex:1 1 0;max-height:none;margin:12px 16px 20px;padding:0;font-size:clamp(17px,4.7cqw,23px);line-height:1.72}
+.vbox .vr{font-size:13px;padding:1px 10px;margin-bottom:4px}
+.vbox sup{font-size:.62em}
+.cap,.talk .cap{font-size:clamp(15px,4.1cqw,20px)}
+.bb,.talk .bb{font-size:clamp(15px,4.2cqw,21px)}
+.bb.god,.talk .bb.god{font-size:clamp(17px,4.8cqw,24px)}
+.scroll .panel{height:auto}
+.scroll .vbox{flex:none}

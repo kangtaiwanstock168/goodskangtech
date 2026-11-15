@@ -60,7 +60,7 @@ h1{font-family:var(--serif);font-weight:900;font-size:clamp(34px,8vw,54px);color
 <p class="foot">經文：和合本。閱讀進度只存在這台裝置。</p>
 </div>
 <script>
-const BOOKS=[["genesis","創世記","genesis_comic_v1",50,50,"cover-1.webp"],["exodus","出埃及記","exodus_comic_v1",10,40,"cover-3.webp"],["judges","士師記","judges_comic_v3",21,21,"cover-7.webp"],["daniel","但以理書","",0,12,""],["mark","馬可福音","",0,16,""]];
+const BOOKS=[["genesis","創世記","genesis_comic_v1",50,50,"cover-1.webp"],["exodus","出埃及記","exodus_comic_v1",20,40,"cover-3.webp"],["judges","士師記","judges_comic_v3",21,21,"cover-7.webp"],["daniel","但以理書","",0,12,""],["mark","馬可福音","",0,16,""]];
 function done(k){try{const s=JSON.parse(localStorage.getItem(k)||"{}");return Object.values(s.ch||{}).filter(c=>c.done).length;}catch(e){return 0;}}
 document.getElementById("grid").innerHTML=BOOKS.map(([id,nm,key,live,total,cv])=>{if(!live)return `<div class="bk soon"><b>${nm}</b><span>${total} 章・製作中</span></div>`;const d=done(key);
  return `<a class="bk" href="${id}/" style="background-image:url(${id}/img/${cv})">${live<total?`<i class="tag" style="font-style:normal">連載中</i>`:""}<b>${nm}</b><span>${d?`讀完 ${d} / ${live} 章`:live<total?`已上架 ${live} / ${total} 章`:`${total} 章`}</span><div class="bar"><i style="width:${d/live*100}%"></i></div></a>`;}).join("");

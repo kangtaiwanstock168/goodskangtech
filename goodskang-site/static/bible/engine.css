@@ -362,6 +362,8 @@ html,body{overscroll-behavior:none}
 
 /* 沒有對白時，對白區不可把經文往上拉去蓋到圖 */
 .talk:empty,.talk:not(:has(*)){display:none}
+/* 全卷讀完的提示：深色主題下字要看得見 */
+.endp .donebox{background:#2f4a2a;border:1.5px solid #8fc97a;color:#eaf7e2;font-weight:700}
 /* ===== 2026-11-16 閱讀版面重整 ===== */
 /* 主圖整張顯示，不裁切；空出來的地方用同一張圖的柔焦補滿 */
 .panel{height:min(52%,calc(100cqw - 20px))}

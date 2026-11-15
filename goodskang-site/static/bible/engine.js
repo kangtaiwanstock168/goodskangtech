@@ -305,6 +305,6 @@ renderHome();const m0=location.hash.match(/^#ch(\d+)$/);if(m0&&CH[+m0[1]-1])open
 (function(){let acc=0,lock=false,tm=0,last=0;
  $("reader").addEventListener("wheel",e=>{if($("deep").classList.contains("on")||$("bt").classList.contains("on"))return;if(e.target.closest("textarea"))return;e.preventDefault();
   let d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(e.deltaMode===1)d*=30;const now=performance.now();
-  clearTimeout(tm);tm=setTimeout(()=>{lock=false;acc=0;},170);
+  clearTimeout(tm);const rel=()=>{if(performance.now()-last<520){tm=setTimeout(rel,120);return;}lock=false;acc=0;};tm=setTimeout(rel,220);
   if(lock){if(now-last>700&&Math.abs(d)>60){lock=false;acc=0;}else return;}
   acc+=d;if(Math.abs(acc)>=40){lock=true;last=now;const dir=acc>0?1:-1;acc=0;go(dir);}},{passive:false});})();

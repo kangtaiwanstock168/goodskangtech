@@ -83,7 +83,7 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
   const ill=(window.NOILL||[]).includes(n+"-"+k)?"":`img/${n}-${k}.webp`;x.ill=ill;
   const chunks=[];{const L=v=>T[v-1].length;let tot=0;for(let v=a;v<=b;v++)tot+=L(v);
    if(tot<=170){const c=[];for(let v=a;v<=b;v++)c.push(v);chunks.push(c);}
-   else{let v=a,cur=[],len=0;while(v<=b&&(!cur.length||len+L(v)<=100)){cur.push(v);len+=L(v);v++;}
+   else{let v=a,cur=[],len=0;while(v<=b&&(!cur.length||len+L(v)<=130)){cur.push(v);len+=L(v);v++;}
     let rest=0;for(let u=v;u<=b;u++)rest+=L(u);while(rest<90&&cur.length>1){v--;cur.pop();rest+=L(v);}chunks.push(cur);const kk=Math.max(1,Math.ceil(rest/230)),tg=rest/kk;cur=[];len=0;
     for(;v<=b;v++){if(cur.length&&(len+L(v)>250||len+L(v)/2>tg)){chunks.push(cur);cur=[];len=0;}cur.push(v);len+=L(v);}
     if(cur.length)chunks.push(cur);}}

@@ -339,3 +339,7 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 @keyframes nxpulse{0%,100%{transform:translateY(0);box-shadow:0 6px 0 #173d0d,0 0 0 0 rgba(47,106,31,.55)}50%{transform:translateY(-2px);box-shadow:0 8px 0 #173d0d,0 0 0 12px rgba(47,106,31,0)}}
 .swhint{text-align:center;font-size:14px;color:#5a4a33;margin-top:10px;font-weight:700}
 @media (prefers-reduced-motion:reduce){.nxgo{animation:none}}
+
+/* ===== 只留翻頁模式；避免瀏覽器把左右滑當成上一頁 ===== */
+html,body{overscroll-behavior:none}
+#rmode,[data-mode]{display:none!important}

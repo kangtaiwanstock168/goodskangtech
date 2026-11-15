@@ -59,7 +59,7 @@ function renderHome(){const n=nextCh(),c=CH[n-1],D=doneCount(),all=D===NCH,s=SAV
  <div class="stats"><div class="stat"><b>${D}</b><span>讀完章數 / ${NCH}</span></div><div class="stat"><b>${streak()}</b><span>連續讀經天數</span></div><div class="stat"><b>${gamesDone()}</b><span>小遊戲過關 / ${gamesTotal()}</span></div></div>
  <div class="card"><h3>${NCH} 本漫畫</h3><p class="note" style="margin:0 0 10px">一章就是一本。${BOOK.battle?"⚔ 的章節可以親自上場打仗。":""}${BOOK.more||""}</p>
   <div class="shelf">${CH.map(c=>{const d=SAVE.ch[c.n]&&SAVE.ch[c.n].done;return `<button class="bk ${c.n===n&&!all?"cur":""}" data-open="${c.n}" style="background-image:url(${coverURL(c.n)})" aria-label="第 ${c.n} 章 ${c.title}"><i>${c.n}${c.battle?" ⚔":""}</i>${d?`<span class="ok">✓</span>`:""}<b>${c.title}</b></button>`;}).join("")}</div></div>
- <div class="card"><h3>閱讀方式</h3><div class="seg"><button data-mode="flip" class="${R.mode==="flip"?"on":""}">📖 翻頁（左右滑）</button><button data-mode="scroll" class="${R.mode==="scroll"?"on":""}">📜 條漫（往下滑）</button></div><p class="note" style="margin:8px 0 0">翻頁模式只有左右滑，每一頁都剛好一個畫面。iPad 橫放、Duo 打開橫拿、電腦會自動變成左右兩頁。</p></div>
+ <div class="card"><h3>閱讀方式</h3><div class="seg"><button data-mode="flip" class="${R.mode==="flip"?"on":""}">📖 翻頁（左右滑）</button><button data-mode="scroll" class="${R.mode==="scroll"?"on":""}">📜 條漫（往下滑）</button></div><p class="note" style="margin:8px 0 0">左右滑翻頁，每一頁都剛好一個畫面；電腦用滾輪、觸控板或方向鍵也可以翻。iPad 橫放、Duo 打開橫拿、電腦會自動變成左右兩頁。</p></div>
  <details class="card intro"${D?"":" open"}><summary>第一次讀${BOOK.name}？先看這 1 分鐘</summary>${BOOK.intro.replace("{cycle}",cycleSVG())}
   <p>每一頁漫畫下面都是真的和合本經文。看漫畫的時候順便讀那兩三句，就讀完一章了。</p></details>
  <p class="note" style="text-align:center">經文：和合本。進度只存在這台裝置。</p></div>`;}
@@ -71,7 +71,7 @@ const DH={scout:46,boss:64,troll:62,orc:54,lion:40,fox:24,bee:34};
 const CREA={lion:"lion",fox:"fox",bee:"bee"},EMO={lion:"🦁",fox:"🦊",bee:"🐝"};
 const BTITLE={ehud:"以笏刺殺伊磯倫",barak:"他泊山下迎戰鐵車",gideon:"三百勇士夜襲",jephthah:"耶弗他戰亞捫",samson1:"驢腮骨擊殺一千人",samson2:"推倒大袞廟"};
 const BCOVER={ehud:3,barak:4,gideon:7,jephthah:11,samson1:15,samson2:16};
-let CUR=null;const R={n:0,pages:[],i:0,mode:SAVE.mode||"flip",spread:false,busy:false};
+let CUR=null;const R={n:0,pages:[],i:0,mode:"flip",spread:false,busy:false};
 const VLIM=120;
 function cjk(s){return (s||"").replace(/（[^）]*）/g,"").replace(/[^一-鿿]/g,"");}
 function buildPages(n){const P=[{t:"cover"}],T=JDG[n-1],N=T.length,all=cjk(T.join(""));
@@ -259,7 +259,7 @@ $("stage").addEventListener("click",e=>{if(FL)return;if(e.target.closest(NOFLIP+
  if(x<.25)go(-1);else if(x>.75)go(1);else if(!e.target.closest(".gm,.endp"))showUI(!$("reader").classList.contains("ui"));});
 document.addEventListener("keydown",e=>{if(!$("reader").classList.contains("on")||$("bt").classList.contains("on")||e.target.tagName==="TEXTAREA")return;if($("deep").classList.contains("on")&&e.key!=="Escape")return;if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){e.preventDefault();go(1);}if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();go(-1);}if(e.key==="Escape"){if($("deep").classList.contains("on"))closeDeep();else closeBook();}});
 $("rprev").onclick=()=>{go(-1);showUI(true);};$("rnext").onclick=()=>{go(1);showUI(true);};$("rhome").onclick=()=>closeBook();
-$("rmode").onclick=()=>{R.mode=R.mode==="flip"?"scroll":"flip";SAVE.mode=R.mode;save();renderBook(true);showUI(true);};
+$("rmode").onclick=()=>{return;R.mode=R.mode==="flip"?"scroll":"flip";SAVE.mode=R.mode;save();renderBook(true);showUI(true);};
 $("rfull").onclick=()=>{if(isFS())exitFS();else goFS();};
 let RT=0;window.addEventListener("resize",()=>{clearTimeout(RT);RT=setTimeout(()=>{if($("reader").classList.contains("on")&&!FL&&!$("bt").classList.contains("on"))renderBook(false);},150);});
 // 只重畫目前看得到的頁面（小遊戲用）
@@ -300,3 +300,11 @@ document.addEventListener("input",e=>{if(e.target.id==="note"&&R.n){st(R.n).note
 
 if("serviceWorker" in navigator){try{navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>{if(/\/bible\/[a-z]+\/$/.test(r.scope))r.unregister();}));navigator.serviceWorker.register("../sw.js",{scope:"../"});}catch(e){}}
 renderHome();const m0=location.hash.match(/^#ch(\d+)$/);if(m0&&CH[+m0[1]-1])openBook(+m0[1]);
+
+// 滾輪／觸控板：一個手勢翻一頁，慣性滑動不會連翻
+(function(){let acc=0,lock=false,tm=0,last=0;
+ $("reader").addEventListener("wheel",e=>{if($("deep").classList.contains("on")||$("bt").classList.contains("on"))return;if(e.target.closest("textarea"))return;e.preventDefault();
+  let d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(e.deltaMode===1)d*=30;const now=performance.now();
+  clearTimeout(tm);tm=setTimeout(()=>{lock=false;acc=0;},170);
+  if(lock){if(now-last>700&&Math.abs(d)>60){lock=false;acc=0;}else return;}
+  acc+=d;if(Math.abs(acc)>=40){lock=true;last=now;const dir=acc>0?1:-1;acc=0;go(dir);}},{passive:false});})();

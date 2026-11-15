@@ -359,3 +359,45 @@ html,body{overscroll-behavior:none}
 .nextp .deepbtn b{font-size:17px}
 @media (max-height:720px){.endp .keyv .btn{display:none}.endp .keyv .tx{margin:4px 0 0}}
 .dheart{margin:10px 0 4px;padding:9px 12px;border-left:4px solid #a8742a;background:#f3ead2;border-radius:6px;font-size:14px;color:#4a3518;font-weight:700}
+
+/* ===== 2026-11-16 閱讀版面重整 ===== */
+/* 主圖整張顯示，不裁切；空出來的地方用同一張圖的柔焦補滿 */
+.panel{height:min(52%,calc(100cqw - 20px))}
+.pbg{position:absolute;inset:-24px;background-size:cover;background-position:center;filter:blur(20px) brightness(.78) saturate(1.1);z-index:0}
+.panel.ill .illimg{object-fit:contain!important;object-position:50% 50%!important;transform:none!important;animation:none!important;z-index:1}
+.panel.ill .fx,.panel.ill .sfx{z-index:2}
+/* 經文：一節一行 */
+.vbox{font-size:clamp(17px,4.7cqw,23px);line-height:1.68;margin:10px 18px 22px}
+.vbox .vr{display:inline-block;margin-bottom:6px}
+.vbox p.v{margin:0 0 .28em;text-indent:0}
+.vbox p.v:last-child{margin-bottom:0}
+.vbox sup{font-size:.6em;margin-right:3px;vertical-align:.5em;line-height:0}
+/* 文字頁：只有一條柔焦色帶，字多一點 */
+.tband{position:relative;flex:0 0 auto;height:clamp(40px,7%,60px);overflow:hidden;display:flex;align-items:center;padding:0 18px;border-bottom:3px solid var(--ink)}
+.tband i{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(22px) brightness(.55) saturate(1.2)}
+.tband span{position:relative;color:#fff3d6;font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.12em;text-shadow:0 1px 3px #000}
+/* 導讀：深色筆記風，和經文頁明顯不同 */
+.prep2{position:absolute;inset:0;display:flex;flex-direction:column;background:#15100b;color:#f6ecd4}
+.primg{position:relative;flex:0 0 48%;overflow:hidden;border-bottom:4px solid #c9a35a}
+.primg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;pointer-events:none}
+.prtag{position:absolute;left:14px;top:calc(12px + var(--st,0px));z-index:2;background:#c9a35a;color:#1d140c;font:800 13px/1 var(--sans);letter-spacing:.1em;padding:7px 12px;border-radius:999px}
+.prbody{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:12px 20px 12px;gap:8px}
+.prnote{flex:none;font:700 12.5px/1.4 var(--sans);color:#c9a35a;letter-spacing:.04em}
+.prbody .fitin{flex:1 1 0;min-height:0;overflow:hidden;font-family:var(--sans);line-height:1.62;position:static;width:auto!important;height:auto!important}
+.prbody h2{font-family:var(--serif);font-size:1.5em;line-height:1.25;margin:0 0 .45em;color:#ffe3a0}
+.prbody p{margin:0 0 .7em;font-size:1em}
+.prnext{flex:none;text-align:right;font:700 14px/1 var(--sans);color:#c9a35a}
+/* 章末回應：同樣深色，鑰節維持米色（那是經文） */
+.endp .ebody{background:#17110c;color:#f6ecd4}
+.endp .step{background:#241a10;border-color:#5a4426;color:#f6ecd4}
+.endp .step b{color:#e8c983}
+.endp .step.pray{background:#2c2010;border-color:#c9a35a}
+.endp textarea{background:#f8f0dc}
+.endp .swhint{color:#c9a35a}
+.endp .keyv{color:var(--ink)}
+.endp .ghead{flex:0 0 auto;min-height:24%}
+.endp .ghead h2{font-size:clamp(22px,6cqw,34px)}
+.navrow{display:flex;gap:8px;flex:none}.navrow .btn{flex:1;min-height:42px;border-width:2px;font-weight:700;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:15px;background:#241a10!important;color:#ffe3a0!important;border-color:#c9a35a!important}
+.nextp .nxcard{color:var(--ink)}
+#rshelf{text-decoration:none;display:flex;align-items:center;justify-content:center}
+.tosh{font-size:15px;padding:7px 14px}

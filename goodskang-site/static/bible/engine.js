@@ -72,19 +72,35 @@ const CREA={lion:"lion",fox:"fox",bee:"bee"},EMO={lion:"🦁",fox:"🦊",bee:"�
 const BTITLE={ehud:"以笏刺殺伊磯倫",barak:"他泊山下迎戰鐵車",gideon:"三百勇士夜襲",jephthah:"耶弗他戰亞捫",samson1:"驢腮骨擊殺一千人",samson2:"推倒大袞廟"};
 const BCOVER={ehud:3,barak:4,gideon:7,jephthah:11,samson1:15,samson2:16};
 let CUR=null;const R={n:0,pages:[],i:0,mode:SAVE.mode||"flip",spread:false,busy:false};
-function buildPages(n){const P=[{t:"cover"}];COMIC[n].forEach((x,k)=>{if(Array.isArray(x)){if(!(window.NOILL||[]).includes(n+"-"+k))x.ill=`img/${n}-${k}.webp`;P.push({t:"scene",d:x});}else P.push({t:"game",d:x,k:"g"+k});});P.push({t:"end"},{t:"next"});return P;}
+const VLIM=120;
+function cjk(s){return (s||"").replace(/（[^）]*）/g,"").replace(/[^一-鿿]/g,"");}
+function buildPages(n){const P=[{t:"cover"}],T=JDG[n-1],N=T.length,all=cjk(T.join(""));
+ const sc=[];COMIC[n].forEach((x,k)=>{if(Array.isArray(x))sc.push(x);});
+ const st=[];sc.forEach((x,i)=>{let m=Math.min.apply(null,x[5].length?x[5]:[1]);m=i?Math.max(m,st[i-1]+1):1;st.push(m);});
+ let si=0;
+ COMIC[n].forEach((x,k)=>{if(!Array.isArray(x)){P.push({t:"game",d:x,k:"g"+k});return;}
+  const a=st[si],b=si===sc.length-1?N:Math.min(N,st[si+1]-1);si++;if(a>b)return;
+  const ill=(window.NOILL||[]).includes(n+"-"+k)?"":`img/${n}-${k}.webp`;x.ill=ill;
+  const chunks=[];let cur=[],len=0;for(let v=a;v<=b;v++){const L=T[v-1].length;if(cur.length&&len+L>VLIM){chunks.push(cur);cur=[];len=0;}cur.push(v);len+=L;}if(cur.length)chunks.push(cur);
+  chunks.forEach((vs,j)=>{const y=x.slice();y[5]=vs;y.part=j;if(ill)y.ill=ill;
+   const lab=/^【[^】]*】/.exec(x[3]||"");y[3]=!j&&lab?lab[0]:"";
+   const here=cjk(vs.map(v=>T[v-1]).join(""));
+   y[4]=(x[4]||[]).filter(s=>{const c=cjk(s[1]);return c.length>1&&here.indexOf(c)>=0;});
+   const ex=Object.assign({},x[6]||{});if(j){ex.s=null;ex.fx=(ex.fx||"").replace("big","");}y[6]=ex;
+   P.push({t:"scene",d:y});});});
+ P.push({t:"end"},{t:"next"});return P;}
 function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs[0]===vs.length-1?`${vs[0]}–${vs[vs.length-1]}`:vs.join("、");
  return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span><br>${vs.map(v=>V[v-1]?`<sup>${v}</sup>${V[v-1]}`:"").join(" ")}</div>`;}
 // 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
 function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);
- if(d.ill){let h=`<div class="panel ill ${fx.includes("shake")?"fx-shake":""}"><img class="illimg" alt="" src="${d.ill}" decoding="async" ${R.mode==="scroll"?'loading="lazy"':""} draggable="false">`;
+ if(d.ill){let h=`<div class="panel ill ${fx.includes("shake")?"fx-shake":""}"><img class="illimg${d.part?" pt"+((d.part-1)%4+1):""}" alt="" src="${d.ill}" decoding="async" ${R.mode==="scroll"?'loading="lazy"':""} draggable="false">`;
   if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("rain"))h+=`<div class="fx fx-rain"></div>`;if(fx.includes("fire"))h+=`<div class="fx fx-fire"></div>`;if(fx.includes("torch"))h+=`<div class="fx fx-torch"></div>`;
   if(ex.s)h+=`<div class="sfx" style="left:${Math.max(24,Math.min(76,ex.s[1]))}%">${ex.s[0]}</div>`;
   // 對白和旁白放在圖的下緣，不蓋住人物的臉
   h+=`</div><div class="talk ${fx.includes("big")?"big":""}">`;
   say.forEach(([i,t],j)=>{const dl=(.5+j*.5).toFixed(2);h+=i<0?`<div class="bb god" style="--d:${dl}s">${t}</div>`:`<div class="bb ${j%2?"r":""}" style="--d:${dl}s">${t}</div>`;});
-  return h+(dupCap(cap,n,vs)&&!fx.includes("big")?"":`<div class="cap">${cap}</div>`)+`</div>${verses(n,vs)}`;}
+  return h+(cap?`<div class="cap">${cap}</div>`:"")+`</div>${verses(n,vs)}`;}
  let h=`<div class="panel m-${mood} ${fx.includes("shake")?"fx-shake":""} ${fx.includes("big")?"big":""}"><div class="sky"></div>`;
  if(gr==="in")h+=`<div class="wall"></div><div class="gnd in"></div>`;else h+=`<div class="gnd" style="background-image:url(${A.gtex[{m:"meadow",f:"forest",r:"road",a:"ash"}[gr]]})"></div>`;
  if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("speed"))h+=`<div class="fx fx-speed"></div>`;
@@ -98,11 +114,11 @@ function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.f
   const x=pos[i]?pos[i][0]:50,left=Math.max(3,Math.min(51,x-23)),tx=Math.max(12,Math.min(88,(x-left)/46*100));
   h+=`<div class="bb" style="left:${left}%;top:${4+j*21}%;--tx:${tx}%;--d:${dl}s">${t}</div>`;});
  if(ex.s)h+=`<div class="sfx" style="left:${ex.s[1]}%;top:${ex.s[2]}%">${ex.s[0]}</div>`;
- h+=`<div class="cap">${cap}</div></div>${verses(n,vs)}`;return h;}
+ h+=(cap?`<div class="cap">${cap}</div>`:"")+`</div>${verses(n,vs)}`;return h;}
 function coverHTML(n){const c=CH[n-1],sc=COMIC[n].filter(Array.isArray).length,gm=COMIC[n].length-sc;
  return `<div class="art ${COVER[n]?"":"fb"}" style="background-image:url(${coverURL(n)})"></div><div class="sh"></div>
  <div class="top"><small>${BOOK.name} 第 ${n} 章</small><h1>${c.title}</h1></div>
- <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${sc} 格漫畫</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="swipe">← 往左滑翻頁</div></div>`;}
+ <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="swipe">← 往左滑翻頁</div></div>`;}
 function gameArt(n,k){const i=R.pages.findIndex(p=>p.k===k);for(let j=i-1;j>0;j--){const P=R.pages[j];if(P&&P.t==="scene"&&P.d.ill)return P.d.ill;}return coverURL(n);}
 function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=g.q;
  if(g.g==="choice"){if(!G.ord)G.ord=shuffle([0,1,2,3]);

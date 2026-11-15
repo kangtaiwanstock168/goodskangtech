@@ -325,3 +325,9 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 .bb.god,.talk .bb.god{font-size:clamp(17px,4.8cqw,24px)}
 .scroll .panel{height:auto}
 .scroll .vbox{flex:none}
+
+/* ===== 接續頁：同一張圖換取景 ===== */
+.illimg.pt1{transform:scale(1.5);transform-origin:12% 30%;animation:none!important}
+.illimg.pt2{transform:scale(1.5);transform-origin:88% 35%;animation:none!important}
+.illimg.pt3{transform:scale(1.6);transform-origin:50% 85%;animation:none!important}
+.illimg.pt4{transform:scale(1.8);transform-origin:50% 20%;animation:none!important}

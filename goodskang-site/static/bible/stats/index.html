@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>漫畫讀經｜閱讀統計後台</title>
+<style>
+:root{--bg:#120e0a;--card:#1d160f;--line:#3a2d1e;--txt:#f3e6cf;--mut:#b49f80;--gold:#e0b25c;--red:#c8553a;--grn:#7fae6a;--blu:#6f9fd8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px;color:var(--gold);font-family:"Noto Serif TC",serif}
+h2{font-size:17px;margin:0 0 10px;padding-left:10px;border-left:3px solid var(--gold)}
+.sub{color:var(--mut);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--gold);color:#1a1209;border-color:var(--gold);font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:inherit;display:block}
+.kpi b{display:block;font-size:26px;color:var(--gold);line-height:1.2}.kpi span{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid2 .card{margin:0}
+.row{display:grid;grid-template-columns:92px 1fr 64px;gap:8px;align-items:center;padding:6px 4px;border-radius:10px;cursor:pointer;color:inherit;text-decoration:none}
+.row:hover,.row.sel{background:#2a2016}
+.row .nm{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{height:14px;background:#2a2016;border-radius:7px;overflow:hidden;position:relative}
+.fill{height:100%;background:var(--gold);border-radius:7px}.fill.d{position:absolute;left:0;top:0;background:var(--grn);opacity:.9}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--mut)}.num b{color:var(--txt)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin:-4px 0 8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.chs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ch{background:#241b12;border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden}
+.ch .heat{position:absolute;inset:0;background:var(--gold);opacity:0;pointer-events:none}
+.ch *{position:relative}.ch .t{font-size:13px;font-weight:700}.ch .s{font-size:12px;color:var(--mut)}
+.list a{display:flex;justify-content:space-between;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
+.list a:last-child{border:0}.list .r{color:var(--mut);font-size:13px;white-space:nowrap}
+.pill{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-left:4px;color:var(--mut)}
+.days{display:flex;align-items:flex-end;gap:3px;height:110px;padding-top:6px}
+.days div{flex:1;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.days div span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:10px;color:var(--mut)}
+.dlab{display:flex;justify-content:space-between;font-size:11px;color:var(--mut)}
+.empty{color:var(--mut);text-align:center;padding:30px 10px}
+.idea{border-left:3px solid var(--red);padding:6px 10px;margin:8px 0;background:#241b12;border-radius:0 10px 10px 0}
+.idea a{color:var(--gold)}
+.top{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));background:var(--gold);color:#1a1209;border:0;border-radius:999px;padding:10px 14px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.5);text-decoration:none}
+.note{font-size:12px;color:var(--mut);line-height:1.7}
+@media(max-width:820px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}}
+@media(max-width:430px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi b{font-size:22px}.row{grid-template-columns:78px 1fr 56px}}
+</style></head><body><div class="wrap" id="top">
+<h1>📊 漫畫讀經・閱讀統計</h1>
+<div class="sub" id="range">載入中…</div>
+<div class="bar" id="chips"></div>
+<div class="kpis" id="kpis"></div>
+<div class="card" id="trend"><h2>每天有幾個人在讀</h2><div id="days"></div></div>
+<div class="grid2">
+ <div class="card" id="books"><h2>哪一卷書最多人讀</h2><div class="legend"><span><i style="background:var(--gold)"></i>開章次數</span><span><i style="background:var(--grn)"></i>讀完次數</span></div><div id="blist"></div></div>
+ <div class="card" id="hot"><h2>最熱門的 10 章</h2><div class="list" id="hlist"></div></div>
+</div>
+<div class="card" id="detail"><h2 id="dtitle">各章細節</h2><div class="sub" id="dsub" style="margin-bottom:8px"></div><div class="chs" id="dchs"></div></div>
+<div class="grid2">
+ <div class="card" id="verses"><h2>最常被畫重點／分享的經節</h2><div class="list" id="vlist"></div></div>
+ <div class="card" id="ideas"><h2>延伸小遊戲候選</h2><div id="ilist"></div><p class="note">排序方式：讀者人數 × 讀完率，再加上經節被畫重點、分享、寫筆記的次數。讀的人多、又讀得完、又有人回應的章節，最值得加做延伸遊戲。</p></div>
+</div>
+<p class="note">資料是匿名的：只記「哪一章被打開、讀完、遊戲過關、經節動作」的次數，和每台裝置隨機產生的代碼（用來算人數），不收姓名、帳號或位置。同一台裝置同一天重複打開同一章只算一次。換手機或清除瀏覽器資料，會被當成新讀者。</p>
+</div>
+<a class="top" href="#top">↑ 回到最上面</a>
+<script>
+const META=[{"id":"genesis","name":"創世記","ch":["起初","伊甸園","蛇與果子","該隱與亞伯","與神同行的人","挪亞造方舟","洪水","水退了","彩虹之約","列國的家譜","巴別塔","你要離開","讓你先選","三百一十八人","數星星","看顧人的神","新名字","三位客人","不可回頭","老毛病","以撒出生","耶和華以勒","第一塊地","井邊的禱告","一碗紅豆湯","挖井的人","偷來的祝福","天梯","騙子被騙","十一個兒子","連夜離開","摔跤到天亮","兄弟重逢","示劍的悲劇","回到伯特利","以掃的後代","做夢的人","她比我更有義","耶和華與他同在","被遺忘的人","從監牢到宮殿","哥哥們來了","便雅憫也去","銀杯","我是約瑟","全家下埃及","歌珊地","交叉的手","十二個兒子","神的意思原是好的"]},{"id":"exodus","name":"出埃及記","ch":["不認識約瑟的王","水裡拉上來的孩子","燒不毀的荊棘","我不會說話","越來越糟","我是耶和華","河水變血","青蛙、虱子、蒼蠅","瘟疫、瘡、冰雹","蝗蟲與黑暗","最後一災的預告","逾越節","雲柱與火柱","過紅海","海邊的歌","天上降下的糧食","磐石出水","岳父的建議","西奈山","十誡","自由人的規矩","弄壞了要賠","不可隨眾行惡","立約","約櫃、桌子、燈臺","帳幕與幔子","祭壇與院子","大祭司的衣服","祭司就職","香壇與洗濯盆","比撒列與兩塊法版","金牛犢","求你顯出你的榮耀","發光的臉","甘心樂意","不必再拿來了","比撒列的作品","銅壇與鏡子","都照所吩咐的做了","榮光充滿"]},{"id":"leviticus","name":"利未記","ch":["燔祭：全部燒在壇上","素祭：把收成帶來","平安祭：和神同桌吃飯","贖罪祭：不是故意的也算","贖愆祭：說出來，還回去","壇上的火不可熄滅","獻祭的人也有份","亞倫穿上聖衣","榮光顯現","凡火","什麼可以吃","生產之後","祭司的察看","回到營裡","身體的事","贖罪日","血裡有生命","不要學他們","愛人如己","分別出來","祭司的標準","獻上沒有殘疾的","一年七個節期","燈、餅，和一句咒詛","禧年","聽從，與不聽從","說出口的願"]},{"id":"numbers","name":"民數記","ch":["數一數","圍著會幕安營","利未人歸給神","搬運的人","營裡要潔淨","拿細耳人與祝福","十二天的奉獻","燈與利未人","雲彩怎麼動","起行","我們要吃肉","米利暗和亞倫的話","十二個探子","回埃及去吧","衣服邊上的繸子","可拉一黨","發芽的杖","我就是你的分","除污穢的水","擊打磐石","銅蛇","巴蘭和他的驢","咒詛變祝福","有星要出於雅各","什亭的陷阱","第二次數點","五個女兒","每天、每週、每月","七月的節期","說出口的話","與米甸的爭戰","河東的兩個半支派","四十二站","還沒到手的地界","逃城","產業不離開"]},{"id":"deuteronomy","name":"申命記","ch":["回頭看那一年","繞山的日子夠了","求過，神說不","要聽，要記得","十誡再說一次","以色列啊，你要聽","不是因為你們人多","吃飽了以後","不是因為你的義","神向你所要的是什麼","看天下雨的地","在神面前歡樂","就算有神蹟","你們是兒女","鬆開手","三次上去","王也要抄聖經","像我的先知","逃城與地界","誰可以回家","掛在木頭上的","不可佯為不見","咒詛變成祝福","留給他們的","公平的法碼","一籃初熟的果子","兩座山","福與禍","今日站在這裡的","這話離你不遠","你當剛強壯膽","摩西的歌","臨別的祝福","尼波山頂"]},{"id":"joshua","name":"約書亞記","ch":["摩西死了，現在你起來","喇合的朱紅線繩","腳先踏進水裡","十二塊石頭","你站的地方是聖的","繞城七日","亞干藏起來的東西","再上艾城","發霉的餅","日頭停住","米倫水邊","三十一個王","還有許多未得之地","把這山地給我","猶大的地","以法蓮的地","山地也要歸你","耽延到幾時","最後一個拿地的人","六座逃城","沒有一句落空","河邊的一座壇","約書亞的臨別贈言","至於我和我家"]},{"id":"judges","name":"士師記","ch":["不完全的得勝","不認識耶和華的世代","左手的拯救者","棕樹下的女先知","底波拉之歌","酒醡裡的勇士","三百勇士夜襲","勝利之後的網羅","荊棘作王","神心中擔憂","被趕出去的人","示播列","奇妙的應許","獅子與謎語","驢腮骨與一千人","最後一次的力量","米迦的神像","被搶走的神","基比亞的黑夜","兄弟相殘","沒有王的日子"]},{"id":"ruth","name":"路得記","ch":["你往哪裡去，我也往那裡去","恰巧到了那塊田","禾場的那一夜","拿俄米得孩子了"]},{"id":"samuel1","name":"撒母耳記上","ch":["哈拿的禱告","兩種兒子","請說，僕人敬聽","榮耀離開了","大袞倒了","兩頭母牛","以便以謝","我們要一個王","找驢的少年","膏油與行李","掃羅的第一仗","撒母耳的告別","等不下去","約拿單和拿兵器的","聽命勝於獻祭","耶和華是看內心","大衛與歌利亞","千千與萬萬","窗戶裡縋下去","三支箭","聖餅與裝瘋","亞杜蘭洞","在曠野堅固","割下衣襟","亞比該","王的槍和水瓶","逃到非利士地","隱多珥的婦人","被打發回去","在神裡面堅固","掃羅之死"]},{"id":"samuel2","name":"撒母耳記下","ch":["英雄何竟仆倒","兩個王","押尼珥之死","伊施波設之死","錫安的保障","在耶和華面前跳舞","大衛之約","秉公行義","同席吃飯","被剃了一半鬍子的使者","王的那一個傍晚","你就是那人","她瑪的眼淚","提哥亞的婦人","押沙龍偷了人心","示每的咒罵","兩個計謀","我兒押沙龍啊","回家的路","示巴的叛亂","利斯巴的守望","耶和華是我的巖石","大衛的勇士","數點百姓"]},{"id":"kings1","name":"列王紀上","ch":["誰來作王？","你當剛強，作大丈夫","求智慧的心","如海沙的智慧","預備建殿","聖殿","宮殿與銅器","榮光充滿了殿","神第二次顯現","示巴女王","所羅門的心偏離了","國家分裂","神人與老先知","裝作別的婦人","亞撒的改革","一個比一個壞","以利亞與烏鴉","迦密山上的火","微小的聲音","亞蘭王的圍城","拿伯的葡萄園","米該雅與亞哈之死"]},{"id":"kings2","name":"列王紀下","ch":["豈因以色列中沒有神嗎？","火車火馬","這谷必滿了水","油、樓房和鍋","乃縵","開他的眼目","四個長大痲瘋的","哈薛的眼淚","耶戶","耶戶的熱心","藏在殿裡六年","修殿的銀櫃","以利沙的最後","心高氣傲","一個接一個","大馬士革的祭壇","北國亡了","希西家倚靠耶和華","把信展開在神面前","十五年和一扇窗","最壞的王","找到律法書","盡心盡性盡力","第一批被擄","耶路撒冷被焚"]},{"id":"chronicles1","name":"歷代志上","ch":["從亞當開始","猶大的子孫","大衛的後裔","雅比斯的禱告","河東的支派","利未與歌唱的人","北方的支派","便雅憫和掃羅家","回到耶路撒冷的人","掃羅之死","大衛作王與他的勇士","天天有人來幫助大衛","烏撒與約櫃","大衛的名傳揚","按定例抬約櫃","稱謝的詩","神為大衛建立家","秉公行義","被羞辱的使者","拉巴與迦特的偉人","阿珥楠的禾場","為兒子預備","利未人的分工","祭司的班次","歌唱的班次","守門的與管庫的","軍隊與官員","你當認識耶和華","樂意奉獻"]},{"id":"chronicles2","name":"歷代志下","ch":["求智慧的王","誰能為神建殿？","摩利亞山上的殿","殿中的器具","榮光充滿聖殿","所羅門的禱告","若是自卑、禱告","王國的建設","示巴女王來訪","國家分裂","立定心意尋求神","王與首領自卑","倚靠神的得勝","亞撒的禱告","你們若尋求他","心存誠實","帶著律法書走遍各城","四百個先知和一個米該雅","敬畏耶和華，謹慎辦事","我們的眼目單仰望你","約蘭","被藏起來的小王子","七歲的王","約阿施和撒迦利亞","神能把更多的賜給你","強盛之後","約坦行正道","俄德和好撒馬利亞人","希西家潔淨聖殿","邀請全以色列守逾越節","樂意奉獻","與我們同在的是耶和華","最壞的王也能回頭","在殿裡找到的書","約西亞的逾越節和米吉多","被擄與歸回"]},{"id":"ezra","name":"以斯拉記","ch":["神激動人心","回家的名單","根基立定的那一天","工程停了","先知說話，重新動工","殿終於完成","定志考究的以斯拉","沒有向王要兵","以斯拉的認罪禱告","眾人一起回轉"]},{"id":"nehemiah","name":"尼希米記","ch":["聽見城牆拆毀","王問：你要求甚麼？","每個人修自己門前那段","一手做工，一手拿兵器","弟兄之間的公平","五十二天","城門安好，名單再現","靠耶和華而得的喜樂","從頭到尾的認罪禱告","不離棄神的殿","甘心住在耶路撒冷","獻城牆的大喜樂","記念我，施恩與我"]},{"id":"esther","name":"以斯帖記","ch":["王后不肯來","孤女成了王后","不跪不拜","為現今的機會","金杖伸出來了","那夜王睡不著覺","仇人就是這惡人哈曼","新的諭旨","轉憂為喜","末底改為本族求好處"]},{"id":"daniel","name":"但以理書","ch":["被帶到巴比倫的少年","王忘記的那個夢","火窯裡的第四個人","吃草的國王","牆上的手指","獅子坑","四獸與人子","公綿羊與公山羊","讀經讀到跪下來","看不見的爭戰","北方王與南方王","發光如星"]},{"id":"mark","name":"馬可福音","ch":["福音的起頭","拆屋頂的朋友","十二個人","撒種的比喻","三個沒有人救得了的人","五餅二魚","什麼才叫不乾淨","你們說我是誰","山上的榮光，山下的掙扎","駱駝穿過針的眼","騎驢進城","聖殿裡的問答","要警醒","最後的晚餐與客西馬尼","十字架","祂不在這裡"]}];
+const MB={};META.forEach(b=>MB[b.id]=b);
+const AN={copy:"複製",share:"分享",hl:"畫重點",note:"筆記",pray:"禱告"};
+let DAYS=30,DATA=null,SEL=null;
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const chT=(b,n)=>{const m=MB[b];return m&&m.ch&&m.ch[n-1]?m.ch[n-1]:""};
+const link=(b,n)=>`../${b}/#ch${n}`;
+function chips(){$("chips").innerHTML=[[7,"近 7 天"],[30,"近 30 天"],[90,"近 90 天"],[180,"近 180 天"]].map(([d,t])=>`<button class="chip${d===DAYS?" on":""}" data-d="${d}">${t}</button>`).join("")+`<button class="chip" data-r="1">↻ 重新整理</button>`;}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-d]");if(c){DAYS=+c.dataset.d;load();return;}if(e.target.closest("[data-r]")){load();return;}
+ const b=e.target.closest("[data-book]");if(b){e.preventDefault();SEL=b.dataset.book;detail();$("detail").scrollIntoView({behavior:"smooth"});}});
+async function load(){chips();$("range").textContent="載入中…";
+ try{const r=await fetch("/api/bstat?days="+DAYS+"&t="+Date.now());DATA=await r.json();}catch(e){$("range").textContent="讀不到資料，稍後再試";return;}
+ render();}
+function tot(){let o=0,d=0,g=0,x=0,a=0;for(const b in DATA.books)for(const n in DATA.books[b].ch){const c=DATA.books[b].ch[n];o+=c.o;d+=c.d;g+=c.g;x+=c.x;for(const k in c.a)a+=c.a[k];}return{o,d,g,x,a};}
+function render(){const T=tot();$("range").textContent=`${DATA.from} ～ ${DATA.to}（台北時間）・每 1 分鐘更新`;
+ $("kpis").innerHTML=[["#trend",DATA.readers,"讀者人數"],["#books",T.o,"開章次數"],["#books",T.d,`讀完次數（${T.o?Math.round(T.d/T.o*100):0}%）`],["#detail",T.g,"小遊戲過關"],["#verses",T.a,"經節動作"]].map(([h,v,t])=>`<a class="kpi" href="${h}"><b>${v}</b><span>${t}</span></a>`).join("");
+ const D=DATA.daily,mx=Math.max(1,...D.map(d=>d.u));
+ $("days").innerHTML=T.o?`<div class="days">${D.map(d=>`<div style="height:${d.u/mx*100}%" title="${d.d}：${d.u} 人、開章 ${d.o} 次"><span>${d.u||""}</span></div>`).join("")}</div><div class="dlab"><span>${D[0].d.slice(5)}</span><span>${D[D.length-1].d.slice(5)}</span></div>`:`<div class="empty">還沒有資料。青年打開任何一章，這裡就會開始出現。</div>`;
+ const B=Object.entries(DATA.books).map(([b,v])=>{let o=0,d=0;for(const n in v.ch){o+=v.ch[n].o;d+=v.ch[n].d;}return{b,o,d,r:v.readers};}).sort((p,q)=>q.o-p.o);
+ const bm=Math.max(1,...B.map(x=>x.o));
+ $("blist").innerHTML=B.length?B.map(x=>`<a class="row${x.b===SEL?" sel":""}" data-book="${x.b}" href="#detail"><span class="nm">${esc(MB[x.b]?MB[x.b].name:x.b)}</span><span class="track"><span class="fill" style="width:${x.o/bm*100}%;display:block"></span><span class="fill d" style="width:${x.d/bm*100}%"></span></span><span class="num"><b>${x.o}</b> 次<br>${x.r} 人</span></a>`).join(""):`<div class="empty">還沒有資料</div>`;
+ const H=[];for(const b in DATA.books)for(const n in DATA.books[b].ch){const c=DATA.books[b].ch[n];H.push({b,n:+n,...c});}
+ H.sort((p,q)=>q.readers-p.readers||q.o-p.o);
+ $("hlist").innerHTML=H.length?H.slice(0,10).map((c,i)=>`<a href="${link(c.b,c.n)}" target="_blank" rel="noopener"><span>${i+1}. ${esc(MB[c.b]?MB[c.b].name:c.b)} ${c.n} 章 <span class="sub">${esc(chT(c.b,c.n))}</span></span><span class="r">${c.readers} 人・讀完 ${c.o?Math.round(c.d/c.o*100):0}%</span></a>`).join(""):`<div class="empty">還沒有資料</div>`;
+ const V=DATA.verses||[];
+ $("vlist").innerHTML=V.length?V.slice(0,20).map(v=>{const [b,n,vv]=v.k.split(":");return `<a href="${link(b,n)}" target="_blank" rel="noopener"><span>${esc(MB[b]?MB[b].name:b)} ${n}:${vv}</span><span class="r">${Object.entries(v.a).map(([k,c])=>`${AN[k]||k} ${c}`).join("・")}</span></a>`}).join(""):`<div class="empty">還沒有人選經節</div>`;
+ const I=H.map(c=>{const a=Object.values(c.a||{}).reduce((x,y)=>x+y,0);return{...c,a,sc:c.readers*(c.o?c.d/c.o:0)+a*.5+c.g*.3};}).filter(c=>c.readers>0).sort((p,q)=>q.sc-p.sc).slice(0,5);
+ $("ilist").innerHTML=I.length?I.map(c=>`<div class="idea"><a href="${link(c.b,c.n)}" target="_blank" rel="noopener">${esc(MB[c.b]?MB[c.b].name:c.b)} ${c.n} 章・${esc(chT(c.b,c.n))}</a><div class="sub">${c.readers} 人讀、讀完 ${c.o?Math.round(c.d/c.o*100):0}%、經節動作 ${c.a} 次、遊戲過關 ${c.g} 次</div></div>`).join(""):`<div class="empty">累積幾天資料後會出現</div>`;
+ if(!SEL||!DATA.books[SEL])SEL=B.length?B[0].b:null;detail();}
+function detail(){document.querySelectorAll("#blist .row").forEach(r=>r.classList.toggle("sel",r.dataset.book===SEL));
+ if(!SEL){$("dtitle").textContent="各章細節";$("dsub").textContent="點上面任一卷書，就會在這裡看到每一章的數字。";$("dchs").innerHTML="";return;}
+ const m=MB[SEL],bk=DATA.books[SEL]||{ch:{},readers:0},n=(m&&m.ch?m.ch.length:0)||Math.max(0,...Object.keys(bk.ch).map(Number));
+ $("dtitle").textContent=`各章細節・${m?m.name:SEL}`;$("dsub").textContent=`${bk.readers} 位讀者讀過這卷書。格子越亮表示越多人讀；點格子會打開那一章。`;
+ const mx=Math.max(1,...Object.values(bk.ch).map(c=>c.readers));let h="";
+ for(let i=1;i<=n;i++){const c=bk.ch[i]||{o:0,d:0,g:0,x:0,readers:0,a:{}};const a=Object.values(c.a||{}).reduce((x,y)=>x+y,0);
+  h+=`<a class="ch" href="${link(SEL,i)}" target="_blank" rel="noopener"><span class="heat" style="opacity:${c.readers?.06+c.readers/mx*.2:0}"></span><div class="t">${i} 章 ${esc(chT(SEL,i))}</div><div class="s">${c.readers} 人・讀完 ${c.o?Math.round(c.d/c.o*100):0}%<br>遊戲 ${c.g}・深入 ${c.x}・經節 ${a}</div></a>`;}
+ $("dchs").innerHTML=h;}
+load();setInterval(()=>{if(document.visibilityState==="visible")load();},120000);
+</script></body></html>

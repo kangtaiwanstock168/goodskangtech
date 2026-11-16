@@ -406,6 +406,14 @@ html,body{overscroll-behavior:none}
 #rshelf{text-decoration:none;display:flex;align-items:center;justify-content:center}
 .tosh{font-size:15px;padding:7px 14px}
 
+.cvnav{display:flex;gap:8px;margin:10px 0 6px;flex-wrap:wrap}
+.cvb{font:700 15px/1 var(--sans);padding:11px 16px;border-radius:999px;border:1.5px solid #c9a35a;background:rgba(18,14,10,.72);color:#ffe3a0;cursor:pointer}
+.cvb.go{background:linear-gradient(#c79a3f,#8a6420);color:#1c1408;border-color:#e8c983}
+/* 工具列收起時，回目錄和回書架兩顆仍然看得到、點得到 */
+#reader:not(.ui) .rbar{opacity:1;transform:none;background:none;pointer-events:none}
+#reader:not(.ui) .rbar>*{opacity:0;transition:opacity .25s}
+#reader:not(.ui) .rbar>#rhome,#reader:not(.ui) .rbar>#rshelf{opacity:.6;pointer-events:auto}
+
 .bk>img.bkim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 :root{--sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 

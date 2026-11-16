@@ -1,6 +1,6 @@
 // 程式與經文：每次先抓新的，離線才用舊的。圖片：先用存好的（立刻出現），背景再對一次有沒有換圖。
 // 圖片快取 IMG 不跟版本走，改版不會把讀者已經存好的幾百張圖清掉。
-const C="bible-v23",IMG="bible-img-1";
+const C="bible-v24",IMG="bible-img-1";
 self.addEventListener("install",e=>{self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C&&k!==IMG&&/^(bible|judges)-/.test(k)).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(e.request.method!=="GET"||u.origin!==location.origin)return;

@@ -406,6 +406,9 @@ html,body{overscroll-behavior:none}
 #rshelf{text-decoration:none;display:flex;align-items:center;justify-content:center}
 .tosh{font-size:15px;padding:7px 14px}
 
+.bk>img.bkim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+:root{--sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+
 .dact{margin:18px 0 6px;padding:14px 16px;border-radius:14px;background:#2c2010;border:1.5px solid #c9a35a;color:#f6ecd4}
 .dact b{display:block;font-family:var(--sans);font-size:14px;letter-spacing:.06em;color:#e8c983;margin-bottom:6px}
 .dact p{margin:0;font-size:1.05em;line-height:1.75;font-weight:700}

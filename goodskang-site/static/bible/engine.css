@@ -413,6 +413,16 @@ html,body{overscroll-behavior:none}
 #reader:not(.ui) .rbar{opacity:1;transform:none;background:none;pointer-events:none}
 #reader:not(.ui) .rbar>*{opacity:0;transition:opacity .25s}
 #reader:not(.ui) .rbar>#rhome,#reader:not(.ui) .rbar>#rshelf{opacity:.6;pointer-events:auto}
+/* 兩顆都帶字，一看就知道去哪；收起時縮小變淡，貼在角落不擋畫面 */
+.rbar>#rhome,.rbar>#rshelf{flex-direction:column;gap:0;width:46px;height:46px;line-height:1;text-decoration:none;transition:opacity .25s,transform .25s;transform-origin:top left}
+.rbar>#rhome span,.rbar>#rshelf span{font-size:17px;line-height:1.15}
+.rbar>#rhome small,.rbar>#rshelf small{font:700 10px/1.2 var(--sans);color:#ffe3a0;letter-spacing:.04em}
+/* 工具列收起時：書頁旁邊有空位（電腦、橫放大螢幕）就一直留著；沒有空位（手機、直放）就收起來，不蓋在書頁上，點一下畫面再出現 */
+#reader:not(.ui):not(.roomy) .rbar>#rhome,#reader:not(.ui):not(.roomy) .rbar>#rshelf{opacity:0;pointer-events:none}
+#reader.roomy:not(.ui) .rbar>#rhome,#reader.roomy:not(.ui) .rbar>#rshelf{opacity:.92;pointer-events:auto}
+.nxbook{display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px}
+.endp .nxbook{color:#ffe3a0;border-color:#c9a35a}
+a.cvb{text-decoration:none;display:inline-flex;align-items:center}
 
 .bk>img.bkim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 :root{--sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}

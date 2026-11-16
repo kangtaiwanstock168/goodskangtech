@@ -1,5 +1,8 @@
-const COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
 "use strict";
+
+const COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
+const BORDER=[["genesis","創世記"],["exodus","出埃及記"],["leviticus","利未記"],["numbers","民數記"],["deuteronomy","申命記"],["joshua","約書亞記"],["judges","士師記"],["ruth","路得記"],["daniel","但以理書"],["mark","馬可福音"]];
+const BIX=BORDER.findIndex(x=>x[0]===window.BOOK.id),PREVB=BIX>0?BORDER[BIX-1]:null,NEXTB=BIX>=0&&BIX<BORDER.length-1?BORDER[BIX+1]:null;
 const $=id=>document.getElementById(id);
 let A=window.ASSET||{art:{},gtex:{},town:{},props:{}};const JDG=window.JDG,EASY=window.EASY,COMIC=window.COMIC,BOOK=window.BOOK,NCH=CH.length;
 const COVER=new Proxy({},{get:(o,k)=>(/^\d+$/.test(k)?(window.BOOK&&BOOK.cv&&BOOK.cv[k]?`img/${BOOK.cv[k]}.webp`:`img/cover-${k}.webp`):(["lion","fox","bee"].includes(k)?`img/${k}.webp`:undefined))});
@@ -124,7 +127,7 @@ function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.f
 function coverHTML(n){const c=CH[n-1],sc=COMIC[n].filter(Array.isArray).length,gm=COMIC[n].length-sc;
  return `<div class="art ${COVER[n]?"":"fb"}" style="background-image:url(${coverURL(n)})"></div><div class="sh"></div>
  <div class="top"><small>${BOOK.name} 第 ${n} 章</small><h1>${c.title}</h1></div>
- <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="cvnav"><button class="cvb" data-home="1">‹ 回目錄</button><button class="cvb go" data-go="1">翻開下一頁 ›</button></div><div class="swipe">${COARSE?"手指往左滑也可以翻頁；在第一頁往右滑＝回目錄":"也可以按鍵盤 → 或滾滑鼠翻頁；在第一頁按 ← ＝回目錄"}</div></div>`;}
+ <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="cvnav"><button class="cvb" data-home="1">⌂ 本卷目錄</button><a class="cvb" href="../">📚 書架選書</a><button class="cvb go" data-go="1">翻開下一頁 ›</button></div><div class="swipe">${COARSE?"手指往左滑也可以翻頁":"也可以按鍵盤 → 或滾滑鼠翻頁"}${n>1?"":PREVB?(COARSE?"；往右滑＝回上一卷《":"；按 ← ＝回上一卷《")+PREVB[1]+"》結尾":""}</div></div>`;}
 function gameArt(n,k){const i=R.pages.findIndex(p=>p.k===k);for(let j=i-1;j>0;j--){const P=R.pages[j];if(P&&P.t==="scene"&&P.d.ill)return P.d.ill;}return coverURL(n);}
 function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=g.q;
  if(g.g==="choice"){if(!G.ord)G.ord=shuffle([0,1,2,3]);
@@ -149,7 +152,7 @@ function nextHTML(n){const s=st(n),e=EASY[n],last=n>=NCH,nx=last?null:CH[n];
  <div class="step pray"><b>🙏 回應神</b>${e.pray||"主啊，這一章祢要我改變的是什麼？求祢幫助我今天就去做，不要只是知道。"}</div>
  <textarea id="note" placeholder="寫下今天要做的一件小事，或一句禱告（可以不寫，只存在這台裝置）">${(s.note||"").replace(/</g,"&lt;")}</textarea>
  <button class="deepbtn" data-deep="1"><em>📚</em><span><b>深度解析</b>了解背景，是為了更明白神的心</span></button>
- ${last?`<button class="btn pri wide" data-home="1">回${BOOK.name}目錄</button>`:`<button class="nxcard" data-open="${n+1}"><i style="background-image:url(${coverURL(n+1)})"></i><span><small>下一章</small><b>第 ${n+1} 章　${nx.title}</b><em>${nx.line||""}</em></span></button>`}<div class="navrow"><button class="btn ghost" data-home="1">本卷目錄</button><a class="btn ghost" href="../">📚 回書架選書</a></div></div></div></div>`;}
+ ${last?`<button class="btn pri wide" data-home="1">回${BOOK.name}目錄</button>${NEXTB?`<a class="btn ghost wide nxbook" href="../${NEXTB[0]}/#ch1">接著讀下一卷：${NEXTB[1]} ›</a>`:""}`:`<button class="nxcard" data-open="${n+1}"><i style="background-image:url(${coverURL(n+1)})"></i><span><small>下一章</small><b>第 ${n+1} 章　${nx.title}</b><em>${nx.line||""}</em></span></button>`}<div class="navrow"><button class="btn ghost" data-home="1">本卷目錄</button><a class="btn ghost" href="../">📚 回書架選書</a></div></div></div></div>`;}
 const GS={};const gs=(n,k)=>GS[n+k]||(GS[n+k]={});
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function pageEl(k,play){const P=R.pages[k];const d=document.createElement("div");d.className="pg";d.dataset.k=k;
@@ -206,7 +209,7 @@ function preSeen(){if(R.n!==1||SAVE.preSeen||!BOOK.pre)return;const P=R.pages[R.
 function autoDone(){if(R.mode==="scroll"||!R.n)return;const s=st(R.n);if(s.done)return;const ks=R.spread?[R.i,R.i+1]:[R.i];if(!ks.some(k=>R.pages[k]&&(R.pages[k].t==="end"||R.pages[k].t==="next")))return;
  s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
 function hopCh(dir){if(R.mode==="scroll")return false;if(dir>0&&R.n<NCH){const n=R.n+1;st(n).page=0;openBook(n);R.i=0;renderBook(true);return true;}
- if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}if(dir<0&&R.i===0&&R.n===1){closeBook();return true;}return false;}
+ if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}if(dir<0&&R.i===0&&R.n===1){if(PREVB){location.href="../"+PREVB[0]+"/#last";}else closeBook();return true;}if(dir>0&&R.n>=NCH&&NEXTB){location.href="../"+NEXTB[0]+"/#ch1";return true;}return false;}
 function renderBook(play){layout();autoDone();preSeen();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
  if(R.mode==="scroll"){showUI(true,true);renderScroll();return;}
  R.i=norm(R.i);const book=document.createElement("div");book.className="book";book.style.width=(R.spread?PW*2:PW)+"px";book.style.height=PH+"px";book.style.perspective=Math.round(PW*4.2)+"px";
@@ -319,7 +322,7 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
 document.addEventListener("input",e=>{if(e.target.id==="note"&&R.n){st(R.n).note=e.target.value;save();}});
 
 if("serviceWorker" in navigator){try{navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>{if(/\/bible\/[a-z]+\/$/.test(r.scope))r.unregister();}));navigator.serviceWorker.register("../sw.js",{scope:"../"});}catch(e){}}
-renderHome();const m0=location.hash.match(/^#ch(\d+)$/);if(m0&&CH[+m0[1]-1])openBook(+m0[1]);
+renderHome();const m0=location.hash.match(/^#ch(\d+)$/);if(m0&&CH[+m0[1]-1])openBook(+m0[1]);if(location.hash==="#last"){openBook(NCH);R.i=norm(lastIdx());renderBook(false);}
 
 // 滾輪／觸控板：一個手勢翻一頁，慣性滑動不會連翻
 (function(){let acc=0,lock=false,tm=0,last=0;
@@ -333,5 +336,8 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-pre]");if(
 
 // 工具列加「書架」：隨時可以回首頁選書
 (function(){const h=$("rhome");if(h&&!$("rshelf")){const a=document.createElement("a");a.id="rshelf";a.className="icon";a.href="../";a.setAttribute("aria-label","回書架選書");a.textContent="📚";h.after(a);}})();
+
+(function(){const h=$("rhome"),s=$("rshelf");if(h)h.innerHTML="<span>⌂</span><small>目錄</small>";if(s)s.innerHTML="<span>📚</span><small>書架</small>";})();
+{const _rb=renderBook;renderBook=function(p){_rb(p);try{$("reader").classList.toggle("roomy",R.mode!=="scroll"&&(innerWidth-(R.spread?PW*2:PW))/2>=112);}catch(e){}};}
 
 if(document.fonts&&document.fonts.addEventListener){let FT;document.fonts.addEventListener("loadingdone",()=>{clearTimeout(FT);FT=setTimeout(()=>{try{if($("reader").classList.contains("on")&&!FL&&!$("bt").classList.contains("on"))renderBook(false);}catch(e){}},160);});}

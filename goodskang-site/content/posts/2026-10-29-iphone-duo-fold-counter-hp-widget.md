@@ -40,7 +40,7 @@ stats: 20,000｜HP 滿血值，開合一次扣 1; 40–50 次｜阿康正常用�
 | A 打開 iPhone | [匯入 A](https://www.icloud.com/shortcuts/b8b58839bd6545138ec511bd5078c48a) |
 | B 算次數 | [匯入 B](https://www.icloud.com/shortcuts/a89d51bfad614842b9c40985935f977d) |
 | C 刪除 | [匯入 C](https://www.icloud.com/shortcuts/dfe722a85f6c4a868888904762ad93b5) |
-| D 累計 | [匯入 D](https://www.icloud.com/shortcuts/93475e469fb444fdbd3c460c7609f8ea) |
+| D 累積 | [匯入 D](https://www.icloud.com/shortcuts/22637bc9e5514043bc96c5bcce536d0d) |
 
 加完到「所有捷徑」會看到四個。iCloud 連結帶不過去「什麼時候跑」這件事，所以 A 和 C 要跑的時機，下一步自己設，兩條加起來一分鐘。
 

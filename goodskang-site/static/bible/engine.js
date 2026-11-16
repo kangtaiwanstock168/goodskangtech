@@ -360,10 +360,11 @@ function vdeco(){const J=VJ();document.querySelectorAll(".v[data-v]").forEach(p=
 function vclear(){VS=[];vbar();vdeco();}
 function vcopy(t,ok){const done=()=>toast(ok||"已複製");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,()=>vcopy2(t,done));}else vcopy2(t,done);}
 function vcopy2(t,done){const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;opacity:0;top:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");done();}catch(e){toast("請長按自行複製");}a.remove();}
+let VY=0;
 function vbar(){let b=document.getElementById("vbar");if(!VS.length){if(b)b.remove();return;}
  if(!b){b=document.createElement("div");b.id="vbar";document.body.appendChild(b);}
  const allHl=VS.every(([n,v])=>VH()[n+":"+v]),has=vnoteOf(VS[0][0],VS.map(s=>s[1]));
- b.innerHTML=`<div class="vb-top"><b>${vref()}</b><span>已選 ${VS.length} 節・再點別節可以加選</span><button data-va="x" aria-label="取消選取">✕</button></div><div class="vb-row"><button data-va="copy">📋<i>複製</i></button><button data-va="share">↗<i>分享</i></button><button data-va="hl">🖍<i>${allHl?"取消重點":"畫重點"}</i></button><button data-va="note">✏️<i>${has?"看筆記":"寫筆記"}</i></button><button data-va="pray">🙏<i>用它禱告</i></button></div>`;}
+ b.innerHTML=`<div class="vb-top"><b>${vref()}</b><span>已選 ${VS.length} 節・再點別節可以加選</span><button data-va="x" aria-label="取消選取">✕</button></div><div class="vb-row"><button data-va="copy">📋<i>複製</i></button><button data-va="share">↗<i>分享</i></button><button data-va="hl">🖍<i>${allHl?"取消重點":"畫重點"}</i></button><button data-va="note">✏️<i>${has?"看筆記":"寫筆記"}</i></button><button data-va="pray">🙏<i>用它禱告</i></button></div>`;b.classList.toggle("top",VY>innerHeight*0.5);}
 function vsheet(pray){const n=VS[0][0],vs=VS.map(s=>s[1]),o=vnoteOf(n,vs);const sh=document.createElement("div");sh.id="vsheet";
  const pre=o?o.note:(pray?"主啊，祢說：「"+vtext()+"」\n我的禱告：":"");
  sh.innerHTML=`<div class="vs-in" role="dialog" aria-label="經文筆記"><div class="vs-ref">📖 ${vref()}</div><div class="vs-txt">${vesc(vtext())}</div>
@@ -388,9 +389,8 @@ document.addEventListener("click",e=>{
  const p=e.target.closest(".v[data-v]");if(!p||document.getElementById("vsheet"))return;
  if(PD&&Math.hypot(e.clientX-PD[0],e.clientY-PD[1])>10)return;
  const sel=window.getSelection&&String(window.getSelection());if(sel&&sel.length>1)return;
- e.stopPropagation();const n=+p.dataset.n,v=+p.dataset.v;if(VS.length&&VS[0][0]!==n)VS=[];
+ e.stopPropagation();VY=e.clientY;const n=+p.dataset.n,v=+p.dataset.v;if(VS.length&&VS[0][0]!==n)VS=[];
  const i=VS.findIndex(s=>s[1]===v);if(i>=0)VS.splice(i,1);else VS.push([n,v]);VS.sort((a,b)=>a[1]-b[1]);vbar();vdeco();
- if(!SAVE.vtip){SAVE.vtip=1;save();toast("可以再點其他節一起選");}
 },true);
 let VRAF=0;new MutationObserver(()=>{if(VRAF)return;VRAF=requestAnimationFrame(()=>{VRAF=0;if(VS.length&&!$("reader").classList.contains("on")){VS=[];vbar();}if(VS.length||Object.keys(VH()).length||VJ().length)vdeco();});}).observe(document.body,{childList:true,subtree:true});
 function notesCard(){const J=VJ(),H=VH();const hk=Object.keys(H).map(k=>k.split(":").map(Number)).filter(([n,v])=>CH[n-1]);

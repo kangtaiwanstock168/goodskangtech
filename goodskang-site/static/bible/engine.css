@@ -446,6 +446,7 @@ a.cvb{text-decoration:none;display:inline-flex;align-items:center}
 .vbox .v.hasnote sup::after{content:"✏️";font-size:.8em;margin-left:2px}
 .vbox .v.sel{background:rgba(184,69,42,.14);outline:2px dashed #b8452a;outline-offset:1px}
 #vbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:9000;width:min(560px,calc(100vw - 16px));background:#1d150e;color:#ffe9c2;border:1px solid #c9a35a;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:8px 8px 6px;font-family:var(--serif,serif)}
+#vbar.top{bottom:auto;top:calc(10px + env(safe-area-inset-top))}
 #vbar .vb-top{display:flex;align-items:center;gap:8px;padding:0 4px 6px}#vbar .vb-top b{font-size:15px}#vbar .vb-top span{flex:1;font-size:12px;opacity:.7}
 #vbar .vb-top button{width:32px;height:32px;border-radius:50%;border:1px solid #5a4a33;background:transparent;color:#ffe9c2}
 #vbar .vb-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}

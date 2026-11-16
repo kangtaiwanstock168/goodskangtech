@@ -3,6 +3,7 @@
 const COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
 const BORDER=[["genesis","創世記"],["exodus","出埃及記"],["leviticus","利未記"],["numbers","民數記"],["deuteronomy","申命記"],["joshua","約書亞記"],["judges","士師記"],["ruth","路得記"],["daniel","但以理書"],["mark","馬可福音"]];
 const BIX=BORDER.findIndex(x=>x[0]===window.BOOK.id),PREVB=BIX>0?BORDER[BIX-1]:null,NEXTB=BIX>=0&&BIX<BORDER.length-1?BORDER[BIX+1]:null;
+const XI={};(window.BOOK.xi||[]).forEach(k=>{XI[k]=1;});
 const $=id=>document.getElementById(id);
 let A=window.ASSET||{art:{},gtex:{},town:{},props:{}};const JDG=window.JDG,EASY=window.EASY,COMIC=window.COMIC,BOOK=window.BOOK,NCH=CH.length;
 const COVER=new Proxy({},{get:(o,k)=>(/^\d+$/.test(k)?(window.BOOK&&BOOK.cv&&BOOK.cv[k]?`img/${BOOK.cv[k]}.webp`:`img/cover-${k}.webp`):(["lion","fox","bee"].includes(k)?`img/${k}.webp`:undefined))});
@@ -90,7 +91,7 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
     let rest=0;for(let u=v;u<=b;u++)rest+=L(u);while(rest<90&&cur.length>1){v--;cur.pop();rest+=L(v);}chunks.push(cur);const kk=Math.max(1,Math.ceil(rest/230)),tg=rest/kk;cur=[];len=0;
     for(;v<=b;v++){if(cur.length&&(len+L(v)>250||len+L(v)/2>tg)){chunks.push(cur);cur=[];len=0;}cur.push(v);len+=L(v);}
     if(cur.length)chunks.push(cur);}}
-  chunks.forEach((vs,j)=>{const y=x.slice();y[5]=vs;y.part=j;if(ill)y.ill=ill;
+  chunks.forEach((vs,j)=>{const y=x.slice();y[5]=vs;y.part=j;if(ill)y.ill=ill;if(j&&XI[n+"-"+k+"p"+j]){y.ill="img/"+n+"-"+k+"p"+j+".webp";y.own=1;y.long=vs.reduce((s,v)=>s+T[v-1].length,0)>170;}
    const lab=/^【[^】]*】/.exec(x[3]||"");y[3]=!j&&lab?lab[0]:"";
    const here=cjk(vs.map(v=>T[v-1]).join(""));
    y[4]=(x[4]||[]).filter(s=>{const c=cjk(s[1]);return c.length>1&&here.indexOf(c)>=0;});
@@ -102,7 +103,7 @@ function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs
 // 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
 function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);
- if(d.part&&d.ill)return `<div class="tband"><i style="background-image:url(${d.ill})"></i><span>${BOOK.name}・第 ${n} 章</span></div>${verses(n,vs)}`;
+ if(d.part&&d.ill&&(!d.own||(d.long&&PW<380)))return `<div class="tband"><i style="background-image:url(${d.ill})"></i><span>${BOOK.name}・第 ${n} 章</span></div>${verses(n,vs)}`;
  if(d.ill){let h=`<div class="panel ill ${fx.includes("shake")?"fx-shake":""}"><i class="pbg" style="background-image:url(${d.ill})"></i><img class="illimg" alt="" src="${d.ill}" decoding="async" ${R.mode==="scroll"?'loading="lazy"':""} draggable="false">`;
   if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("rain"))h+=`<div class="fx fx-rain"></div>`;if(fx.includes("fire"))h+=`<div class="fx fx-fire"></div>`;if(fx.includes("torch"))h+=`<div class="fx fx-torch"></div>`;
   if(ex.s)h+=`<div class="sfx" style="left:${Math.max(24,Math.min(76,ex.s[1]))}%">${ex.s[0]}</div>`;
@@ -128,7 +129,7 @@ function coverHTML(n){const c=CH[n-1],sc=COMIC[n].filter(Array.isArray).length,g
  return `<div class="art ${COVER[n]?"":"fb"}" style="background-image:url(${coverURL(n)})"></div><div class="sh"></div>
  <div class="top"><small>${BOOK.name} 第 ${n} 章</small><h1>${c.title}</h1></div>
  <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="cvnav"><button class="cvb" data-home="1">⌂ 本卷目錄</button><a class="cvb" href="../">📚 書架選書</a><button class="cvb go" data-go="1">翻開下一頁 ›</button></div><div class="swipe">${COARSE?"手指往左滑也可以翻頁":"也可以按鍵盤 → 或滾滑鼠翻頁"}${n>1?"":PREVB?(COARSE?"；往右滑＝回上一卷《":"；按 ← ＝回上一卷《")+PREVB[1]+"》結尾":""}</div></div>`;}
-function gameArt(n,k){const i=R.pages.findIndex(p=>p.k===k);for(let j=i-1;j>0;j--){const P=R.pages[j];if(P&&P.t==="scene"&&P.d.ill)return P.d.ill;}return coverURL(n);}
+function gameArt(n,k){if(XI[n+"-"+k])return "img/"+n+"-"+k+".webp";const i=R.pages.findIndex(p=>p.k===k);for(let j=i-1;j>0;j--){const P=R.pages[j];if(P&&P.t==="scene"&&P.d.ill)return P.d.ill;}return coverURL(n);}
 function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=g.q;
  if(g.g==="choice"){if(!G.ord)G.ord=shuffle([0,1,2,3]);
   G.ord.forEach(o=>{let cl="";if(G.ans!==undefined){if(o===0)cl="ok";else if(o===G.ans)cl="bad";}b+=`<button class="gopt ${cl}" data-gc="${k}" data-o="${o}">${g.o[o]}</button>`;});

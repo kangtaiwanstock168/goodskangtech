@@ -440,3 +440,25 @@ a.cvb{text-decoration:none;display:inline-flex;align-items:center}
 .dact b{display:block;font-family:var(--sans);font-size:14px;letter-spacing:.06em;color:#e8c983;margin-bottom:6px}
 .dact p{margin:0;font-size:1.05em;line-height:1.75;font-weight:700}
 .dact small{display:block;margin-top:8px;font-family:var(--sans);font-size:12.5px;line-height:1.6;color:#c9b48a}
+
+.vbox .v{cursor:pointer;border-radius:6px;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.vbox .v.hl{background:linear-gradient(transparent 38%,rgba(255,214,90,.55) 38%)}
+.vbox .v.hasnote sup::after{content:"✏️";font-size:.8em;margin-left:2px}
+.vbox .v.sel{background:rgba(184,69,42,.14);outline:2px dashed #b8452a;outline-offset:1px}
+#vbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:9000;width:min(560px,calc(100vw - 16px));background:#1d150e;color:#ffe9c2;border:1px solid #c9a35a;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.45);padding:8px 8px 6px;font-family:var(--serif,serif)}
+#vbar .vb-top{display:flex;align-items:center;gap:8px;padding:0 4px 6px}#vbar .vb-top b{font-size:15px}#vbar .vb-top span{flex:1;font-size:12px;opacity:.7}
+#vbar .vb-top button{width:32px;height:32px;border-radius:50%;border:1px solid #5a4a33;background:transparent;color:#ffe9c2}
+#vbar .vb-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+#vbar .vb-row button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;border-radius:12px;border:1px solid #5a4a33;background:#2a1f15;color:#ffe9c2;font-size:20px;padding:6px 2px}
+#vbar .vb-row button i{font-style:normal;font-size:12px;letter-spacing:.5px}
+#vsheet{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+#vsheet .vs-in{width:min(640px,100vw);max-height:92vh;overflow:auto;background:#fbf4e6;color:#2a1d12;border-radius:18px 18px 0 0;padding:16px 16px calc(14px + env(safe-area-inset-bottom));font-family:var(--serif,serif)}
+#vsheet .vs-ref{font-weight:800;color:#b8452a}#vsheet .vs-txt{font-size:17px;line-height:1.75;margin:6px 0 10px;max-height:28vh;overflow:auto}
+#vsheet .vs-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}#vsheet .vs-chips span{font-size:13px;color:#5a4a33}
+#vsheet .vs-chips button{border:1px solid #c9a35a;background:#fff;border-radius:14px;padding:5px 10px;font-size:14px;color:#2a1d12}
+#vsheet textarea{width:100%;box-sizing:border-box;font-size:17px;line-height:1.6;border:1px solid #c9a35a;border-radius:12px;padding:10px;background:#fff;color:#2a1d12;font-family:inherit}
+#vsheet .vs-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}#vsheet .vs-row button{min-height:44px;padding:0 18px;border-radius:12px;border:1px solid #c9a35a;background:transparent;font-size:16px;color:#2a1d12}
+#vsheet .vs-row .pri{background:#b8452a;color:#fff;border-color:#b8452a}#vsheet .vs-tip{font-size:12px;color:#7a6a53;margin:8px 0 0}
+.vcard summary{font-family:var(--serif,serif);font-weight:800;font-size:18px;cursor:pointer}
+.vitem{border-top:1px dashed var(--line,#5a4a33);padding:10px 0}.vgo{background:none;border:0;color:var(--brass,#c9a35a);font-weight:800;font-size:15px;padding:0}
+.vitem .vq{margin:4px 0;line-height:1.6}.vitem .vn{margin:4px 0;padding:6px 10px;border-left:3px solid #b8452a;background:rgba(184,69,42,.08);white-space:pre-wrap;line-height:1.6}

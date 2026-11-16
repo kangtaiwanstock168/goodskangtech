@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "阿康的科技生活站——靜態產生器(零依賴)",
-  "scripts": { "build": "node build.js" },
-  "engines": { "node": ">=18" }
+  "scripts": {
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/blobs": "10.7.13"
+  }
 }

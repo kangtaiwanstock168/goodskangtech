@@ -103,7 +103,7 @@ function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs
 // 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
 function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);
- if(d.part&&d.ill&&(!d.own||(d.long&&PW<380)))return `<div class="tband"><i style="background-image:url(${d.ill})"></i><span>${BOOK.name}・第 ${n} 章</span></div>${verses(n,vs)}`;
+ if(d.part&&d.ill&&(!d.own||(d.long&&PW<380)||NOART[n+"|"+k+"|"+PW+"x"+PH]))return `<div class="tband"><i style="background-image:url(${d.ill})"></i><span>${BOOK.name}・第 ${n} 章</span></div>${verses(n,vs)}`;
  if(d.ill){let h=`<div class="panel ill ${d.own?"ownp":""} ${fx.includes("shake")?"fx-shake":""}"><i class="pbg" style="background-image:url(${d.ill})"></i><img class="illimg" alt="" src="${d.ill}" decoding="async" ${R.mode==="scroll"?'loading="lazy"':""} draggable="false">`;
   if(fx.includes("rays"))h+=`<div class="fx fx-rays"></div>`;if(fx.includes("rain"))h+=`<div class="fx fx-rain"></div>`;if(fx.includes("fire"))h+=`<div class="fx fx-fire"></div>`;if(fx.includes("torch"))h+=`<div class="fx fx-torch"></div>`;
   if(ex.s)h+=`<div class="sfx" style="left:${Math.max(24,Math.min(76,ex.s[1]))}%">${ex.s[0]}</div>`;
@@ -180,7 +180,7 @@ function norm(i){if(R.spread)i=i-(i%2);return Math.max(0,Math.min(i,lastIdx()));
 function lastIdx(){const L=R.pages.length-1;return R.spread?L-(L%2):L;}
 // 經文字級自動縮到剛好放得下（每種頁面尺寸只量一次）
 const FIT={};
-function fitScene(el,k,key){const vb=el.querySelector(".vbox"),pn=el.querySelector(".panel");if(!vb)return;
+const NOART={};function fitScene(el,k,key){const vb=el.querySelector(".vbox"),pn=el.querySelector(".panel");if(!vb)return;
  const H=["","46%","40%","40%","36%","36%"];
  if(FIT[key]===undefined){const base=parseFloat(getComputedStyle(vb).fontSize);let fs=base,n=0,st=0;const over=()=>vb.scrollHeight>vb.clientHeight+1;const set=()=>{vb.style.fontSize=fs+"px";};
   if(!over()){const mx=base*(pn?1.3:1.45);while(!over()&&fs<mx&&n++<40){fs+=.5;set();}if(over()){fs-=.5;set();}}
@@ -188,6 +188,7 @@ function fitScene(el,k,key){const vb=el.querySelector(".vbox"),pn=el.querySelect
   else{const lim=[base,base,base,Math.max(16,base-2),Math.max(16,base-2),13];
    for(st=0;st<6;st++){if(H[st])pn.style.height=H[st];while(over()&&fs>lim[st]&&n++<90){fs-=.5;set();}if(!over())break;}
    if(st>5)st=5;}
+  if(pn&&pn.classList.contains("ownp")&&fs<Math.max(16,base-1)&&!NOART[key]){NOART[key]=1;const P0=R.pages[k];el.innerHTML=sceneHTML(R.n,P0.d,k)+`<span class="pno">${k}</span>`;return fitScene(el,k,key);}
   FIT[key]=[fs,st];}
  const f=FIT[key];vb.style.fontSize=f[0]+"px";if(f[1]&&pn&&H[f[1]])pn.style.height=H[f[1]];}
 // 小遊戲和結尾頁：內容超過一頁就整塊等比例縮小，永遠不用往下滑

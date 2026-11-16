@@ -173,7 +173,21 @@ function layout(){const S=$("stage"),W=S.clientWidth||innerWidth,H=S.clientHeigh
  else{PH=Math.floor(H);PW=Math.floor(H*.76);BLEED=false;}}
 function RIC(f,ms){return window.requestIdleCallback?requestIdleCallback(f,{timeout:ms||200}):setTimeout(f,ms||0);}
 function warm(n,lim){try{if(!CH[n-1])return;const u=[...new Set(buildPages(n).filter(p=>p.t==="scene"&&p.d&&p.d.ill).map(p=>p.d.ill))].slice(0,lim||999);let i=0;const nx=()=>{if(i>=u.length)return;const im=img(u[i++]);if(im.complete)nx();else im.onload=im.onerror=()=>{RIC(nx,60);};};nx();}catch(e){}}
-function openBook(n){n=+n;setTimeout(()=>warm(n),900);if(TOUCH&&!STANDALONE&&!$("reader").classList.contains("on"))goFS(true);R.n=n;CUR=CH[n-1];R.pages=buildPages(n);const s=st(n);R.i=Math.min(s.page||0,R.pages.length-1);
+
+const BST_ON=/(^|\.)goodskang\.tw$/.test(location.hostname)&&!/Headless/.test(navigator.userAgent)&&!/[?&]nostat/.test(location.search);
+let BSTQ=[],BSTT=0;
+function bstRid(){try{let r=localStorage.getItem("bst_rid");if(!r){r=Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);localStorage.setItem("bst_rid",r);}return r;}catch(_){return "anon";}}
+function bstDay(){const d=new Date(Date.now()+8*3600e3);return d.toISOString().slice(0,10);}
+function bst(t,n,x,y){if(!BST_ON)return;try{
+ if(t==="o"||t==="d"||t==="x"||t==="g"){const k="bst|"+t+"|"+BOOK.id+"|"+n+"|"+(x||"")+"|"+bstDay();if(localStorage.getItem(k))return;localStorage.setItem(k,1);}
+ BSTQ.push([t,+n,x==null?"":String(x).slice(0,12),y==null?"":String(y).slice(0,40)]);
+ clearTimeout(BSTT);BSTT=setTimeout(bstFlush,4000);}catch(_){}}
+function bstFlush(){if(!BSTQ.length)return;const body=JSON.stringify({b:BOOK.id,r:bstRid(),e:BSTQ.splice(0,40)});
+ try{if(navigator.sendBeacon&&navigator.sendBeacon("/api/bstat",new Blob([body],{type:"text/plain"})))return;}catch(_){}
+ try{fetch("/api/bstat",{method:"POST",body,keepalive:true,headers:{"content-type":"text/plain"}});}catch(_){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")bstFlush();});
+addEventListener("pagehide",bstFlush);
+function openBook(n){n=+n;bst("o",n);setTimeout(()=>warm(n),900);if(TOUCH&&!STANDALONE&&!$("reader").classList.contains("on"))goFS(true);R.n=n;CUR=CH[n-1];R.pages=buildPages(n);const s=st(n);R.i=Math.min(s.page||0,R.pages.length-1);
  if(s.done)R.i=0;$("home").classList.remove("on");$("reader").classList.add("on");document.body.style.overflow="hidden";
  $("rtitle").textContent=`第 ${n} 章・${CUR.title}`;try{history.replaceState(null,"","#ch"+n);}catch(e){}
  renderBook(true);showUI(true);if(!SAVE.hinted){SAVE.hinted=1;save();const h=document.createElement("div");h.className="hint";h.textContent=R.mode==="flip"?"左右滑動翻頁・點中間叫出選單":"往下滑繼續看";$("stage").appendChild(h);}}
@@ -211,7 +225,7 @@ function growHead(el){const eb=el.querySelector(".endp .ebody"),gh=el.querySelec
  const add=Math.min(free,Math.max(0,PH*.5-gh.offsetHeight));if(add<20)return;gh.style.flex="0 0 "+(gh.offsetHeight+add)+"px";}
 function preSeen(){if(R.n!==1||SAVE.preSeen||!BOOK.pre)return;const P=R.pages[R.i];if(P&&P.t!=="pre"){SAVE.preSeen=1;save();}}
 function autoDone(){if(R.mode==="scroll"||!R.n)return;const s=st(R.n);if(s.done)return;const ks=R.spread?[R.i,R.i+1]:[R.i];if(!ks.some(k=>R.pages[k]&&(R.pages[k].t==="end"||R.pages[k].t==="next")))return;
- s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
+ if(!s.done)bst("d",R.n);s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
 function hopCh(dir){if(R.mode==="scroll")return false;if(dir>0&&R.n<NCH){const n=R.n+1;st(n).page=0;openBook(n);R.i=0;renderBook(true);return true;}
  if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}if(dir<0&&R.i===0&&R.n===1){if(PREVB){location.href="../"+PREVB[0]+"/#last";}else closeBook();return true;}if(dir>0&&R.n>=NCH&&NEXTB){location.href="../"+NEXTB[0]+"/#first";return true;}return false;}
 function renderBook(play){layout();autoDone();preSeen();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
@@ -291,11 +305,11 @@ let RT=0;window.addEventListener("resize",()=>{clearTimeout(RT);RT=setTimeout(()
 // 只重畫目前看得到的頁面（小遊戲用）
 function refresh(k){const el=$("stage").querySelector(`.pg[data-k="${k}"]`);if(!el)return;const sc=el.querySelector(".gbody,.ebody");const top=sc?sc.scrollTop:0;const n=pageEl(k,false);n.classList.add("play");if(R.mode==="scroll")n.style.width=el.style.width;el.replaceWith(n);const s2=n.querySelector(".gbody,.ebody");fitBody(n);}
 function renderChallenge(){const k=R.pages.findIndex(p=>p.t==="game"&&p.d.g==="battle");if(k>=0){if(st(R.n).ch)solve(k,true);refresh(k);}}
-function solve(k,quiet){const P=R.pages[k];if(!P||P.t!=="game")return;const s=st(R.n);if(!s.games[P.k]){s.games[P.k]=1;save();if(!quiet){sfx("ok");confetti();}}}
+function solve(k,quiet){const P=R.pages[k];if(!P||P.t!=="game")return;const s=st(R.n);if(!s.games[P.k]){s.games[P.k]=1;bst("g",R.n,P.k);save();if(!quiet){sfx("ok");confetti();}}}
 let BTP=null;
 function loadBattle(){if(BTP)return BTP;toast("戰鬥載入中…");const ld=src=>new Promise((ok,no)=>{const e=document.createElement("script");e.src=src;e.onload=ok;e.onerror=no;document.body.appendChild(e);});
  BTP=ld("assets.js").then(()=>{A=window.ASSET;return ld("battle.js");});BTP.catch(()=>{BTP=null;});return BTP;}
-function openDeep(n){const c=CH[n-1],D=window.DEEP[n],L=D.s.length;
+function openDeep(n){bst("x",n);const c=CH[n-1],D=window.DEEP[n],L=D.s.length;
  let h=`<button class="dx" data-deepx="1" aria-label="關閉深度解析">✕</button><div class="dwrap"><div class="dhead" style="background-image:url(${coverURL(n)})"><small>${BOOK.name} 第 ${n} 章・深度解析</small><h1>${c.title}</h1></div><div class="dbody"><div class="dlead">${D.lead}</div><div class="dheart">了解背景，是為了更明白神的心、回頭看自己，不是為了比別人懂得多，更不是拿來量別人。</div>`;
  D.s.forEach(([t,...ps],i)=>{h+=`<div class="dsec ${i===L-1?"last":""}"><h3><i>${i+1}</i>${t}</h3>${ps.map(p=>`<p>${p}</p>`).join("")}</div>`;});
  if(D.act)h+=`<div class="dact"><b>👣 這禮拜試試看</b><p>${D.act}</p><small>不是多一項功課。挑一件做得到的小事，讓今天讀的落到生活裡。</small></div>`;
@@ -321,7 +335,7 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
  if(b.dataset.gm!==undefined){const G=gs(R.n,b.dataset.gm);G.c=(G.c||0)+1;if(G.c>P.d.n)return;sfx(G.c===P.d.n?"crit":"hit");if(G.c===P.d.n){solve(k);refresh(k);return;}const m=pg.querySelector(".meter i");if(m)m.style.width=(G.c/P.d.n*100)+"%";b.classList.remove("hit");void b.offsetWidth;b.classList.add("hit");return;}
  if(b.dataset.battle){loadBattle().then(()=>startBattle(b.dataset.battle),()=>toast("戰鬥載入失敗，請檢查網路再試一次"));return;}
  if(b.dataset.copy){const e=EASY[R.n],t=`「${JDG[R.n-1][e.key-1]}」（${BOOK.name} ${R.n}:${e.key}）`;try{navigator.clipboard.writeText(t).then(()=>toast("已複製"),()=>toast("無法複製，請長按經文"));}catch(_){toast("無法複製，請長按經文");}return;}
- if(b.dataset.finish){const s=st(R.n);const t=document.getElementById("note");if(t)s.note=t.value;s.done=1;s.page=0;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name}上架的 ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);refresh(k);if(R.mode==="flip")setTimeout(()=>{if(!FL&&$("reader").classList.contains("on"))go(1);},900);return;}
+ if(b.dataset.finish){const s=st(R.n);const t=document.getElementById("note");if(t)s.note=t.value;if(!s.done)bst("d",R.n);s.done=1;s.page=0;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name}上架的 ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);refresh(k);if(R.mode==="flip")setTimeout(()=>{if(!FL&&$("reader").classList.contains("on"))go(1);},900);return;}
 });
 document.addEventListener("input",e=>{if(e.target.id==="note"&&R.n){st(R.n).note=e.target.value;save();}});
 
@@ -379,7 +393,7 @@ document.addEventListener("click",e=>{
  const c=e.target.closest("[data-vc]");if(c){e.stopPropagation();const ta=document.getElementById("vsta");ta.value=(ta.value&&!/\n$/.test(ta.value)?ta.value+"\n":ta.value)+c.dataset.vc;ta.focus();return;}
  const s=e.target.closest("[data-vs]");if(s){e.stopPropagation();const a=s.dataset.vs;if(a==="save"){vsave();toast("筆記存好了");}if(a==="del"){document.getElementById("vsta").value="";vsave();toast("已刪除");}document.getElementById("vsheet").remove();vclear();return;}
  if(e.target.id==="vsheet"){e.target.remove();return;}
- const b=e.target.closest("[data-va]");if(b){e.stopPropagation();const a=b.dataset.va;
+ const b=e.target.closest("[data-va]");if(b){e.stopPropagation();const a=b.dataset.va;if(a!=="x"&&VS.length)bst("v",VS[0][0],a,VS.map(s=>s[1]).join(","));
   if(a==="x")return vclear();
   if(a==="copy"){vcopy(vshare(),"已複製經文（含出處）");return vclear();}
   if(a==="share"){const t=vshare();if(navigator.share){navigator.share({text:t}).catch(()=>{});}else vcopy(t,"已複製，可以貼到 LINE 或訊息");return vclear();}

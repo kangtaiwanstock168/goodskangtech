@@ -391,6 +391,11 @@ html,body{overscroll-behavior:none}
 .prbody h2{font-family:var(--serif);font-size:1.5em;line-height:1.25;margin:0 0 .45em;color:#ffe3a0}
 .prbody p{margin:0 0 .7em;font-size:1em}
 .prnext{flex:none;text-align:right;font:700 14px/1 var(--sans);color:#c9a35a}
+/* 導讀偶數頁：字在上、圖在下，跨頁時一上一下成對角，跟經文頁同一個節奏 */
+.prep2.flip{flex-direction:column-reverse}
+.prep2.flip .primg{border-bottom:0;border-top:4px solid #c9a35a}
+.prep2.flip .prbody{padding-top:calc(12px + var(--st,0px))}
+.prep2.flip .prbody>.prtag{position:static;align-self:flex-start;flex:none}
 /* 章末回應：同樣深色，鑰節維持米色（那是經文） */
 .endp .ebody{background:#17110c;color:#f6ecd4}
 .endp .step{background:#241a10;border-color:#5a4426;color:#f6ecd4}

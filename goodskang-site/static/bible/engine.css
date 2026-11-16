@@ -463,3 +463,37 @@ a.cvb{text-decoration:none;display:inline-flex;align-items:center}
 .vcard summary{font-family:var(--serif,serif);font-weight:800;font-size:18px;cursor:pointer}
 .vitem{border-top:1px dashed var(--line,#5a4a33);padding:10px 0}.vgo{background:none;border:0;color:var(--brass,#c9a35a);font-weight:800;font-size:15px;padding:0}
 .vitem .vq{margin:4px 0;line-height:1.6}.vitem .vn{margin:4px 0;padding:6px 10px;border-left:3px solid #b8452a;background:rgba(184,69,42,.08);white-space:pre-wrap;line-height:1.6}
+
+#b2{position:fixed;inset:0;z-index:300;display:none;background:#0d0a07;color:#f6ead2;overflow:hidden;touch-action:manipulation}
+#b2.on{display:block}
+#b2.shake{animation:b2s .28s}
+@keyframes b2s{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+.b2bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:background-image .4s}
+.b2bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 30%,rgba(0,0,0,.15) 55%,rgba(0,0,0,.8) 100%)}
+.b2top{position:absolute;left:0;right:0;top:0;padding:calc(12px + env(safe-area-inset-top)) 16px 0;z-index:2}
+.b2top b{font-size:19px;font-family:"Noto Serif TC",serif;text-shadow:0 2px 6px #000}
+.b2top small{font-size:12px;opacity:.85}
+.b2x{position:absolute;right:12px;top:calc(8px + env(safe-area-inset-top));width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:18px}
+.b2bar{height:12px;border-radius:6px;background:rgba(255,255,255,.2);margin:10px 50px 2px 0;overflow:hidden}
+.b2bar i{display:block;height:100%;background:linear-gradient(90deg,#c8553a,#e0b25c);transition:width .35s}
+.b2mid{position:absolute;left:0;right:0;bottom:calc(230px + env(safe-area-inset-bottom));padding:0 18px;z-index:2;display:flex;justify-content:center}
+.b2line{max-width:620px;font-size:19px;line-height:1.6;background:rgba(10,7,4,.72);border-left:3px solid #e0b25c;padding:12px 14px;border-radius:0 12px 12px 0;margin:0}
+.b2pad{position:absolute;left:0;right:0;bottom:0;height:calc(220px + env(safe-area-inset-bottom));z-index:2;cursor:pointer}
+.b2ring,.b2dot{position:absolute;left:50%;top:95px;width:110px;height:110px;border-radius:50%;transform:translate(-50%,-50%)}
+.b2ring{border:4px solid #e0b25c;box-shadow:0 0 24px rgba(224,178,92,.6)}
+.b2dot{border:3px solid rgba(255,255,255,.85);background:radial-gradient(circle,rgba(255,240,200,.35),rgba(255,240,200,0) 70%)}
+.b2tip{position:absolute;left:0;right:0;top:165px;text-align:center;font-size:15px;opacity:.9}
+.b2sp{position:absolute;left:50%;bottom:calc(60px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:3;max-width:90%;padding:18px 22px;border-radius:18px;border:0;background:linear-gradient(180deg,#f3d27e,#c8902f);color:#2a1a08;font-size:20px;font-weight:800;box-shadow:0 8px 30px rgba(224,178,92,.6);animation:b2p 1s infinite alternate}
+@keyframes b2p{to{transform:translateX(-50%) scale(1.05)}}
+.b2win{max-width:640px;background:rgba(18,13,8,.86);border:1px solid #6b5230;border-radius:16px;padding:16px 18px;font-size:16px;line-height:1.75}
+.b2win h2{margin:0 0 6px;color:#e0b25c;font-family:"Noto Serif TC",serif}
+.b2back{margin-top:10px;width:100%;padding:13px;border:0;border-radius:12px;background:#e0b25c;color:#1a1209;font-size:17px;font-weight:700}
+#b2 .b2mid:has(.b2win){bottom:calc(24px + env(safe-area-inset-bottom))}
+
+u.gl{text-decoration:none;border-bottom:1.5px dashed rgba(200,144,47,.85);cursor:help}
+#glpop{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:400;max-width:min(92vw,520px);background:#1d160f;color:#f3e6cf;border:1px solid #6b5230;border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.6;box-shadow:0 10px 30px rgba(0,0,0,.5);transition:.25s}
+#glpop.on{opacity:1;transform:translate(-50%,0)}
+#glpop b{display:block;color:#e0b25c;margin-bottom:2px}
+.skipst{display:block;margin:6px auto 0;padding:7px 14px;border-radius:999px;border:1px solid #c8902f;background:rgba(224,178,92,.15);color:inherit;font-size:13px;font-weight:700}
+.listnote{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:rgba(20,14,8,.72);color:#f3e6cf;font-size:14px;line-height:1.6}
+.listnote .skipst{display:inline-block;margin:6px 0 0}

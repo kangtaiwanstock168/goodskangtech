@@ -1,6 +1,38 @@
 "use strict";
 
-window.NOBATTLE=true;
+window.NOBATTLE=false;
+const LISTCH={"genesis": [5, 10, 11, 36, 46], "exodus": [6], "numbers": [1, 2, 3, 7, 26, 33, 34], "joshua": [12, 13, 15, 18, 19, 21], "chronicles1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 23, 24, 25, 26, 27], "ezra": [2, 8, 10], "nehemiah": [3, 7, 10, 11, 12]},GLOS={"燔祭": "把整隻祭牲完全燒在壇上獻給神，表示全然奉獻。", "平安祭": "獻祭後，一部分和家人一起吃，表示和神、和人有平安的關係。", "贖罪祭": "為犯罪的人獻上的祭，表示罪需要付代價才能得赦免。", "素祭": "用細麵、油、乳香獻的祭，不是動物，表示把勞動的成果獻給神。", "以弗得": "祭司穿在外面的背心式聖衣；後來也有人做成假的，拿來拜偶像。", "邱壇": "在高處設的祭壇，常用來拜偶像，就算拜耶和華也不是神指定的地方。", "亞舍拉": "迦南人拜的女神，常用木柱代表。", "巴力": "迦南人拜的雨神、豐收之神，是以色列最常跟著拜的假神。", "約櫃": "放兩塊法版的木櫃，外面包金，代表神與百姓同在、立約的記號。", "會幕": "曠野時期可以拆裝搬動的帳幕，是百姓聚集敬拜神的地方。", "帳幕": "神吩咐摩西造的聖所，可以搬動，代表神住在百姓中間。", "施恩座": "約櫃上面的金蓋子，大祭司每年在這裡灑血為百姓贖罪。", "利未人": "利未支派的人，專門負責會幕和聖殿的服事，不分地業。", "割禮": "割去男子包皮的記號，表示屬於和神立約的百姓。", "未受割禮": "不屬於神立約百姓的人；常用來指非利士人。", "拿細耳人": "特別分別出來歸給神的人：不喝酒、不剃頭、不碰死屍。", "士師": "神興起來拯救百姓、帶領百姓的領袖，不是法官的意思。", "先知": "替神傳話的人，常常要對王和百姓說他們不想聽的真話。", "受膏": "把油倒在頭上，表示被神揀選、分別出來作王、祭司或先知。", "受膏者": "被神膏立的人；希伯來文是「彌賽亞」，希臘文是「基督」。", "長子名分": "長子可以多得一份產業，也承接家族的領導和祝福。", "至聖所": "聖殿最裡面放約櫃的房間，只有大祭司一年進去一次。", "陰間": "舊約說人死後去的地方。", "麻衣": "粗糙的麻布衣服，穿上表示悲傷、悔改。", "撕裂衣服": "極度悲傷或震驚時的表現。", "逾越節": "記念神擊殺埃及長子時「越過」以色列家的節期。", "安息日": "每週第七天，停下工作來記念神、休息。", "什一": "收入的十分之一，獻給神。", "烏陵和土明": "大祭司胸牌裡用來求問神旨意的物件。", "基路伯": "聖經中守護神同在的天使，常刻在約櫃和聖殿上。", "大袞": "非利士人拜的神。", "摩洛": "亞捫人拜的神，要求把孩子經火獻祭，神極其厭惡。", "基抹": "摩押人拜的神。", "外邦人": "不是以色列人的各民族。", "肘": "長度單位，約 45 公分（手肘到中指尖）。", "舍客勒": "重量和錢的單位，約 11 公克的銀子。", "他連得": "很大的重量單位，約 34 公斤。", "伊法": "量糧食的單位，約 22 公升。", "贖價": "為了換回生命或自由而付出的代價。", "聖別": "分別出來，專屬於神。", "不潔淨": "照律法暫時不能進入敬拜的狀態，不一定是犯罪。", "立約": "雙方正式承諾、彼此有義務的關係；神主動和人立約。"};const GLRE=new RegExp("("+Object.keys(GLOS).sort((a,b)=>b.length-a.length).join("|")+")");
+function isList(n){return (LISTCH[BOOK.id]||[]).includes(+n);}
+let GLSEEN=new Set();
+function glw(t){if(!t)return t;let used=false;return t.replace(new RegExp(GLRE.source,"g"),m=>{if(used||GLSEEN.has(m))return m;used=true;GLSEEN.add(m);return `<u class="gl" data-gl="${m}">${m}</u>`;});}
+function skipChip(){return isList(R.n)?`<button class="skipst" data-skipst="1">名單較長，跳到這章的重點 ›</button>`:"";}
+window.addEventListener("click",e=>{const g=e.target.closest&&e.target.closest("[data-gl]");if(g){e.stopPropagation();e.preventDefault();
+  let b=document.getElementById("glpop");if(!b){b=document.createElement("div");b.id="glpop";document.body.appendChild(b);}
+  b.innerHTML=`<b>${g.dataset.gl}</b>${GLOS[g.dataset.gl]}`;b.className="on";clearTimeout(b._t);b._t=setTimeout(()=>b.className="",4200);return;}
+ const k=e.target.closest&&e.target.closest("[data-skipst]");if(k){e.stopPropagation();e.preventDefault();const i=R.pages.findIndex(p=>p.t==="end");if(i>=0){R.i=i;renderBook(true);}}},true);
+
+const B2={"ehud": {"t": "以笏刺殺伊磯倫", "h": "以笏", "intro": "左手便利的以笏帶著一肘長的兩刃劍，去見肥胖的摩押王伊磯倫。（3:15–16）", "beats": ["「以笏說：我有神的旨意報告你。」（3:20）", "「以笏便伸左手，從右腿上拔出劍來。」（3:21）", "「以笏…吹角，以色列人從山地下來。」（3:27）"], "sp": "耶和華已將你們的仇敵交在你們手中！（3:28）", "win": "「這樣，摩押就被以色列人制伏了。國中太平八十年。」（3:30）<br>以笏不是最強的人。左手在當時常被看成缺陷，卻成了神藏好的那把劍。"}, "barak": {"t": "他泊山下迎戰鐵車", "h": "巴拉", "intro": "底波拉說：「起來！今日就是耶和華將西西拉交在你手的日子。」（4:14）", "beats": ["「巴拉就下了他泊山，跟隨他有一萬人。」（4:14）", "「星宿從天上爭戰，從其軌道攻擊西西拉。」（5:20）", "「基順古河把敵人沖沒。」（5:21）"], "sp": "耶和華豈不在你前頭行嗎？（4:14）", "win": "「西西拉下車，步行逃跑。」（4:15）<br>九百輛鐵車在大雨的泥濘裡成了負擔。榮耀不歸巴拉，也不歸鐵車，而是歸給在前頭行的神。"}, "gideon": {"t": "三百勇士夜襲米甸營", "h": "基甸", "intro": "三更之初，三百人分三隊，手拿角和空瓶，瓶裡藏著火把。（7:16）", "beats": ["第一隊：打破瓶子！（7:19）", "第二隊：舉起火把！（7:20）", "第三隊：吹角！（7:20）"], "sp": "耶和華和基甸的刀！（7:20）", "win": "「耶和華使全營的人用刀互相擊殺。」（7:22）<br>三百人沒有一個人拔刀上前，他們只是「各站各的地方」（7:21）。這場勝利唯一的武器，是讓人看見：是神打的仗。"}, "jephthah": {"t": "耶弗他戰亞捫", "h": "耶弗他", "intro": "被兄弟趕出家門的人，現在被請回來帶領基列人迎戰亞捫。（11:5–6）", "beats": ["「耶和華的靈降在耶弗他身上。」（11:29）", "「耶弗他往亞捫人那裡去，與他們爭戰。」（11:32）", "「從亞羅珥到米匿，直到亞備勒基拉明。」（11:33）"], "sp": "耶和華將他們交在他手中！（11:32）", "win": "攻取了二十座城（11:33）。<br>但勝利之前那個魯莽的許願（11:30–31），讓凱旋變成悲劇。神不需要被賄賂，祂早已把靈賜下了。"}, "samson1": {"t": "驢腮骨擊殺一千人", "h": "參孫", "intro": "新繩子綁著參孫被交給非利士人。（15:13）", "beats": ["「耶和華的靈大大感動參孫。」（15:14）", "「他臂上的繩就像火燒的麻一樣。」（15:14）", "「他見一塊未乾的驢腮骨，就伸手拾起。」（15:15）"], "sp": "我用驢腮骨殺了一千人！（15:16）", "win": "「神就使利希的窪處裂開，有水從其中湧出。參孫喝了，精神復原。」（15:19）<br>擊殺一千人的英雄，下一刻渴得快死。他的力量從來不是自己的。"}, "samson2": {"t": "推倒大袞廟", "h": "參孫", "intro": "眼睛被挖、被銅鍊鎖住的參孫，被帶到大袞廟裡戲耍。房頂上約有三千男女在看。（16:21、27）", "beats": ["「求你眷念我。」（16:28）", "「參孫就抱住托房的那兩根柱子。」（16:29）", "「參孫說：我情願與非利士人同死！」（16:30）"], "sp": "神啊，求你賜我這一次的力量！（16:28）", "win": "「他死時所殺的人，比活著所殺的還多。」（16:30）<br>參孫最強的一刻，是他什麼都看不見、只能求告的那一刻。這是士師記最後一位士師。"}};
+function startB2(k){const C=B2[k];if(!C)return;const pi=R.i;let hit=0,run=true,t0=performance.now(),raf=0;
+ let o=document.getElementById("b2");if(!o){o=document.createElement("div");o.id="b2";document.body.appendChild(o);}
+ o.className="on";o.innerHTML=`<div class="b2bg" style="background-image:url(img/bt-${k}-1.webp)"></div><div class="b2top"><b>⚔ ${C.t}</b><button class="b2x" data-b2x="1" aria-label="離開">✕</button><div class="b2bar"><i style="width:100%"></i></div><small>敵軍士氣</small></div>
+ <div class="b2mid"><p class="b2line">${C.intro}</p></div>
+ <div class="b2pad" data-b2tap="1"><div class="b2ring"></div><div class="b2dot"></div><span class="b2tip">光圈縮到金框裡的時候，點一下！</span></div>`;
+ const dot=o.querySelector(".b2dot"),line=o.querySelector(".b2line"),bar=o.querySelector(".b2bar i"),tip=o.querySelector(".b2tip");
+ function loop(t){if(!run)return;const p=((t-t0)/1400)%1;const s=1.9-p*1.5;dot.style.transform=`translate(-50%,-50%) scale(${s})`;dot.dataset.s=s;raf=requestAnimationFrame(loop);}
+ raf=requestAnimationFrame(loop);
+ function tap(){if(!run)return;const s=+dot.dataset.s;
+  if(s>.7&&s<1.3){hit++;sfx("ok");o.classList.remove("shake");void o.offsetWidth;o.classList.add("shake");bar.style.width=Math.max(0,100-hit*30)+"%";line.textContent=C.beats[hit-1];tip.textContent=hit<3?`擊中 ${hit} / 3`:"";
+   if(hit>=3){run=false;cancelAnimationFrame(raf);o.querySelector(".b2pad").outerHTML=`<button class="b2sp" data-b2sp="1">${C.sp}</button>`;}}
+  else{tip.textContent=s>=1.3?"再等一下…":"太晚了，再一次";}}
+ function win(){bar.style.width="0%";const s=st(R.n);s.ch=1;save();solve(pi,true);sfx("ok");confetti();
+  o.querySelector(".b2bg").style.backgroundImage=`url(img/bt-${k}-2.webp)`;
+  o.querySelector(".b2mid").innerHTML=`<div class="b2win"><h2>${C.h}得勝了</h2><p>${C.win}</p><button class="b2back" data-b2x="1">回到讀經</button></div>`;
+  const sp=o.querySelector(".b2sp");if(sp)sp.remove();}
+ o.onclick=e=>{if(e.target.closest("[data-b2x]")){run=false;cancelAnimationFrame(raf);o.className="";o.innerHTML="";renderBook(true);return;}
+  if(e.target.closest("[data-b2sp]")){win();return;}
+  if(e.target.closest("[data-b2tap]"))tap();};
+ new Image().src=`img/bt-${k}-2.webp`;}
+
 
 const COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
 const BORDER=[["genesis","創世記"],["exodus","出埃及記"],["leviticus","利未記"],["numbers","民數記"],["deuteronomy","申命記"],["joshua","約書亞記"],["judges","士師記"],["ruth","路得記"],["samuel1","撒母耳記上"],["samuel2","撒母耳記下"],["kings1","列王紀上"],["kings2","列王紀下"],["chronicles1","歷代志上"],["chronicles2","歷代志下"],["ezra","以斯拉記"],["nehemiah","尼希米記"],["esther","以斯帖記"],["daniel","但以理書"],["mark","馬可福音"]];
@@ -100,8 +132,8 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
    const ex=Object.assign({},x[6]||{});if(j){ex.s=null;ex.fx=(ex.fx||"").replace("big","");}y[6]=ex;
    P.push({t:"scene",d:y});});});
  P.push({t:"end"},{t:"next"});return P;}
-function verses(n,vs){const V=JDG[n-1];const ref=vs.length>1&&vs[vs.length-1]-vs[0]===vs.length-1?`${vs[0]}–${vs[vs.length-1]}`:vs.join("、");
- return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span>${vs.map(v=>V[v-1]?`<p class="v" data-n="${n}" data-v="${v}"><sup>${v}${V[v]===""?"–"+(v+1):""}</sup>${V[v-1]}</p>`:"").join("")}</div>`;}
+function verses(n,vs){const V=JDG[n-1];GLSEEN=new Set();const ref=vs.length>1&&vs[vs.length-1]-vs[0]===vs.length-1?`${vs[0]}–${vs[vs.length-1]}`:vs.join("、");
+ return `<div class="vbox"><span class="vr">📖 ${BOOK.name} ${n}:${ref}</span>${vs.map(v=>V[v-1]?`<p class="v" data-n="${n}" data-v="${v}"><sup>${v}${V[v]===""?"–"+(v+1):""}</sup>${glw(V[v-1])}</p>`:"").join("")}</div>`;}
 // 旁白如果幾乎就是下面那段經文，就不重複顯示，把空間留給放大的經文
 function dupCap(cap,n,vs){if(!cap||cap.charAt(0)==="【")return false;const cl=s=>s.replace(/[^一-鿿]/g,"");const c=cl(cap),t=cl(vs.map(v=>JDG[n-1][v-1]||"").join(""));if(c.length<4)return false;let hit=0,tot=0;for(let i=0;i<c.length-1;i++){tot++;if(t.indexOf(c.substr(i,2))>=0)hit++;}return hit/tot>=.72;}
 function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.fx||"").split(" ").filter(Boolean);
@@ -144,7 +176,7 @@ function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=
   (fin?g.items.map((x,i)=>i):G.pool).forEach(i=>{b+=`<button class="gopt ${i<G.got?"ok":""} ${G.bad===i?"shk":""}" data-go2="${k}" data-i="${i}">${i<G.got?(i+1)+"．":""}${g.items[i]}</button>`;});
   if(fin)b+=`<div class="gfb"><b>排好了！</b><br>${g.w}</div>`;}
  else if(g.g==="mash"){const c=G.c||0,fin=c>=g.n;b+=`<div class="mash"><button class="tgt" data-gm="${k}" aria-label="連點">${COVER[g.img]?`<img alt="" src="${COVER[g.img]}" draggable="false">`:`<span style="font-size:110px">${EMO[g.img]}</span>`}</button><div class="meter"><i style="width:${Math.min(100,c/g.n*100)}%"></i></div><div class="mlab">${fin?"成功！":g.label}</div></div>${fin?`<div class="gfb">${g.done}</div>`:""}`;}
- else if(g.g==="battle"){const won=!!s.ch;q=`換你上場：${BTITLE[g.k]}`;b+=`<button class="btcard" data-battle="${g.k}"><div class="art" style="background-image:url(${coverURL(BCOVER[g.k])})"></div><em>${won?"再打一次":"點我開打"}</em><span>⚔ ${BTITLE[g.k]}</span></button><p class="bhelp">點畫面上的敵人，主角就會衝過去攻擊；能量滿了按右下角的大按鈕。${won?"<br><b>✓ 已經打贏過了！</b>":""}</p>`;}
+ else if(g.g==="battle"){const won=!!s.ch;q=`換你上場：${BTITLE[g.k]}`;b+=`<button class="btcard" data-battle="${g.k}"><div class="art" style="background-image:url(${coverURL(BCOVER[g.k])})"></div><em>${won?"再打一次":"點我開打"}</em><span>⚔ ${BTITLE[g.k]}</span></button><p class="bhelp">看準時機點三下，再按金色按鈕。${won?"<br><b>✓ 已經打贏過了！</b>":""}</p>`;}
  return `<div class="gm g-${g.g}"><div class="ghead" style="background-image:url(${gameArt(n,k)})"><span class="tag">🎮 小遊戲${solved?"　✓ 過關":""}</span><h2>${q}</h2></div><div class="gbody"><div class="fitin">${b}</div></div></div>`;}
 function endHTML(n){const c=CH[n-1],e=EASY[n],s=st(n),V=JDG[n-1];
  return `<div class="endp"><div class="ghead ehead" style="background-image:url(${coverURL(n)})"><span class="tag">📝 第 ${n} 章・靈修回應</span><h2>先停一下，別急著翻</h2></div><div class="ebody"><div class="fitin"><div class="keyv"><div class="rf">帶走一句經文・${BOOK.name} ${n}:${e.key}</div><div class="tx">${V[e.key-1]}</div><button class="btn ghost" data-copy="1" style="min-height:36px;font-size:14px">複製這節經文</button></div>
@@ -160,8 +192,8 @@ const GS={};const gs=(n,k)=>GS[n+k]||(GS[n+k]={});
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function pageEl(k,play){const P=R.pages[k];const d=document.createElement("div");d.className="pg";d.dataset.k=k;
  if(!P){d.style.background="#e8dcc0";return d;}
- if(P.t==="cover"){d.classList.add("cover");d.innerHTML=coverHTML(R.n);}
- else if(P.t==="scene"){d.innerHTML=sceneHTML(R.n,P.d,k)+`<span class="pno">${k}</span>`;}
+ if(P.t==="cover"){d.classList.add("cover");d.innerHTML=coverHTML(R.n);if(isList(R.n)){const t=d.querySelector(".chips");if(t)t.insertAdjacentHTML("afterend",`<p class="listnote">📋 這章有長名單，名字不用記，可以快速看過或直接跳到重點。${skipChip()}</p>`);}}
+ else if(P.t==="scene"){d.innerHTML=sceneHTML(R.n,P.d,k)+`<span class="pno">${k}</span>`;if(isList(R.n)){const vb=d.querySelector(".vbox");if(vb)vb.insertAdjacentHTML("beforeend",skipChip());}}
  else if(P.t==="game"){d.innerHTML=gameHTML(R.n,P.d,P.k);}
  else if(P.t==="pre")d.innerHTML=preHTML(P.d,P.k); else if(P.t==="next")d.innerHTML=nextHTML(R.n);else d.innerHTML=endHTML(R.n);
  if(play)requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add("play")));return d;}
@@ -335,7 +367,7 @@ document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b
  if(b.dataset.gpchk!==undefined){const G=gs(R.n,b.dataset.gpchk);G.chk=1;const good=P.d.items.every(([t,ok],i)=>!!ok===!!G.sel[i]);if(good)solve(k);else sfx("bad");refresh(k);return;}
  if(b.dataset.go2!==undefined){const G=gs(R.n,b.dataset.go2);const i=+b.dataset.i;if(i<G.got)return;if(i===G.got){G.got++;G.bad=-1;sfx("pop");if(G.got===P.d.items.length)solve(k);}else{G.bad=i;sfx("bad");}refresh(k);return;}
  if(b.dataset.gm!==undefined){const G=gs(R.n,b.dataset.gm);G.c=(G.c||0)+1;if(G.c>P.d.n)return;sfx(G.c===P.d.n?"crit":"hit");if(G.c===P.d.n){solve(k);refresh(k);return;}const m=pg.querySelector(".meter i");if(m)m.style.width=(G.c/P.d.n*100)+"%";b.classList.remove("hit");void b.offsetWidth;b.classList.add("hit");return;}
- if(b.dataset.battle){loadBattle().then(()=>startBattle(b.dataset.battle),()=>toast("戰鬥載入失敗，請檢查網路再試一次"));return;}
+ if(b.dataset.battle){startB2(b.dataset.battle);return;}
  if(b.dataset.copy){const e=EASY[R.n],t=`「${JDG[R.n-1][e.key-1]}」（${BOOK.name} ${R.n}:${e.key}）`;try{navigator.clipboard.writeText(t).then(()=>toast("已複製"),()=>toast("無法複製，請長按經文"));}catch(_){toast("無法複製，請長按經文");}return;}
  if(b.dataset.finish){const s=st(R.n);const t=document.getElementById("note");if(t)s.note=t.value;if(!s.done)bst("d",R.n);s.done=1;s.page=0;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name}上架的 ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);refresh(k);if(R.mode==="flip")setTimeout(()=>{if(!FL&&$("reader").classList.contains("on"))go(1);},900);return;}
 });

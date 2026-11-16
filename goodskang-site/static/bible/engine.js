@@ -1,5 +1,7 @@
 "use strict";
 
+window.NOBATTLE=true;
+
 const COARSE=!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
 const BORDER=[["genesis","創世記"],["exodus","出埃及記"],["leviticus","利未記"],["numbers","民數記"],["deuteronomy","申命記"],["joshua","約書亞記"],["judges","士師記"],["ruth","路得記"],["samuel1","撒母耳記上"],["samuel2","撒母耳記下"],["kings1","列王紀上"],["kings2","列王紀下"],["chronicles1","歷代志上"],["chronicles2","歷代志下"],["ezra","以斯拉記"],["nehemiah","尼希米記"],["esther","以斯帖記"],["daniel","但以理書"],["mark","馬可福音"]];
 const BIX=BORDER.findIndex(x=>x[0]===window.BOOK.id),PREVB=BIX>0?BORDER[BIX-1]:null,NEXTB=BIX>=0&&BIX<BORDER.length-1?BORDER[BIX+1]:null;
@@ -14,7 +16,7 @@ function save(){try{localStorage.setItem(SK,JSON.stringify(SAVE));}catch(e){}}
 const st=n=>SAVE.ch[n]||(SAVE.ch[n]={done:0,games:{},page:0,note:"",ch:0});
 const doneCount=()=>CH.filter(c=>SAVE.ch[c.n]&&SAVE.ch[c.n].done).length;
 const gamesDone=()=>Object.values(SAVE.ch).reduce((a,s)=>a+Object.keys(s.games||{}).length,0);
-const gamesTotal=()=>Object.values(COMIC).reduce((a,l)=>a+l.filter(x=>!Array.isArray(x)).length,0);
+const gamesTotal=()=>Object.values(COMIC).reduce((a,l)=>a+l.filter(x=>!Array.isArray(x)&&!(x.g==="battle"&&window.NOBATTLE)).length,0);
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
 function streak(){const set=new Set(SAVE.days);let s=0;const d=new Date();if(!set.has(today()))d.setDate(d.getDate()-1);while(set.has(d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate())){s++;d.setDate(d.getDate()-1);}return s;}
 const starHTML=()=>"";
@@ -61,8 +63,8 @@ function renderHome(){const n=nextCh(),c=CH[n-1],D=doneCount(),all=D===NCH,s=SAV
  <div class="today"><div class="cv" style="background-image:url(${coverURL(n)})"></div><div class="bd"><div class="lab">${all?"上架的都讀完了":D?"今天讀這一章":"從這裡開始"}</div><h2>第 ${n} 章　${c.title}</h2><div class="meta">${c.who}・${COMIC[n].length} 頁漫畫＋小遊戲</div>${BOOK.pre?`<button class="btn ghost wide" data-pre="1" style="margin-bottom:8px">📖 先看導讀：這卷書在講什麼？</button>`:""}<button class="btn pri wide" data-open="${n}">${all?"再看一次":resume?"接著看":D?"翻開第 "+n+" 章":"翻開第一章"}</button></div></div>
  ${installTip()}
  <div class="stats"><div class="stat"><b>${D}</b><span>讀完章數 / ${NCH}</span></div><div class="stat"><b>${streak()}</b><span>連續讀經天數</span></div><div class="stat"><b>${gamesDone()}</b><span>小遊戲過關 / ${gamesTotal()}</span></div></div>
- <div class="card"><h3>${NCH} 本漫畫</h3><p class="note" style="margin:0 0 10px">一章就是一本。${BOOK.battle?"⚔ 的章節可以親自上場打仗。":""}${BOOK.more||""}</p>
-  <div class="shelf">${CH.map(c=>{const d=SAVE.ch[c.n]&&SAVE.ch[c.n].done;return `<button class="bk ${c.n===n&&!all?"cur":""}" data-open="${c.n}" aria-label="第 ${c.n} 章 ${c.title}"><img class="bkim" alt="" loading="lazy" decoding="async" src="../th/${BOOK.id}-${c.n}.webp" onerror="this.onerror=null;this.src=coverURL(${c.n})"><i>${c.n}${c.battle?" ⚔":""}</i>${d?`<span class="ok">✓</span>`:""}<b>${c.title}</b></button>`;}).join("")}</div></div>
+ <div class="card"><h3>${NCH} 本漫畫</h3><p class="note" style="margin:0 0 10px">一章就是一本。${(BOOK.battle&&!window.NOBATTLE)?"⚔ 的章節可以親自上場打仗。":""}${BOOK.more||""}</p>
+  <div class="shelf">${CH.map(c=>{const d=SAVE.ch[c.n]&&SAVE.ch[c.n].done;return `<button class="bk ${c.n===n&&!all?"cur":""}" data-open="${c.n}" aria-label="第 ${c.n} 章 ${c.title}"><img class="bkim" alt="" loading="lazy" decoding="async" src="../th/${BOOK.id}-${c.n}.webp" onerror="this.onerror=null;this.src=coverURL(${c.n})"><i>${c.n}${(c.battle&&!window.NOBATTLE)?" ⚔":""}</i>${d?`<span class="ok">✓</span>`:""}<b>${c.title}</b></button>`;}).join("")}</div></div>
  ${notesCard()}<div class="card"><h3>閱讀方式</h3><div class="seg"><button data-mode="flip" class="${R.mode==="flip"?"on":""}">📖 翻頁（左右滑）</button><button data-mode="scroll" class="${R.mode==="scroll"?"on":""}">📜 條漫（往下滑）</button></div><p class="note" style="margin:8px 0 0">左右滑翻頁，每一頁都剛好一個畫面；電腦用滾輪、觸控板或方向鍵也可以翻。iPad 橫放、Duo 打開橫拿、電腦會自動變成左右兩頁。</p></div>
  <details class="card intro"${D?"":" open"}><summary>第一次讀${BOOK.name}？先看這 1 分鐘</summary>${BOOK.intro.replace("{cycle}",cycleSVG())}
   <p>每一頁漫畫下面都是真的和合本經文。看漫畫的時候順便讀那兩三句，就讀完一章了。</p></details>
@@ -82,7 +84,7 @@ function buildPages(n){const P=[];if(n===1&&BOOK.pre&&BOOK.pre.length&&!SAVE.pre
  const sc=[];COMIC[n].forEach((x,k)=>{if(Array.isArray(x))sc.push(x);});
  const st=[];sc.forEach((x,i)=>{let m=Math.min.apply(null,x[5].length?x[5]:[1]);m=i?Math.max(m,st[i-1]+1):1;st.push(m);});
  let si=0;
- COMIC[n].forEach((x,k)=>{if(!Array.isArray(x)){P.push({t:"game",d:x,k:"g"+k});return;}
+ COMIC[n].forEach((x,k)=>{if(!Array.isArray(x)){if(x.g==="battle"&&window.NOBATTLE)return;P.push({t:"game",d:x,k:"g"+k});return;}
   const a=st[si],b=si===sc.length-1?N:Math.min(N,st[si+1]-1);si++;if(a>b)return;
   const ill=(window.NOILL||[]).includes(n+"-"+k)?"":`img/${n}-${k}.webp`;x.ill=ill;
   const chunks=[];{const L=v=>T[v-1].length;let tot=0;for(let v=a;v<=b;v++)tot+=L(v);
@@ -128,7 +130,7 @@ function sceneHTML(n,d,k){const [mood,gr,cast,cap,say,vs,ex={}]=d;const fx=(ex.f
 function coverHTML(n){const c=CH[n-1],sc=COMIC[n].filter(Array.isArray).length,gm=COMIC[n].length-sc;
  return `<div class="art ${COVER[n]?"":"fb"}" style="background-image:url(${coverURL(n)})"></div><div class="sh"></div>
  <div class="top"><small>${BOOK.name} 第 ${n} 章</small><h1>${c.title}</h1></div>
- <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${c.battle?`<span>⚔ 實戰</span>`:""}</div><div class="cvnav"><button class="cvb" data-home="1">⌂ 本卷目錄</button><a class="cvb" href="../">📚 書架選書</a><button class="cvb go" data-go="1">翻開下一頁 ›</button></div><div class="swipe">${COARSE?"手指往左滑也可以翻頁":"也可以按鍵盤 → 或滾滑鼠翻頁"}${n>1?"":PREVB?(COARSE?"；往右滑＝回上一卷《":"；按 ← ＝回上一卷《")+PREVB[1]+"》結尾":""}</div></div>`;}
+ <div class="bot"><p>${c.line}</p><div class="chips"><span>${c.who}</span><span>${JDG[n-1].length} 節經文全收</span><span>${gm} 個小遊戲</span>${(c.battle&&!window.NOBATTLE)?`<span>⚔ 實戰</span>`:""}</div><div class="cvnav"><button class="cvb" data-home="1">⌂ 本卷目錄</button><a class="cvb" href="../">📚 書架選書</a><button class="cvb go" data-go="1">翻開下一頁 ›</button></div><div class="swipe">${COARSE?"手指往左滑也可以翻頁":"也可以按鍵盤 → 或滾滑鼠翻頁"}${n>1?"":PREVB?(COARSE?"；往右滑＝回上一卷《":"；按 ← ＝回上一卷《")+PREVB[1]+"》結尾":""}</div></div>`;}
 function gameArt(n,k){if(XI[n+"-"+k])return "img/"+n+"-"+k+".webp";const i=R.pages.findIndex(p=>p.k===k);for(let j=i-1;j>0;j--){const P=R.pages[j];if(P&&P.t==="scene"&&P.d.ill)return P.d.ill;}return coverURL(n);}
 function gameHTML(n,g,k){const s=st(n),G=gs(n,k),solved=!!s.games[k];let b="",q=g.q;
  if(g.g==="choice"){if(!G.ord)G.ord=shuffle([0,1,2,3]);
@@ -362,7 +364,7 @@ if(document.fonts&&document.fonts.addEventListener){let FT;document.fonts.addEve
 
 // ===== 經文工具 =====
 let VS=[],PD=null;
-function VH(){return SAVE.hl||(SAVE.hl={});}function VJ(){return SAVE.jn||(SAVE.jn=[]);}
+function VHL(){return SAVE.hl||(SAVE.hl={});}function VJ(){return SAVE.jn||(SAVE.jn=[]);}
 function vesc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function vrefOf(n,vs){vs=vs.slice().sort((a,b)=>a-b);const parts=[];let a=vs[0],b=a;for(let i=1;i<=vs.length;i++){if(vs[i]===b+1){b=vs[i];continue;}parts.push(a===b?a:a+"–"+b);a=b=vs[i];}return BOOK.name+" "+n+":"+parts.join("、");}
 function vref(){return vrefOf(VS[0][0],VS.map(s=>s[1]));}
@@ -370,14 +372,14 @@ function vtextOf(n,vs){return vs.slice().sort((a,b)=>a-b).map(v=>JDG[n-1][v-1]||
 function vtext(){return vtextOf(VS[0][0],VS.map(s=>s[1]));}
 function vshare(){return "「"+vtext()+"」\n— "+vref()+"（和合本）\n"+location.origin+location.pathname+"#ch"+VS[0][0];}
 function vnoteOf(n,vs){const k=vs.slice().sort((a,b)=>a-b).join(",");return VJ().find(j=>j.n===n&&j.vs.join(",")===k);}
-function vdeco(){const J=VJ();document.querySelectorAll(".v[data-v]").forEach(p=>{const n=+p.dataset.n,v=+p.dataset.v;p.classList.toggle("hl",!!VH()[n+":"+v]);p.classList.toggle("hasnote",J.some(j=>j.n===n&&j.vs.includes(v)));p.classList.toggle("sel",VS.some(s=>s[0]===n&&s[1]===v));});}
+function vdeco(){const J=VJ();document.querySelectorAll(".v[data-v]").forEach(p=>{const n=+p.dataset.n,v=+p.dataset.v;p.classList.toggle("hl",!!VHL()[n+":"+v]);p.classList.toggle("hasnote",J.some(j=>j.n===n&&j.vs.includes(v)));p.classList.toggle("sel",VS.some(s=>s[0]===n&&s[1]===v));});}
 function vclear(){VS=[];vbar();vdeco();}
 function vcopy(t,ok){const done=()=>toast(ok||"已複製");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,()=>vcopy2(t,done));}else vcopy2(t,done);}
 function vcopy2(t,done){const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;opacity:0;top:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");done();}catch(e){toast("請長按自行複製");}a.remove();}
 let VY=0;
 function vbar(){let b=document.getElementById("vbar");if(!VS.length){if(b)b.remove();return;}
  if(!b){b=document.createElement("div");b.id="vbar";document.body.appendChild(b);}
- const allHl=VS.every(([n,v])=>VH()[n+":"+v]),has=vnoteOf(VS[0][0],VS.map(s=>s[1]));
+ const allHl=VS.every(([n,v])=>VHL()[n+":"+v]),has=vnoteOf(VS[0][0],VS.map(s=>s[1]));
  b.innerHTML=`<div class="vb-top"><b>${vref()}</b><span>已選 ${VS.length} 節・再點別節可以加選</span><button data-va="x" aria-label="取消選取">✕</button></div><div class="vb-row"><button data-va="copy">📋<i>複製</i></button><button data-va="share">↗<i>分享</i></button><button data-va="hl">🖍<i>${allHl?"取消重點":"畫重點"}</i></button><button data-va="note">✏️<i>${has?"看筆記":"寫筆記"}</i></button><button data-va="pray">🙏<i>用它禱告</i></button></div>`;b.classList.toggle("top",VY>innerHeight*0.5);}
 function vsheet(pray){const n=VS[0][0],vs=VS.map(s=>s[1]),o=vnoteOf(n,vs);const sh=document.createElement("div");sh.id="vsheet";
  const pre=o?o.note:(pray?"主啊，祢說：「"+vtext()+"」\n我的禱告：":"");
@@ -397,7 +399,7 @@ document.addEventListener("click",e=>{
   if(a==="x")return vclear();
   if(a==="copy"){vcopy(vshare(),"已複製經文（含出處）");return vclear();}
   if(a==="share"){const t=vshare();if(navigator.share){navigator.share({text:t}).catch(()=>{});}else vcopy(t,"已複製，可以貼到 LINE 或訊息");return vclear();}
-  if(a==="hl"){const all=VS.every(([n,v])=>VH()[n+":"+v]);VS.forEach(([n,v])=>{if(all)delete VH()[n+":"+v];else VH()[n+":"+v]=Date.now();});save();toast(all?"已取消重點":"畫好重點了");return vclear();}
+  if(a==="hl"){const all=VS.every(([n,v])=>VHL()[n+":"+v]);VS.forEach(([n,v])=>{if(all)delete VHL()[n+":"+v];else VHL()[n+":"+v]=Date.now();});save();toast(all?"已取消重點":"畫好重點了");return vclear();}
   if(a==="note"||a==="pray"){vsheet(a==="pray");return;}
   return;}
  const p=e.target.closest(".v[data-v]");if(!p||document.getElementById("vsheet"))return;
@@ -406,8 +408,8 @@ document.addEventListener("click",e=>{
  e.stopPropagation();VY=e.clientY;const n=+p.dataset.n,v=+p.dataset.v;if(VS.length&&VS[0][0]!==n)VS=[];
  const i=VS.findIndex(s=>s[1]===v);if(i>=0)VS.splice(i,1);else VS.push([n,v]);VS.sort((a,b)=>a[1]-b[1]);vbar();vdeco();
 },true);
-let VRAF=0;new MutationObserver(()=>{if(VRAF)return;VRAF=requestAnimationFrame(()=>{VRAF=0;if(VS.length&&!$("reader").classList.contains("on")){VS=[];vbar();}if(VS.length||Object.keys(VH()).length||VJ().length)vdeco();});}).observe(document.body,{childList:true,subtree:true});
-function notesCard(){const J=VJ(),H=VH();const hk=Object.keys(H).map(k=>k.split(":").map(Number)).filter(([n,v])=>CH[n-1]);
+let VRAF=0;new MutationObserver(()=>{if(VRAF)return;VRAF=requestAnimationFrame(()=>{VRAF=0;if(VS.length&&!$("reader").classList.contains("on")){VS=[];vbar();}if(VS.length||Object.keys(VHL()).length||VJ().length)vdeco();});}).observe(document.body,{childList:true,subtree:true});
+function notesCard(){const J=VJ(),H=VHL();const hk=Object.keys(H).map(k=>k.split(":").map(Number)).filter(([n,v])=>CH[n-1]);
  if(!J.length&&!hk.length)return `<div class="card vcard"><h3>📝 我的畫線與筆記</h3><p class="note" style="margin:0">讀漫畫時，<b>點一下經文</b>（可以連點好幾節），就能複製、分享給朋友、畫重點、寫靈修筆記，或直接用這段經文禱告。</p></div>`;
  const items=[];J.forEach(j=>items.push({t:j.t,n:j.n,vs:j.vs,note:j.note}));
  const byCh={};hk.forEach(([n,v])=>{if(!J.some(j=>j.n===n&&j.vs.includes(v)))(byCh[n]=byCh[n]||[]).push(v);});

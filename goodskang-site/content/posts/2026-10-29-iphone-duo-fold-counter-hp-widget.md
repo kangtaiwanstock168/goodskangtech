@@ -114,15 +114,33 @@ const today = readLines("duo_today.txt").filter(l => l.trim() === "open").length
 
 const byDay = {}
 let cur = null
-for (const l of readLines("duo_history.txt")) {
-  const m = l.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
-  if (m) {
-    const d = new Date(+m[1], +m[2] - 1, +m[3])
+let undated = 0
+function parseDay(l) {
+  let m = l.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/)
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3])
+  m = l.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/)
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3])
+  m = l.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/)
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2])
+  const t = Date.parse(l.replace(/\s+at\s+/i, " ").replace(/[上下]午/g, ""))
+  return isNaN(t) ? null : new Date(t)
+}
+for (const raw of readLines("duo_history.txt")) {
+  const l = raw.trim()
+  if (!l) continue
+  if (l === "open") {
+    if (cur) byDay[cur]++
+    else undated++
+    continue
+  }
+  const d = parseDay(l)
+  if (d) {
+    d.setHours(0, 0, 0, 0)
     d.setDate(d.getDate() - 1)
     cur = d.toDateString()
     if (!(cur in byDay)) byDay[cur] = 0
-  } else if (l.trim() === "open" && cur) {
-    byDay[cur]++
+  } else {
+    cur = null
   }
 }
 
@@ -136,7 +154,7 @@ function sumFrom(start) {
   for (const k in byDay) if (new Date(k) >= start) s += byDay[k]
   return s
 }
-const hist = sumFrom(new Date(0))
+const hist = sumFrom(new Date(0)) + undated
 const week = sumFrom(weekStart) + today
 const month = sumFrom(monthStart) + today + BASE
 const total = BASE + hist + today
@@ -343,6 +361,25 @@ Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，`
 ➡️ 按右上角「下一步」
 🔍 第二頁才是捷徑清單，這時搜尋框打「打開 iPhone」就會看到「A 打開 iPhone」
 📂 下一步之後還是沒有：回「所有捷徑」看 A 是不是真的加進來了，沒有就回第②步再點一次「匯入 A」
+```
+
+### Q11. 當天有算，隔天累計就歸零
+兩個原因，看你是按 D 還是看桌面 Widget。
+
+按 D 看累計：11/16 前匯入的 D 讀錯檔案，數的是今天不是歷史，照下面改一格就好。
+
+```steps
+📱 「所有捷徑」找到「D 累計」，點右上角「⋯」打開編輯
+📄 第一格「取得檔案」，把「duo_today.txt」改成「duo_history.txt」
+✅ 右上角「完成」，再按一次 D 就是正確的累計
+```
+
+看桌面 Widget：手機語言不是中文的話，舊版程式讀不懂歷史檔裡的日期，以前的次數就沒算進去。11/16 已更新程式，重新貼一次就好，以前的次數都還在，貼完會自己補回來。
+
+```steps
+📋 回第⑤步，按黃色「一鍵複製程式碼」
+📜 打開 Scriptable 的「Duo」，空白處長按「全選」→「貼上」蓋掉舊的 → 右上角「完成」
+👆 點一下桌面 Widget，累計就回來了
 ```
 
 ## 稱號長什麼樣

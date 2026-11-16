@@ -421,7 +421,7 @@ html,body{overscroll-behavior:none}
 #reader:not(.ui):not(.roomy) .rbar>#rhome,#reader:not(.ui):not(.roomy) .rbar>#rshelf{opacity:0;pointer-events:none}
 #reader.roomy:not(.ui) .rbar>#rhome,#reader.roomy:not(.ui) .rbar>#rshelf{opacity:.92;pointer-events:auto}
 .nxbook{display:flex;align-items:center;justify-content:center;text-decoration:none;margin-top:8px}
-.endp .nxbook{color:#ffe3a0;border-color:#c9a35a}
+.endp a.btn.ghost.nxbook{color:#ffe3a0!important;border:1.5px solid #c9a35a!important;background:#241a10!important;font-weight:700;min-height:44px}
 a.cvb{text-decoration:none;display:inline-flex;align-items:center}
 
 .bk>img.bkim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}

@@ -26,7 +26,7 @@ function md(src){
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" loading="lazy">')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t, u) => u.startsWith('#') ? `<a href="${u}">${t}</a>` : `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)
     .replace(/(^|[^"'>=])(https?:\/\/[^\s<]+)/g, (m, pre, u) => `${pre}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
   const stepsHtml = lines => { const items = lines.filter(l => l.trim()); return `<div class="steps">${items.map((l, i) => { const m = l.trim().match(/^(\p{Extended_Pictographic}\uFE0F?)\s*(.*)$/u); const ic = m ? m[1] : String(i + 1); const t = m ? m[2] : l.trim(); const html = inline(t).replace(/「([^」]+)」/g, '<span class="tok">$1</span>'); return `<div class="step c${i % 6}"><span class="ic">${ic}</span><span class="t">${html}</span></div>`; }).join('')}</div>`; };
   const out = []; let list = null, para = [], tbl = null, code = null, codeLang = '';

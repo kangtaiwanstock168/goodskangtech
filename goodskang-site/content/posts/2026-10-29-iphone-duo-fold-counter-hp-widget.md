@@ -16,7 +16,7 @@ stats: 20,000｜HP 滿血值，開合一次扣 1; 40–50 次｜阿康正常用�
 
 網路一直傳摺疊機鉸鏈開合一萬次就會出問題。這是傳聞，Apple 沒公布 iPhone Duo 鉸鏈的測試次數。阿康不信，但想親眼看，所以從拿到手那天起每開一次都記。
 
-桌面一個 Widget，兩萬滴血，開一次扣一滴，每一千次升一級換稱號。阿康正常用一天開 40 到 50 次，到今天累計 153 次；照這速度一萬次大約 2027 年年中到，兩萬滴血 2028 年初扣完。
+桌面一個 Widget，兩萬滴血，開一次扣一滴，每一千次升一級換稱號。阿康正常用一天開 40 到 50 次，10/29 時累計 153 次；11/18 換了一支新的 Duo，血條從 0 重新算，照這速度一萬次大約 2027 年 6 月底到，兩萬滴血 2028 年 2 月前後扣完。
 
 ![摺疊機之路 Widget：累計 153、今天 52、HP 剩 19,847](/img/duo-widget-153.jpg)
 
@@ -190,7 +190,7 @@ let firstDay = dayStart
 for (const k in byDay) { const d = new Date(k); if (d < firstDay) firstDay = d }
 const startDay = START || firstDay
 const days = Math.max(1, Math.round((dayStart - startDay) / 86400000) + 1)
-const rate = total / days
+const rate = (total - BASE) / days
 const daysLeft = rate > 0 ? Math.round(hp / rate) : 0
 const zero = new Date(now); zero.setDate(zero.getDate() + daysLeft)
 const df = new DateFormatter(); df.dateFormat = "yyyy/MM/dd"
@@ -257,7 +257,7 @@ fill.size = new Size(Math.max(2, 300 * hpPct), 6)
 bar.addSpacer()
 
 w.addSpacer(4)
-const ft = w.addText("每天約 " + rate.toFixed(1) + " 次・照這速度 " + df.string(zero) + " 血條歸零")
+const ft = w.addText(rate > 0 ? "每天約 " + rate.toFixed(1) + " 次・照這速度 " + df.string(zero) + " 血條歸零" : "開合幾次之後，這裡會算出血條哪天歸零")
 ft.font = Font.systemFont(9); ft.textColor = new Color("#6b7090"); ft.minimumScaleFactor = 0.8
 
 w.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000)
@@ -293,12 +293,12 @@ Script.complete()
 
 每一題都是「你在 iPhone Duo 上會看到的畫面」。捷徑 App 攤開時分頁在左邊側欄，闔起來時在畫面最下面，位置不同、名字一樣。
 
-### Q1. 「自動化」清單裡找不到「iPhone 打開時」／點連結寫「此自動化操作需要較新版本的捷徑」
-你的 iOS 還是 27.1。「iPhone 打開時」這個條件是 27.2 才有的，27.1 的清單裡不會有它。
+### Q1. 「自動化」清單裡找不到「iPhone 已打開」／點連結寫「此自動化操作需要較新版本的捷徑」
+你的 iOS 還是 27.1。「iPhone 已打開」（舊畫面叫「iPhone 打開時」）這個條件是 27.2 才有的，27.1 的清單裡不會有它。
 
 ```steps
 ⚙️ 「設定」→「一般」→「軟體更新」，更新到 iOS 27.2
-🔁 回第③步建自動化，這次清單裡就有「iPhone 打開時」了；捷徑不用重新匯入
+🔁 回第③步建自動化，這次清單裡就有「iPhone 已打開」了；捷徑不用重新匯入
 ```
 
 ### Q2. C 的「特定時間」要怎麼設？為什麼是四點？
@@ -311,7 +311,7 @@ C 是「換天」用的：每天 04:00 把今天的紀錄搬進歷史檔、今�
 A 沒有在每次打開時跑，照卡片順序查，查到哪張不對就修哪張：
 
 ```steps
-📂 「自動化」分頁有「iPhone 打開時」這條嗎？沒有 → 回第③步建；清單裡找不到這個條件 → 看 Q1
+📂 「自動化」分頁有「iPhone 已打開」這條嗎？沒有 → 回第③步建；清單裡找不到這個條件 → 看 Q1
 ⚡ 點進那條，「已啟用」有打開嗎？舊版畫面要是「立即執行」，「確認後執行」每次只會跳通知，不會自己記
 🧩 下面的動作是「執行捷徑 → A」嗎？如果是「打開」，刪掉換成「執行捷徑」
 ▶️ 回「所有捷徑」手動按一下 A，跳「要允許取用檔案嗎」按「永遠允許」。自動化在背景跑不會問你，沒按過會悄悄失敗
@@ -343,7 +343,7 @@ IG 和 FB 自己的瀏覽器會擋剪貼簿。
 🧭 還是不行：用 Safari 開 https://goodskang.tw/Duo.txt ，長按「全選」→「拷貝」
 ```
 
-### Q7. 開合完 Widget 數字沒動／整塊紅字「No bookmark named "Shortcuts" found」
+### Q7. 開合完 Widget 數字沒動／整塊紅字「No bookmark named "Shortcuts"」或「Cannot resolve bookmark named "Shortcuts"」
 數字沒動是正常的，Widget 不是即時的：
 
 ```steps
@@ -351,13 +351,20 @@ IG 和 FB 自己的瀏覽器會擋剪貼簿。
 👆 想馬上看到最新數字，點一下 Widget 就立刻重算
 ```
 
-紅字是 Scriptable 找不到書籤：Scriptable → 左上齒輪 →「File Bookmarks」，書籤名稱要是「Shortcuts」（S 大寫），沒有就照第⑤步加一個，加完點一下 Widget 紅字就消失。
+兩種紅字都是 Scriptable 的書籤出問題：「No bookmark」是根本沒建，「Cannot resolve」是建了但指到的資料夾找不到（選到「最近項目」或手機本機的資料夾，或資料夾被刪過又重新長出來）。兩種都照這樣重建：
+
+```steps
+⚙️ Scriptable → 左上齒輪 →「File Bookmarks」，有舊的「Shortcuts」就往左滑刪掉
+➕ 「＋」→「Pick Folder」，一定要從最下面「瀏覽」→「iCloud 雲碟」→「捷徑」進去，不要從「最近項目」點
+✏️ 右上角「打開」，名稱打「Shortcuts」（S 大寫）→「Save」
+👆 點一下桌面 Widget，紅字消失
+```
 
 ### Q8. 我拿到 Duo 已經開過很多次了，想從真實數字開始
 Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，右上角「完成」，點一下 Widget 就會算進去。「每天約幾次」會自動從你第一天有紀錄的日期開始算，不用另外設定日期。
 
 ### Q9. 我不是 Duo 可以玩嗎？資料會傳到阿康那邊嗎？
-別的 iPhone 不行，「iPhone 打開時」只有 iPhone Duo 的捷徑有。資料哪都不傳，三個檔案都在你自己 iCloud 雲碟的「捷徑」資料夾，捷徑和 Scriptable 都在你手機上跑，阿康看不到你開幾次。
+別的 iPhone 不行，「iPhone 已打開」這個條件只有 iPhone Duo 的捷徑有。資料哪都不傳，三個檔案都在你自己 iCloud 雲碟的「捷徑」資料夾，捷徑和 Scriptable 都在你手機上跑，阿康看不到你開幾次。
 
 ### Q10. 建自動化的畫面跟教學不一樣：有「下一步」那頁／搜尋框找不到 A
 捷徑 App 有兩種畫面。新版只有一頁：選完條件直接在同一頁下面加動作（就是第③步的卡片）。舊版有兩頁：第一頁選條件，按「下一步」才到捷徑清單，第一頁的搜尋框只搜觸發條件，搜不到捷徑。
@@ -400,8 +407,8 @@ Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，�
 📄 「檔案」App →「瀏覽」→「iCloud 雲碟」→「捷徑」，duo_today.txt 和 duo_history.txt 各點開一次，旁邊的雲朵消失才算下載好
 ▶️ 「所有捷徑」手動按一次 A，跳「要允許取用檔案嗎」按「永遠允許」
 ▶️ C 也手動按一次，按「永遠允許」（今天已記的次數會先算到昨天，總累計不會少）
-📂 「自動化」分頁確認「iPhone 打開時 → A」和「04:00 → C」兩條都在、「已啟用」都打開，沒有就照第③步重建
-📁 Scriptable → 左上齒輪 →「File Bookmarks」→「＋」→「Pick Folder」→「瀏覽」→「iCloud 雲碟」→「捷徑」→「打開」，名稱打「Shortcuts」→「Save」
+📂 「自動化」分頁確認「iPhone 已打開 → 執行 A」和「04:00 → 執行 C」兩條都在、「已啟用」都打開，沒有就照第③步重建
+📁 Scriptable 的書籤只存在舊手機，新手機要重建，照 Q7 那四張卡做
 👆 點一下桌面 Widget，紅字消失、數字回來
 ```
 
@@ -429,7 +436,7 @@ Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，�
 
 ## 原理，想知道再看
 
-iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhone 打開時」。A 就是跟著這條自動化跑：每次展開手機，往 iCloud 的 duo_today.txt 加一行 open。B 數這個檔有幾行，就是今天幾次。C 每天 04:00 把 duo_today.txt 整包搬進 duo_history.txt、再清空，這就是換天。D 數歷史檔裡的 open，就是以前的總和。Widget 把兩個加起來畫成血條。
+iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhone 已打開」。A 就是跟著這條自動化跑：每次展開手機，往 iCloud 的 duo_today.txt 加一行 open。B 數這個檔有幾行，就是今天幾次。C 每天 04:00 把 duo_today.txt 整包搬進 duo_history.txt、再清空，這就是換天。D 數歷史檔裡的 open，就是以前的總和。Widget 把兩個加起來畫成血條。
 
 三個檔案都在 iCloud 雲碟的「捷徑」資料夾（英文叫 Shortcuts），用「檔案」App 打得開，資料在你自己手上，不經過任何伺服器。
 
@@ -437,6 +444,6 @@ iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhon
 
 ## 阿康自己最想看的
 
-一萬次那天它還好不好。前三天都在測試手機，第四天起正常用，一天 40 到 50 次。照這個速度，一萬次大約落在 2027 年 6 月，兩萬滴血 2028 年初扣完。中間如果鉸鏈真的出事，從第一天到出事那天每一次都有紀錄，到時候再來一篇。
+一萬次那天它還好不好。11/18 阿康換了一支新的 Duo，血條從 0 重新開始，正常用一天 40 到 50 次。照這個速度，一萬次大約落在 2027 年 6 月底，兩萬滴血 2028 年 2 月前後扣完。中間如果鉸鏈真的出事，從第一天到出事那天每一次都有紀錄，到時候再來一篇。
 
-資料來源：累計 153 次、今天 52 次為阿康 2026-10-29 17:20 手機桌面 Widget 截圖；「一天 40 到 50 次」為 10/26 起正常使用的實際紀錄，一萬次與兩萬次日期以每天 45 次推算；「一萬次會壞」為網路傳聞，Apple 未公布 iPhone Duo 鉸鏈測試次數；四條捷徑為 iOS 27.2 實機建立並以 iCloud 連結分享；iOS 27.2 正式版於 2026-10-26（台灣 10/27）推出、iPhone Duo 出廠為 iOS 27.1，依 Apple 開發者發佈資訊；iCloud 分享連結在他人裝置上不會帶入自動化觸發條件、需自行建立，為 10/30 觀眾於 iOS 27.2 實測；常見問題整理自 10/29–30 觀眾私訊回報；Scriptable 讀取 Shortcuts 資料夾需先設 File Bookmark，依 Scriptable 官方文件 https://docs.scriptable.app/filemanager 。
+資料來源：累計 153 次、今天 52 次為阿康 2026-10-29 17:20 手機桌面 Widget 截圖；「一天 40 到 50 次」為 10/26 起正常使用的實際紀錄，一萬次與兩萬次日期以 2026-11-18 換新機從 0 起算、每天 45 次推算；「一萬次會壞」為網路傳聞，Apple 未公布 iPhone Duo 鉸鏈測試次數；四條捷徑為 iOS 27.2 實機建立並以 iCloud 連結分享；iOS 27.2 正式版於 2026-10-26（台灣 10/27）推出、iPhone Duo 出廠為 iOS 27.1，依 Apple 開發者發佈資訊；iCloud 分享連結在他人裝置上不會帶入自動化觸發條件、需自行建立，為 10/30 觀眾於 iOS 27.2 實測；第③步新版自動化畫面（「已啟用」開關、動作用「執行捷徑」）為阿康 2026-11-18 於新 iPhone Duo 實機操作確認；常見問題整理自 10/29–11/18 觀眾私訊與阿康換機實測；Scriptable 讀取 Shortcuts 資料夾需先設 File Bookmark，依 Scriptable 官方文件 https://docs.scriptable.app/filemanager 。

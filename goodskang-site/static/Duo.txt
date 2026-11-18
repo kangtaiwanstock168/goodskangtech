@@ -2,7 +2,7 @@ const fm = FileManager.iCloud()
 const dir = fm.bookmarkedPath("Shortcuts")
 const BASE = 0
 const GOAL = 20000
-const START = new Date(2026, 9, 23)
+const START = null
 const LV_STEP = 1000
 
 function readLines(name) {
@@ -81,12 +81,16 @@ const lvColor = lv >= 11 ? new Color("#ffd700")
               : new Color("#c8cce6")
 
 const quip = today === 0 ? "手機在休假"
-           : today <= 10 ? "佛系使用"
-           : today <= 30 ? "正常人的一天"
-           : today <= 60 ? "手指在練肌肉"
+           : today < 10 ? "佛系使用"
+           : today < 30 ? "正常人的一天"
+           : today < 50 ? "有點黏手機"
+           : today < 80 ? "手指在練肌肉"
            : "跟鉸鏈吵架中"
 
-const days = Math.max(1, (dayStart - START) / 86400000 + 1)
+let firstDay = dayStart
+for (const k in byDay) { const d = new Date(k); if (d < firstDay) firstDay = d }
+const startDay = START || firstDay
+const days = Math.max(1, Math.round((dayStart - startDay) / 86400000) + 1)
 const rate = total / days
 const daysLeft = rate > 0 ? Math.round(hp / rate) : 0
 const zero = new Date(now); zero.setDate(zero.getDate() + daysLeft)

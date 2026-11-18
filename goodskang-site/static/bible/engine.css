@@ -67,7 +67,7 @@ details.intro summary:after{content:"＋";color:var(--brass)}details.intro[open]
 .slot .shade{position:absolute;inset:0;pointer-events:none;z-index:20;opacity:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0) 55%)}
 .leaf{position:absolute;top:0;height:100%;transform-style:preserve-3d;z-index:8;pointer-events:none}
 .st{position:absolute;top:0;height:100%;transform-style:preserve-3d;will-change:transform}
-.st .f{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.st .f{position:absolute;inset:0;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden;-webkit--webkit-backface-visibility:hidden;backface-visibility:hidden}
 .st .fb{transform:rotateY(180deg)}
 .st .hold{position:absolute;top:0;height:100%}
 .st .hold.blank{background:linear-gradient(90deg,#e9dcc0,#f4ead3)}

@@ -300,6 +300,7 @@ function setP(p){const f=FL;if(!f)return;f.p=p;const q=f.rev?1-p:p,LAG=.3,sg=f.s
  const col=v=>v>=0?`rgba(0,0,0,${v.toFixed(3)})`:`rgba(255,255,255,${(-v).toFixed(3)})`;
  for(let i=0;i<NS;i++){const u=(i+1)/NS,a=180*Math.max(0,Math.min(1,q*(1+LAG)-LAG*(1-u))),s=f.strips[i],rad=a*Math.PI/180,bend=(a-prev)/(180/NS*1.6);
   s.el.style.transform=`rotateY(${(sg*(a-prev)).toFixed(2)}deg)`;
+  {const fv=a<90;s.shF.parentNode.style.visibility=fv?"visible":"hidden";s.shB.parentNode.style.visibility=fv?"hidden":"visible";}
   // 正值＝變暗、負值＝反光；每一條從上一條的亮度漸變到自己的亮度，接縫才看不出來
   const vF=Math.sin(Math.min(rad,Math.PI/2))*.5-Math.min(.22,bend*.3),vB=Math.max(0,Math.sin(rad))*.34-Math.min(.25,bend*.35);
   s.shF.style.background=`linear-gradient(${f.side==="R"?90:270}deg,${col(i?pF:vF)},${col(vF)})`;

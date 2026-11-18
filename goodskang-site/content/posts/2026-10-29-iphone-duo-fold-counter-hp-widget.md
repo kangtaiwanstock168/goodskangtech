@@ -100,7 +100,7 @@ const fm = FileManager.iCloud()
 const dir = fm.bookmarkedPath("Shortcuts")
 const BASE = 0
 const GOAL = 20000
-const START = new Date(2026, 9, 23)
+const START = null
 const LV_STEP = 1000
 
 function readLines(name) {
@@ -179,12 +179,16 @@ const lvColor = lv >= 11 ? new Color("#ffd700")
               : new Color("#c8cce6")
 
 const quip = today === 0 ? "手機在休假"
-           : today <= 10 ? "佛系使用"
-           : today <= 30 ? "正常人的一天"
-           : today <= 60 ? "手指在練肌肉"
+           : today < 10 ? "佛系使用"
+           : today < 30 ? "正常人的一天"
+           : today < 50 ? "有點黏手機"
+           : today < 80 ? "手指在練肌肉"
            : "跟鉸鏈吵架中"
 
-const days = Math.max(1, (dayStart - START) / 86400000 + 1)
+let firstDay = dayStart
+for (const k in byDay) { const d = new Date(k); if (d < firstDay) firstDay = d }
+const startDay = START || firstDay
+const days = Math.max(1, Math.round((dayStart - startDay) / 86400000) + 1)
 const rate = total / days
 const daysLeft = rate > 0 ? Math.round(hp / rate) : 0
 const zero = new Date(now); zero.setDate(zero.getDate() + daysLeft)
@@ -348,7 +352,7 @@ IG 和 FB 自己的瀏覽器會擋剪貼簿。
 紅字是 Scriptable 找不到書籤：Scriptable → 左上齒輪 →「File Bookmarks」，書籤名稱要是「Shortcuts」（S 大寫），沒有就照第⑤步加一個，加完點一下 Widget 紅字就消失。
 
 ### Q8. 我拿到 Duo 已經開過很多次了，想從真實數字開始
-Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，`START` 改成拿到手機那天（月份要減 1，10 月填 9），右上角「完成」，Widget 下次更新就會算進去。
+Scriptable 裡點開 Duo 腳本，最上面 `BASE = 0` 改成你估的次數，右上角「完成」，點一下 Widget 就會算進去。「每天約幾次」會自動從你第一天有紀錄的日期開始算，不用另外設定日期。
 
 ### Q9. 我不是 Duo 可以玩嗎？資料會傳到阿康那邊嗎？
 別的 iPhone 不行，「iPhone 打開時」只有 iPhone Duo 的捷徑有。資料哪都不傳，三個檔案都在你自己 iCloud 雲碟的「捷徑」資料夾，捷徑和 Scriptable 都在你手機上跑，阿康看不到你開幾次。
@@ -423,7 +427,7 @@ iPhone Duo 的捷徑 App 多了一個別的 iPhone 沒有的觸發條件「iPhon
 
 三個檔案都在 iCloud 雲碟的「捷徑」資料夾（英文叫 Shortcuts），用「檔案」App 打得開，資料在你自己手上，不經過任何伺服器。
 
-想改的只有程式最上面幾行：`BASE` 是裝之前已經開過的次數，`GOAL` 是滿血 HP（預設 20000），`START` 是拿到手機的日期，`LV_STEP` 是幾次升一級（預設 1000）。
+想改的只有程式最上面幾行：`BASE` 是裝之前已經開過的次數，`GOAL` 是滿血 HP（預設 20000），`START` 留 `null` 會自動用第一天有紀錄的日期，`LV_STEP` 是幾次升一級（預設 1000）。
 
 ## 阿康自己最想看的
 

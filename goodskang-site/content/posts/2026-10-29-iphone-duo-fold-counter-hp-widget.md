@@ -284,7 +284,7 @@ Script.complete()
 👆 想立刻看到最新數字：手指點一下 Widget，它會馬上重算一次
 ```
 
-💬 **做到一半卡關？**[到「阿康的科技好康」LINE 社群直接問阿康 →](https://line.me/ti/g2/-pss-Qh7VBGsfn6_6CI6BK9xipk3wl8MPifxOQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default)
+💬 **做到一半卡關？**先看下面的[常見問題 →](#s2)，大家遇過的狀況都整理在 12 題裡，照你手機上看到的畫面找對應那題，幾乎都能自己解決。
 
 [[接著看]]
 

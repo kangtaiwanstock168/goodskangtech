@@ -91,7 +91,7 @@ let firstDay = dayStart
 for (const k in byDay) { const d = new Date(k); if (d < firstDay) firstDay = d }
 const startDay = START || firstDay
 const days = Math.max(1, Math.round((dayStart - startDay) / 86400000) + 1)
-const rate = total / days
+const rate = (total - BASE) / days
 const daysLeft = rate > 0 ? Math.round(hp / rate) : 0
 const zero = new Date(now); zero.setDate(zero.getDate() + daysLeft)
 const df = new DateFormatter(); df.dateFormat = "yyyy/MM/dd"
@@ -158,7 +158,7 @@ fill.size = new Size(Math.max(2, 300 * hpPct), 6)
 bar.addSpacer()
 
 w.addSpacer(4)
-const ft = w.addText("每天約 " + rate.toFixed(1) + " 次・照這速度 " + df.string(zero) + " 血條歸零")
+const ft = w.addText(rate > 0 ? "每天約 " + rate.toFixed(1) + " 次・照這速度 " + df.string(zero) + " 血條歸零" : "開合幾次之後，這裡會算出血條哪天歸零")
 ft.font = Font.systemFont(9); ft.textColor = new Color("#6b7090"); ft.minimumScaleFactor = 0.8
 
 w.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000)

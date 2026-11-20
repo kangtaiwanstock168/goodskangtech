@@ -497,3 +497,16 @@ u.gl{text-decoration:none;border-bottom:1.5px dashed rgba(200,144,47,.85);cursor
 .skipst{display:block;margin:6px auto 0;padding:7px 14px;border-radius:999px;border:1px solid #c8902f;background:rgba(224,178,92,.15);color:inherit;font-size:13px;font-weight:700}
 .listnote{margin:8px 0 0;padding:8px 12px;border-radius:10px;background:rgba(20,14,8,.72);color:#f3e6cf;font-size:14px;line-height:1.6}
 .listnote .skipst{display:inline-block;margin:6px 0 0}
+
+.leaf.lite{will-change:transform;transform-style:preserve-3d}
+.leaf.lite .f{position:absolute;inset:0;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.leaf.lite .fb{transform:rotateY(180deg)}
+.leaf.lite .f.blank{background:linear-gradient(90deg,#e9dcc0,#f4ead3)}
+.leaf.lite .pg{box-shadow:none}
+.leaf.lite .sh{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:30;will-change:opacity}
+.slot .shade{will-change:opacity}
+.leaf.lite.R .ff .sh{background:linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,.55))}
+.leaf.lite.L .ff .sh{background:linear-gradient(270deg,rgba(0,0,0,.08),rgba(0,0,0,.55))}
+.leaf.lite.R .fb .sh{background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,.06))}
+.leaf.lite.L .fb .sh{background:linear-gradient(270deg,rgba(0,0,0,.45),rgba(0,0,0,.06))}
+.cast.lite{filter:none;left:0;transform-origin:0 50%;will-change:transform,opacity}

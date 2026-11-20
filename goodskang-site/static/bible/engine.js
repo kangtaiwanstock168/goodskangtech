@@ -1,6 +1,36 @@
 "use strict";
 
 window.NOBATTLE=false;
+const PREC=new Map();let KEEP=0,LITE=null;
+function lite(){if(LITE===null){const q=location.search;LITE=/[?&]lite=0/.test(q)?false:(/[?&]lite=1/.test(q)||!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches));}return LITE;}
+function pkey(k){return R.n+"|"+k+"|"+PW+"x"+PH;}
+function takePage(k,play){const key=pkey(k),el=PREC.get(key);if(!el)return null;PREC.delete(key);
+ if(play&&!el.classList.contains("play"))requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add("play")));return el;}
+function stash(root){if(!root)return;root.querySelectorAll(".slot>.pg[data-k],.leaf.lite .f>.pg[data-k]").forEach(el=>{const k=+el.dataset.k;if(k>=0&&k<R.pages.length){el.remove();PREC.set(pkey(k),el);}});}
+function mkPage0(k){const el=pageEl(k,false);if(k>=0&&k<R.pages.length)fitPage(el,k);return el;}
+function warmFlip(){if(R.mode==="scroll")return;const i=R.i,ks=R.spread?[i-2,i-1,i+2,i+3]:[i-1,i+1];
+ const keep=new Set(ks.map(pkey));for(const k of [...PREC.keys()])if(!keep.has(k))PREC.delete(k);
+ const todo=ks.filter(k=>k>=0&&k<R.pages.length&&R.pages[k].t==="scene"&&!PREC.has(pkey(k)));const n0=R.n,i0=R.i;
+ const go=()=>{if(R.n!==n0||R.i!==i0||FL||!todo.length||R.mode==="scroll")return;const k=todo.shift(),key=pkey(k);
+  if(!PREC.has(key))PREC.set(key,mkPage0(k));if(todo.length)RIC(go,600);};
+ if(todo.length)RIC(go,600);}
+function buildLeaf2(frontK,backK,side){const leaf=document.createElement("div");leaf.className="leaf lite "+side;leaf.style.width=PW+"px";
+ leaf.style.transformOrigin=side==="R"?"0 50%":"100% 50%";
+ const mk=(k,cls)=>{const f=document.createElement("div");f.className="f "+cls;if(k===null)f.classList.add("blank");else f.appendChild(mkPage(k));
+  const sh=document.createElement("div");sh.className="sh";f.appendChild(sh);leaf.appendChild(f);return f;};
+ const F=mk(frontK,"ff"),B=mk(backK,"fb");return {leaf,strips:[],side,lite:true,F,B};}
+function BL(a,b,s){return lite()?buildLeaf2(a,b,s):buildLeaf(a,b,s);}
+function setP2(p){const f=FL;if(!f)return;f.p=p;const q=f.rev?1-p:p,sg=f.side==="R"?-1:1,a=180*q,rad=a*Math.PI/180,sn=Math.sin(rad);
+ f.leaf.style.transform=`rotateY(${(sg*a).toFixed(2)}deg)`;
+ const fv=a<90;if(f._fv!==fv){f._fv=fv;f.F.style.visibility=fv?"visible":"hidden";f.B.style.visibility=fv?"hidden":"visible";}
+ f.F.lastChild.style.opacity=(sn*.8).toFixed(3);f.B.lastChild.style.opacity=(sn*.75).toFixed(3);
+ const x=Math.cos(rad)*PW,lift=Math.sin(Math.PI*q),base=f.side==="R"?parseFloat(f.leaf.style.left):PW,edge=f.side==="R"?base+x:base-x;
+ const L=f.side==="R"?Math.min(edge,base)-10:Math.min(edge,base),w=Math.abs(x)+50+lift*40;
+ f.cast.style.opacity=(lift*.85).toFixed(3);f.cast.style.transform=`translateX(${L.toFixed(1)}px) scaleX(${(w/PW).toFixed(4)})`;
+ const cd=edge>base?1:0;if(f._cd!==cd){f._cd=cd;f.cast.style.background=`linear-gradient(${cd?90:270}deg,rgba(0,0,0,.05),rgba(0,0,0,.42) 70%,rgba(0,0,0,0))`;}
+ f.under.forEach((u,j)=>{const s=u.querySelector(".shade");if(s)s.style.opacity=((1-q)*.35*(j===f.under.length-1?1:0)).toFixed(3);});
+ if(!R.spread)f.leaf.style.opacity=q>.82?Math.max(0,(1-q)/.18).toFixed(3):1;}
+
 const LISTCH={"genesis": [5, 10, 11, 36, 46], "exodus": [6], "numbers": [1, 2, 3, 7, 26, 33, 34], "joshua": [12, 13, 15, 18, 19, 21], "chronicles1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 23, 24, 25, 26, 27], "ezra": [2, 8, 10], "nehemiah": [3, 7, 10, 11, 12]},GLOS={"燔祭": "把整隻祭牲完全燒在壇上獻給神，表示全然奉獻。", "平安祭": "獻祭後，一部分和家人一起吃，表示和神、和人有平安的關係。", "贖罪祭": "為犯罪的人獻上的祭，表示罪需要付代價才能得赦免。", "素祭": "用細麵、油、乳香獻的祭，不是動物，表示把勞動的成果獻給神。", "以弗得": "祭司穿在外面的背心式聖衣；後來也有人做成假的，拿來拜偶像。", "邱壇": "在高處設的祭壇，常用來拜偶像，就算拜耶和華也不是神指定的地方。", "亞舍拉": "迦南人拜的女神，常用木柱代表。", "巴力": "迦南人拜的雨神、豐收之神，是以色列最常跟著拜的假神。", "約櫃": "放兩塊法版的木櫃，外面包金，代表神與百姓同在、立約的記號。", "會幕": "曠野時期可以拆裝搬動的帳幕，是百姓聚集敬拜神的地方。", "帳幕": "神吩咐摩西造的聖所，可以搬動，代表神住在百姓中間。", "施恩座": "約櫃上面的金蓋子，大祭司每年在這裡灑血為百姓贖罪。", "利未人": "利未支派的人，專門負責會幕和聖殿的服事，不分地業。", "割禮": "割去男子包皮的記號，表示屬於和神立約的百姓。", "未受割禮": "不屬於神立約百姓的人；常用來指非利士人。", "拿細耳人": "特別分別出來歸給神的人：不喝酒、不剃頭、不碰死屍。", "士師": "神興起來拯救百姓、帶領百姓的領袖，不是法官的意思。", "先知": "替神傳話的人，常常要對王和百姓說他們不想聽的真話。", "受膏": "把油倒在頭上，表示被神揀選、分別出來作王、祭司或先知。", "受膏者": "被神膏立的人；希伯來文是「彌賽亞」，希臘文是「基督」。", "長子名分": "長子可以多得一份產業，也承接家族的領導和祝福。", "至聖所": "聖殿最裡面放約櫃的房間，只有大祭司一年進去一次。", "陰間": "舊約說人死後去的地方。", "麻衣": "粗糙的麻布衣服，穿上表示悲傷、悔改。", "撕裂衣服": "極度悲傷或震驚時的表現。", "逾越節": "記念神擊殺埃及長子時「越過」以色列家的節期。", "安息日": "每週第七天，停下工作來記念神、休息。", "什一": "收入的十分之一，獻給神。", "烏陵和土明": "大祭司胸牌裡用來求問神旨意的物件。", "基路伯": "聖經中守護神同在的天使，常刻在約櫃和聖殿上。", "大袞": "非利士人拜的神。", "摩洛": "亞捫人拜的神，要求把孩子經火獻祭，神極其厭惡。", "基抹": "摩押人拜的神。", "外邦人": "不是以色列人的各民族。", "肘": "長度單位，約 45 公分（手肘到中指尖）。", "舍客勒": "重量和錢的單位，約 11 公克的銀子。", "他連得": "很大的重量單位，約 34 公斤。", "伊法": "量糧食的單位，約 22 公升。", "贖價": "為了換回生命或自由而付出的代價。", "聖別": "分別出來，專屬於神。", "不潔淨": "照律法暫時不能進入敬拜的狀態，不一定是犯罪。", "立約": "雙方正式承諾、彼此有義務的關係；神主動和人立約。"};const GLRE=new RegExp("("+Object.keys(GLOS).sort((a,b)=>b.length-a.length).join("|")+")");
 function isList(n){return (LISTCH[BOOK.id]||[]).includes(+n);}
 let GLSEEN=new Set();
@@ -246,7 +276,7 @@ function fitBody(el){if(R.mode==="scroll")return;el.querySelectorAll(".fitin").f
   let n=0;while(f.scrollHeight>f.clientHeight+1&&k>.5&&n++<16){k-=.04;set();}});}
 function fitPage(el,k){const P=R.pages[k];if(!P||R.mode==="scroll")return;const m=$("meas");m.style.width=PW+"px";m.style.height=PH+"px";m.appendChild(el);
  if(P.t==="scene")fitScene(el,k,R.n+"|"+k+"|"+PW+"x"+PH);else if(P.t==="pre")growPre(el);else{fitBody(el);if(P.t==="end")growHead(el);}m.removeChild(el);}
-function mkPage(k,play){const el=pageEl(k,play);if(k>=0&&k<R.pages.length)fitPage(el,k);return el;}
+function mkPage(k,play){{const r=takePage(k,play);if(r)return r;}const el=pageEl(k,play);if(k>=0&&k<R.pages.length)fitPage(el,k);return el;}
 function preImg(x){return typeof x==="string"?`img/${x}.webp`:coverURL(x||1);}
 function preHTML(d,k){const N=BOOK.pre.length,u=preImg(d.img);return `<div class="prep2${k%2?" flip":""}"><div class="primg"><i class="pbg" style="background-image:url(${u})"></i><img alt="" src="${u}" draggable="false">${k%2?"":`<span class="prtag">導讀 ${k+1} / ${N}</span>`}</div><div class="prbody">${k%2?`<span class="prtag">導讀 ${k+1} / ${N}</span>`:""}<div class="prnote">📖 ${BOOK.name}導讀・這幾頁是背景介紹，不是聖經經文</div><div class="fitin"><h2>${d.t}</h2>${d.p.map(x=>`<p>${x}</p>`).join("")}</div><div class="prnext">${k===N-1?(COARSE?"往左滑，翻開第 1 章 ›":"按 → 翻開第 1 章 ›"):(COARSE?"往左滑繼續 ›":"按 → 或滾滑鼠繼續 ›")}</div></div></div>`;}
 function growPre(el){const f=el.querySelector(".prbody .fitin"),im=el.querySelector(".primg");if(!f)return;let fs=17;const set=()=>{f.style.fontSize=fs+"px";},over=()=>f.scrollHeight>f.clientHeight+1;set();let n=0;
@@ -262,11 +292,11 @@ function autoDone(){if(R.mode==="scroll"||!R.n)return;const s=st(R.n);if(s.done)
  if(!s.done)bst("d",R.n);s.done=1;if(!SAVE.days.includes(today()))SAVE.days.push(today());save();sfx("win");confetti();toast(doneCount()===NCH?`${BOOK.name} ${NCH} 章全部讀完！`:`第 ${R.n} 章完成・連續 ${streak()} 天`);}
 function hopCh(dir){if(R.mode==="scroll")return false;if(dir>0&&R.n<NCH){const n=R.n+1;st(n).page=0;openBook(n);R.i=0;renderBook(true);return true;}
  if(dir<0&&R.i===0&&R.n>1){openBook(R.n-1);R.i=norm(lastIdx());renderBook(true);return true;}if(dir<0&&R.i===0&&R.n===1){if(PREVB){location.href="../"+PREVB[0]+"/#last";}else closeBook();return true;}if(dir>0&&R.n>=NCH&&NEXTB){location.href="../"+NEXTB[0]+"/#first";return true;}return false;}
-function renderBook(play){layout();autoDone();preSeen();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
+function renderBook(play){{const kp=KEEP;KEEP=0;if(kp)stash($("stage").querySelector(".book"));else PREC.clear();}layout();autoDone();preSeen();const S=$("stage");S.className=(R.mode==="scroll"?"scroll":"")+(BLEED?" bleed":"");S.innerHTML="";$("rmode").textContent=R.mode==="scroll"?"📖":"📜";
  if(R.mode==="scroll"){showUI(true,true);renderScroll();return;}
  R.i=norm(R.i);const book=document.createElement("div");book.className="book";book.style.width=(R.spread?PW*2:PW)+"px";book.style.height=PH+"px";book.style.perspective=Math.round(PW*4.2)+"px";
  if(R.spread){book.append(slot(0,R.i,play),slot(PW,R.i+1,play),spine());}else book.append(slot(0,R.i,play));
- S.appendChild(book);updBar();prefetch();}
+ S.appendChild(book);updBar();prefetch();warmFlip();}
 function spine(){const sp=document.createElement("div");sp.className="spine";sp.style.left=PW+"px";return sp;}
 function prefetch(){for(let k=R.i+1;k<R.i+5;k++){const P=R.pages[k];if(P&&P.t==="scene"&&P.d.ill)img(P.d.ill);}}
 function slot(x,k,play){const s=document.createElement("div");s.className="slot";s.style.left=x+"px";s.style.width=PW+"px";s.appendChild(mkPage(k<R.pages.length?k:-1,play));const sh=document.createElement("div");sh.className="shade";s.appendChild(sh);return s;}
@@ -288,15 +318,15 @@ function buildLeaf(frontK,backK,side){const w=PW/NS,leaf=document.createElement(
   const fo=side==="R"?i*w:(NS-1-i)*w,bo=side==="R"?(NS-1-i)*w:i*w;
   const shF=mk(front,fo,"ff"),shB=mk(back,bo,"fb");parent.appendChild(s);strips.push({el:s,shF,shB});parent=s;}
  return {leaf,strips,side};}
-function beginFlip(dir){if(FL||!canGo(dir))return null;const book=$("stage").querySelector(".book");if(!book)return null;const step=R.spread?2:1,i=R.i;book.innerHTML="";
+function beginFlip(dir){if(FL||!canGo(dir))return null;const book=$("stage").querySelector(".book");if(!book)return null;const step=R.spread?2:1,i=R.i;stash(book);book.innerHTML="";
  let L,under=[],rev=false;
- if(!R.spread){if(dir>0){under.push(slot(0,i+1));L=buildLeaf(i,null,"R");}else{under.push(slot(0,i));L=buildLeaf(i-1,null,"R");rev=true;}L.leaf.style.left="0px";}
- else if(dir>0){under.push(slot(0,i),slot(PW,i+3));L=buildLeaf(i+1,i+2,"R");L.leaf.style.left=PW+"px";}
- else{under.push(slot(0,i-2),slot(PW,i+1));L=buildLeaf(i,i-1,"L");L.leaf.style.left="0px";}
- const cast=document.createElement("div");cast.className="cast";
+ if(!R.spread){if(dir>0){under.push(slot(0,i+1));L=BL(i,null,"R");}else{under.push(slot(0,i));L=BL(i-1,null,"R");rev=true;}L.leaf.style.left="0px";}
+ else if(dir>0){under.push(slot(0,i),slot(PW,i+3));L=BL(i+1,i+2,"R");L.leaf.style.left=PW+"px";}
+ else{under.push(slot(0,i-2),slot(PW,i+1));L=BL(i,i-1,"L");L.leaf.style.left="0px";}
+ const cast=document.createElement("div");cast.className="cast";if(lite()){cast.classList.add("lite");cast.style.width=PW+"px";}
  book.append(...under,cast,L.leaf);if(R.spread)book.appendChild(spine());
- FL={dir,step,rev,under,cast,p:0,...L};setP(0);sfx("page");return FL;}
-function setP(p){const f=FL;if(!f)return;f.p=p;const q=f.rev?1-p:p,LAG=.3,sg=f.side==="R"?-1:1;let prev=0,x=0,pF=0,pB=0;
+ FL={dir,step,rev,under,cast,p:0,...L};if(L.lite)book.querySelectorAll(".pg").forEach(e=>e.classList.add("play"));setP(0);sfx("page");return FL;}
+function setP(p){const f=FL;if(!f)return;if(f.lite)return setP2(p);f.p=p;const q=f.rev?1-p:p,LAG=.3,sg=f.side==="R"?-1:1;let prev=0,x=0,pF=0,pB=0;
  const col=v=>v>=0?`rgba(0,0,0,${v.toFixed(3)})`:`rgba(255,255,255,${(-v).toFixed(3)})`;
  for(let i=0;i<NS;i++){const u=(i+1)/NS,a=180*Math.max(0,Math.min(1,q*(1+LAG)-LAG*(1-u))),s=f.strips[i],rad=a*Math.PI/180,bend=(a-prev)/(180/NS*1.6);
   s.el.style.transform=`rotateY(${(sg*(a-prev)).toFixed(2)}deg)`;
@@ -315,8 +345,8 @@ function setP(p){const f=FL;if(!f)return;f.p=p;const q=f.rev?1-p:p,LAG=.3,sg=f.s
 const easeIO=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2,easeO=k=>1-Math.pow(1-k,3);
 function animP(to,done,tap){const f=FL;if(!f)return;const from=f.p,t0=performance.now(),D=tap?430:Math.max(150,Math.abs(to-from)*340),E=tap?easeIO:easeO;
  const step=now=>{if(FL!==f)return;const k=Math.min(1,(now-t0)/D);setP(from+(to-from)*E(k));if(k<1)requestAnimationFrame(step);else done();};requestAnimationFrame(step);}
-function finishFlip(tap){const f=FL;if(!f)return;animP(1,()=>{R.i+=f.dir*f.step;FL=null;renderBook(true);},tap);}
-function cancelFlip(){const f=FL;if(!f)return;animP(0,()=>{FL=null;renderBook(false);});}
+function finishFlip(tap){const f=FL;if(!f)return;animP(1,()=>{R.i+=f.dir*f.step;FL=null;KEEP=1;renderBook(true);},tap);}
+function cancelFlip(){const f=FL;if(!f)return;animP(0,()=>{FL=null;KEEP=1;renderBook(false);});}
 function go(dir){if(R.mode==="scroll"){const S=$("stage");S.scrollBy({top:dir*S.clientHeight*.85,behavior:"smooth"});return;}if(FL)return;if(!canGo(dir)){if(!hopCh(dir))bump(dir);return;}au();if(beginFlip(dir))finishFlip(true);}
 function bump(dir){const b=$("stage").querySelector(".book");if(!b)return;b.animate([{transform:"translateX(0)"},{transform:`translateX(${-dir*14}px)`},{transform:"translateX(0)"}],{duration:260});}
 // 拖曳翻頁：紙跟著手指走
